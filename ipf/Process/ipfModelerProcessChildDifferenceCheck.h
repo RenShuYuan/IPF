@@ -1,0 +1,41 @@
+#ifndef IPFMODELERPROCESSCHILDDIFFERENCECHECK_H
+#define ipfModelerProcessChildDifferenceCheck_H
+
+#include "ipfModelerProcessOut.h"
+
+class ipfModelerOutDialog;
+
+class ipfModelerProcessChildDifferenceCheck : public ipfModelerProcessOut
+{
+public:
+	ipfModelerProcessChildDifferenceCheck(QObject *parent, const QString modelerName);
+	~ipfModelerProcessChildDifferenceCheck();
+
+	ipfModelerProcessChildDifferenceCheck* classType() { return this; };
+
+	bool checkParameter();
+	void setParameter();
+	QMap<QString, QString> getParameter();
+	void setDialogParameter(QMap<QString, QString> map);
+
+	void run();
+
+private:
+	QString compareRastersDiff(const QString &oneRaster, const QString &twoRaster, QStringList &returnRasters);
+	bool chackRasterVaule0(const QString &file);
+
+	// 在数据列表中查找对应图幅
+	int getFilesIndex(const QStringList &lists, const QString &th);
+
+private:
+	QMap<QString, QString> map;
+	ipfModelerOutDialog *out;
+
+	QString format;
+	QString outPath;
+	QString compress;
+	QString isTfw;
+	QString noData;
+};
+
+#endif // ipfModelerProcessChildDifferenceCheck

@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="image">
+    <file>button/Earth_Globe.ico</file>
+    <file>button/SplashScreen.jpg</file>
+  </qresource>
+</RCC>

@@ -1,0 +1,496 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B12702AD-ABFB-343A-A199-8E24837244A3}</ProjectGuid>
+    <Keyword>Qt4VSv1.0</Keyword>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">
+    <QtMsBuild>$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)..\build-$(SolutionName)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)\$(TargetName)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetExt>.exe</TargetExt>
+  </PropertyGroup>
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+    <Import Project="$(QtMsBuild)\qt.props" />
+  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Disabled</Optimization>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Widgetsd.lib;Qt5AxContainerd.lib;Qt5AxBased.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <QtMoc>
+      <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
+      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt;%(AdditionalIncludeDirectories)</IncludePath>
+      <Define>UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</Define>
+    </QtMoc>
+    <QtUic>
+      <ExecutionDescription>Uic'ing %(Identity)...</ExecutionDescription>
+      <OutputFile>.\GeneratedFiles\ui_%(Filename).h</OutputFile>
+    </QtUic>
+    <QtRcc>
+      <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
+      <OutputFile>.\GeneratedFiles\qrc_%(Filename).cpp</OutputFile>
+    </QtRcc>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;C:\OSGeo4W64\apps\qgis-rel-dev\lib;C:\OSGeo4W64\apps\qgis\lib;C:\OSGeo4W64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Widgets.lib;Qt5Svg.lib;Qt5Xml.lib;qgis_analysis.lib;qgis_app.lib;qgis_core.lib;qgis_gui.lib;expat.lib;freexl_i.lib;gdal_i.lib;geos_c.lib;hdf.lib;hdf5.lib;hdf5_hl.lib;iconv.lib;jpeg12_i.lib;jpeg_i.lib;kmlbase.lib;kmlconvenience.lib;kmldom.lib;kmlengine.lib;kmlregionator.lib;kmlxsd.lib;libcurl.lib;libfcgi.lib;libpng16.lib;libpq.lib;libtiff_i.lib;libxml2.lib;lwgeom.lib;lwgeom_i.lib;mfhdf.lib;minizip.lib;netcdf.lib;openjp2.lib;proj.lib;proj_i.lib;spatialindex-64.lib;spatialindex_c-64.lib;spatialite.lib;spatialite_i.lib;sqlite3_i.lib;szip.lib;tiff.lib;xdr.lib;zdll.lib;zlib.lib;Qt5AxContainer.lib;Qt5AxBase.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <QtMoc>
+      <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
+      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+      <IncludePath>C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt;%(AdditionalIncludeDirectories)</IncludePath>
+      <Define>UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795;%(PreprocessorDefinitions)</Define>
+    </QtMoc>
+    <QtUic>
+      <ExecutionDescription>Uic'ing %(Identity)...</ExecutionDescription>
+      <OutputFile>.\GeneratedFiles\ui_%(Filename).h</OutputFile>
+    </QtUic>
+    <QtRcc>
+      <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
+      <OutputFile>.\GeneratedFiles\qrc_%(Filename).cpp</OutputFile>
+    </QtRcc>
+    <BuildLog>
+      <Path>..\$(IntDir)$(MSBuildProjectName).log</Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <BuildLog>
+      <Path>$(IntDir)$(MSBuildProjectName).log</Path>
+    </BuildLog>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <OpenMPSupport>true</OpenMPSupport>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="ImageProcessFactory.cpp" />
+    <ClCompile Include="ipf\gdal\ipfExcel.cpp" />
+    <ClCompile Include="ipf\gdal\ipfgdalprogresstools.cpp" />
+    <ClCompile Include="ipf\gdal\ipfPushButton.cpp" />
+    <ClCompile Include="ipf\Graphics\ipfGraphicsScene.cpp" />
+    <ClCompile Include="ipf\Graphics\ipfGraphicsView.cpp" />
+    <ClCompile Include="ipf\Graphics\ipfModelerArrowItem.cpp" />
+    <ClCompile Include="ipf\Graphics\ipfModelerGraphicItem.cpp" />
+    <ClCompile Include="ipf\ipfapplication.cpp" />
+    <ClCompile Include="ipf\ipfFractalmanagement.cpp" />
+    <ClCompile Include="ipf\ipfOgr.cpp" />
+    <ClCompile Include="ipf\ipfProjectionTransformation.cpp" />
+    <ClCompile Include="ipf\Process\ipfFlowManage.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildExtractRasterRange.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessBase.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChild.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildbuildOverviews.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildClipVector.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildConsistency.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildCreateTfw.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildDemGrossErrorCheck.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildDifferenceCheck.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildFracClip.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildFracExtentCheck.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildInvalidValueCheck.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildMosaic.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildPixelDecimals.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildPixelMoidfyValue.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildProcessRasterRectPosition.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildProjectionCheck.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildQuickView.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildRasterInfoPrint.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildResample.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildSlopCalculation.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildTransform.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildTypeConvert.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildCreateMetadata.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildVegeataionExtraction.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildWaterFlatten.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildWatersExtraction.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildZCheck.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessIn.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessOut.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="ui\ipfAboutDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerClipVectorDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerDemGrossErrorCheckDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerExtractRasterRangeDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerFracClipDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerFracExtentCheckDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerInDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerInvalidValueCheckDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerMosaicDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerOutDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerPixelDecimalsDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerPixelMoidfyValueDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerProjectionCheckDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerQuickViewDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerRasterInfoPrintDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerResampleDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerTransformDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerTypeConvertDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerCreateMetadataDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerVegeataionExtractionDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerWaterFlattenDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerWatersExtractionDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerZCheckDialog.cpp" />
+    <ClCompile Include="ui\ipfProgress.cpp" />
+    <ClCompile Include="ui\ipfSelectModelerDialog.cpp" />
+    <ClCompile Include="ui\ipfTextInfoDialog.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="ImageProcessFactory.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="ImageProcessFactory.ui" />
+    <QtUic Include="ui\ipfAboutDialog.ui" />
+    <QtUic Include="ui\ipfModelerClipVectorDialog.ui" />
+    <QtUic Include="ui\ipfModelerDemGrossErrorCheckDialog.ui" />
+    <QtUic Include="ui\ipfModelerExtractRasterRangeDialog.ui" />
+    <QtUic Include="ui\ipfModelerFracClipDialog.ui" />
+    <QtUic Include="ui\ipfModelerFracExtentCheckDialog.ui" />
+    <QtUic Include="ui\ipfModelerIn.ui" />
+    <QtUic Include="ui\ipfModelerInvalidValueCheckDialog.ui" />
+    <QtUic Include="ui\ipfModelerMosaicDialog.ui" />
+    <QtUic Include="ui\ipfModelerOut.ui" />
+    <QtUic Include="ui\ipfModelerPixelDecimalsDialog.ui" />
+    <QtUic Include="ui\ipfModelerPixelMoidfyValueDialog.ui" />
+    <QtUic Include="ui\ipfModelerProjectionCheckDialog.ui" />
+    <QtUic Include="ui\ipfModelerQuickViewDialog.ui" />
+    <QtUic Include="ui\ipfModelerRasterInfoPrintDialog.ui" />
+    <QtUic Include="ui\ipfModelerResampleDialog.ui" />
+    <QtUic Include="ui\ipfModelerTransformDialog.ui" />
+    <QtUic Include="ui\ipfModelerTypeConvertDialog.ui" />
+    <QtUic Include="ui\ipfModelerCreateMetadataDialog.ui" />
+    <QtUic Include="ui\ipfModelerVegeataionExtractionDialog.ui" />
+    <QtUic Include="ui\ipfModelerWaterFlattenDialog.ui" />
+    <QtUic Include="ui\ipfModelerWatersExtractionDialog.ui" />
+    <QtUic Include="ui\ipfModelerZCheckDialog.ui" />
+    <QtUic Include="ui\ipfProgress.ui" />
+    <QtUic Include="ui\ipfSelectModelerDialog.ui" />
+    <QtUic Include="ui\ipfTextInfoDialog.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="head.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildExtractRasterRange.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildbuildOverviews.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildConsistency.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildDemGrossErrorCheck.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildDifferenceCheck.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildFracExtentCheck.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildInvalidValueCheck.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildPixelMoidfyValue.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildProcessRasterRectPosition.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildProjectionCheck.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildRasterInfoPrint.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildSlopCalculation.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildVegeataionExtraction.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildWaterFlatten.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildWatersExtraction.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildZCheck.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="resource1.h" />
+    <QtMoc Include="ui\ipfModelerWatersExtractionDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerExtractRasterRangeDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerVegeataionExtractionDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerDemGrossErrorCheckDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerInvalidValueCheckDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerRasterInfoPrintDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerZCheckDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerProjectionCheckDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerWaterFlattenDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerPixelMoidfyValueDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerFracExtentCheckDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfAboutDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfSelectModelerDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerCreateMetadataDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerPixelDecimalsDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerClipVectorDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfTextInfoDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerMosaicDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerTransformDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ipf\gdal\ipfExcel.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <ClInclude Include="ipf\gdal\ipfgdalprogresstools.h" />
+    <ClInclude Include="ipf\gdal\ipfPushButton.h" />
+    <ClInclude Include="ipf\Graphics\ipfGraphicsScene.h" />
+    <ClInclude Include="ipf\Graphics\ipfModelerArrowItem.h" />
+    <ClInclude Include="ipf\Graphics\ipfModelerGraphicItem.h" />
+    <QtMoc Include="ui\ipfModelerResampleDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerQuickViewDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerFracClipDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfProgress.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerTypeConvertDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerOutDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerInDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ipf\Process\ipfFlowManage.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ipf\ipfFractalmanagement.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <ClInclude Include="ipf\ipfOgr.h" />
+    <ClInclude Include="ipf\ipfProjectionTransformation.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </ClInclude>
+    <ClInclude Include="ipf\Process\ipfModelerProcessChild.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildClipVector.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildCreateTfw.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildFracClip.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildMosaic.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildPixelDecimals.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildQuickView.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildResample.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildTransform.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildTypeConvert.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildCreateMetadata.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessIn.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessOut.h" />
+    <QtMoc Include="ipf\Process\ipfModelerProcessBase.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ipf\Graphics\ipfGraphicsView.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+    <QtMoc Include="ipf\ipfapplication.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="resources\image.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="ImageProcessFactory.ico" />
+    <Image Include="resources\button\SplashScreen.jpg">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ImageProcessFactory.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+    <Import Project="$(QtMsBuild)\qt.targets" />
+  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties MocDir=".\GeneratedFiles\$(ConfigurationName)" UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" lupdateOptions="" lupdateOnBuild="0" lreleaseOptions="" Qt5Version_x0020_x64="msvc2017_64" MocOptions="" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
