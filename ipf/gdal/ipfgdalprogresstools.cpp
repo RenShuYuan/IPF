@@ -229,32 +229,23 @@ static char *SanitizeSRS(const char *pszUserInput)
 */
 int ALGTermProgress(double dfComplete, const char *pszMessage, void *pProgressArg)
 {
-  //  if(pProgressArg != NULL)
-  //  {
-		//ipfProgress * pProcess = (ipfProgress*) pProgressArg;
-  //      pProcess->setValue((int)(dfComplete*100));
-
-  //      QApplication::processEvents();
-  //      if (pProcess->wasCanceled())
-  //      {
-  //          return FALSE;
-  //      }
-  //      else
-  //      {
-  //          return TRUE;
-  //      }
-  //  }
-  //  else
-  //      return TRUE;
-
 	if (pProgressArg != NULL)
 	{
-		cs * css = (cs*)pProgressArg;
-		ipfProgress *pProcess = css->pdialog;
-		pProcess->setValue((int)(dfComplete * 100), css->pProcess);
-	}
+		ipfProgress * pProcess = (ipfProgress*)pProgressArg;
+		pProcess->setValue((int)(dfComplete * 100));
 
-	return TRUE;
+		QApplication::processEvents();
+		if (pProcess->wasCanceled())
+		{
+			return FALSE;
+		}
+		else
+		{
+			return TRUE;
+		}
+	}
+	else
+		return TRUE;
 }
 
 /*
@@ -845,27 +836,14 @@ ipfGdalProgressTools::errType ipfGdalProgressTools::eqiGDALTranslate(const QStri
     if (psOptionsForBinary->pszDest == NULL)
 		return eDestParameterNull;
 
-    // 是否禁用标准输出
-    if (strcmp(psOptionsForBinary->pszDest, "/vsistdout/") == 0)
-    {
-        psOptionsForBinary->bQuiet = TRUE;
-    }
-
-	// 创建进程进度条
-	QProgressBar *pChild = new QProgressBar();
-	pChild->setAttribute(Qt::WA_DeleteOnClose, true);
-	pChild->setMaximumHeight(10);
-	pChild->setTextVisible(false);
-	pChild->setRange(0, 100);
-
-	proDialog->addProgress(pChild);
-
-	cs dasw[1] = { proDialog , pChild };
-	cs *css = dasw;
-
+	// 是否禁用标准输出
+	if (strcmp(psOptionsForBinary->pszDest, "/vsistdout/") == 0)
+	{
+		psOptionsForBinary->bQuiet = TRUE;
+	}
 	if (!(psOptionsForBinary->bQuiet))
 	{
-		GDALTranslateOptionsSetProgress(psOptions, ALGTermProgress, css);
+		GDALTranslateOptionsSetProgress(psOptions, ALGTermProgress, proDialog);
 	}
 
     // 检查输出格式，如果不正确，则将列出所支持的格式

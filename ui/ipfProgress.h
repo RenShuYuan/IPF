@@ -1,8 +1,6 @@
 #pragma once
 
 #include <QDialog>
-#include <QList>
-#include <QProgressBar>
 #include "ui_ipfProgress.h"
 
 class ipfProgress : public QDialog
@@ -13,10 +11,8 @@ public:
 	ipfProgress(QWidget *parent = Q_NULLPTR);
 	~ipfProgress();
 
-	void addProgress(QProgressBar *pProcess);
-
 	void setTitle(const QString& label);
-	void setValue(int value, QProgressBar *pProcessChild = nullptr);
+	void setValue(int value);
 	void pulsValueTatal();
 	void setRangeChild(int minimum, int maximum);
 	void setRangeTotal(int minimum, int maximum);
@@ -30,6 +26,4 @@ private:
 	Ui::ipfProgress ui;
 	bool isKeep;
 	int tatalCount;
-
-	QList<QProgressBar *> childList;
 };

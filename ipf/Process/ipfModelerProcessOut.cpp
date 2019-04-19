@@ -66,19 +66,19 @@ void ipfModelerProcessOut::run()
 
 
 	// 这句使用OpenMP来加速 	foreach (QString var, filesIn())
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < filesIn().size(); ++i)
 	{
 		QString var = filesIn().at(i);
 		QString target = outPath + "\\" + removeDelimiter(var) + '.' + format;
 		QString err = gdal.formatConvert(var, target, gdal.enumFormatToString(format), compress, isTfw, noData);
-#pragma omp critical
-		{
+//#pragma omp critical
+		//{
 			if (err.isEmpty())
 				appendOutFile(target);
 			else
 				addErrList(var + ": " + err);
-		}
+		//}
 	}
 }
 
