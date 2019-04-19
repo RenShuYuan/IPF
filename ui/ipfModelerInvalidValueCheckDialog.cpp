@@ -14,13 +14,17 @@ ipfModelerInvalidValueCheckDialog::~ipfModelerInvalidValueCheckDialog()
 QMap<QString, QString> ipfModelerInvalidValueCheckDialog::getParameter()
 {
 	QMap<QString, QString> map;
-	map["invalidValue"] = invalidValue;
 	map["saveName"] = saveName;
+	map["invalidValue"] = invalidValue;
 
 	if (isNegative)
 		map["isNegative"] = "YES";
 	else
 		map["isNegative"] = "NO";
+	if (isNodata)
+		map["isNodata"] = "YES";
+	else
+		map["isNodata"] = "NO";
 
 	return map;
 }
@@ -34,22 +38,15 @@ void ipfModelerInvalidValueCheckDialog::setParameter(QMap<QString, QString> map)
 		isNegative = true;
 	else
 		isNegative = false;
+	if (map["isNodata"] == "YES")
+		isNodata = true;
+	else
+		isNodata = false;
 
 	ui.lineEdit->setText(invalidValue);
 	ui.lineEdit_2->setText(saveName);
 	ui.checkBox->setChecked(isNegative);
-}
-
-void ipfModelerInvalidValueCheckDialog::on_pushButton_clicked()
-{
-	saveName = ui.lineEdit_2->text();
-	invalidValue = ui.lineEdit->text();
-	if (ui.checkBox->isChecked())
-		isNegative = true;
-	else
-		isNegative = false;
-
-	accept();
+	ui.checkBox_2->setChecked(isNodata);
 }
 
 void ipfModelerInvalidValueCheckDialog::on_pushButton_2_clicked()
@@ -57,9 +54,24 @@ void ipfModelerInvalidValueCheckDialog::on_pushButton_2_clicked()
 	QString path = mSettings.value("/rasterPath", "/home").toString();
 	QString dir = QFileDialog::getExistingDirectory(this, QStringLiteral("Ñ¡ÔñÎÄ¼þ¼Ð"), path
 		, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-	if (dir.isEmpty())
+	if (!dir.isEmpty())
 	{
-		return;
+		ui.lineEdit_2->setText(QDir::toNativeSeparators(dir));
 	}
-	ui.lineEdit_2->setText(QDir::toNativeSeparators(dir));
+}
+
+void ipfModelerInvalidValueCheckDialog::on_pushButton_clicked()
+{
+	invalidValue = ui.lineEdit->text();
+	saveName = ui.lineEdit_2->text();
+	if (ui.checkBox->isChecked())
+		isNegative = true;
+	else
+		isNegative = false;
+	if (ui.checkBox_2->isChecked())
+		isNodata = true;
+	else
+		isNodata = false;
+
+	accept();
 }

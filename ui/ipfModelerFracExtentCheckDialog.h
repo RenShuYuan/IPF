@@ -24,7 +24,6 @@ private:
 	QSettings mSettings;
 
 	QString saveName;
-	int ext;
 };
 
 #endif // IPFMODELERFRACEXTENTCHECKDIALOG_H

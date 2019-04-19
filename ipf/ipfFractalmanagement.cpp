@@ -19,11 +19,22 @@ ipfFractalManagement::ipfFractalManagement(const int blc, QObject *parent) : QOb
 	setBlc(blc);
 }
 
-bool ipfFractalManagement::effectiveness(const QString & strName)
+bool ipfFractalManagement::effectiveness(const QString & th)
 {
+	QString strName = th;
+
 	//检查图号位数是否正确
-	if (strName.size() != 10)
+	if ((strName.size() != 10) && (strName.size() != 11))
 		return false;
+
+	if (strName.size() == 11)
+	{
+		QChar hemisphere = strName.at(0);
+		if ((hemisphere == 'S') || (hemisphere == 'N'))
+			strName = strName.remove(0, 1);
+		else
+			return false;
+	}
 
 	//检查图号的百万行号是否是字母
 	QChar row = strName.at(0);
@@ -54,12 +65,22 @@ bool ipfFractalManagement::effectiveness(const QString & strName)
 	return false;
 }
 
-QList<QgsPointXY> ipfFractalManagement::dNToLal(const QString &dNStr)
+QList<QgsPointXY> ipfFractalManagement::dNToLal(const QString &strName)
 {
+	QString dNStr = strName;
+
 	if (!effectiveness(dNStr))
 	{
 		errList.append(dNStr + QStringLiteral(": 图号不正确。"));
 		return QList<QgsPointXY>();
+	}
+
+	// 提取南北半球标识符
+	QChar hemisphere = 'N';
+	if (dNStr.size() == 11)
+	{
+		hemisphere = dNStr.at(0);
+		dNStr = dNStr.remove(0, 1);
 	}
 
     int a=0, b=0, c=0, d=0;
@@ -99,8 +120,17 @@ QList<QgsPointXY> ipfFractalManagement::dNToLal(const QString &dNStr)
     double dwc = mJwc.dwc/60;
 
     //计算出西南角的经纬度,十进制表示
-    double djd=((b-31)*360+(d-1)*djc)/60;
-    double dwd=((a-1)*240+(240/dwc-c)*dwc)/60;
+    double djd= ((b-31)*360+(d-1)*djc)/60;
+	double dwd = 0;
+	if (hemisphere == 'S')
+	{
+		a = 0 - a;
+		dwd = (a * 240 + (240 / dwc - c)*dwc) / 60;
+	}
+	else
+	{
+		dwd = ((a - 1) * 240 + (240 / dwc - c)*dwc) / 60;
+	}
 
 	QList<QgsPointXY> list;
     list << QgsPointXY( djd, dwd )                //西南
@@ -127,7 +157,7 @@ QList<QgsPointXY> ipfFractalManagement::dNToXy(const QString &dNStr)
 		return pointsOut;
 	}
 
-	ipfProjectionTransformation::errType err = ipfPrj.createTargetCrs(points.at(0).x());
+	ipfProjectionTransformation::errType err = ipfPrj.createTargetCrs(points.at(0));
 	if (err != ipfProjectionTransformation::eOK)
 	{
 		errList.append(dNStr + QStringLiteral(": 创建投影坐标系失败。"));
@@ -351,10 +381,14 @@ int ipfFractalManagement::getScale(const int index)
 
 QString ipfFractalManagement::getAdjacentFrac(const QString &strName, const int possition)
 {
-	QString newTh;
 	if (!effectiveness(strName)) return QString();
 
-	newTh = strName;
+	QString newTh = strName;
+	int ranks = getRanks(newTh.at(4));
+
+	if (newTh.size() != 11)
+		newTh = QString("N") + strName;
+
 	if (possition == 1)
 	{
 		newTh = getAdjacentFrac(newTh, 2);
@@ -362,20 +396,28 @@ QString ipfFractalManagement::getAdjacentFrac(const QString &strName, const int 
 	}
 	else if (possition == 2)
 	{
-		int row = (newTh.mid(4, 3)).toInt();
+		int row = (newTh.mid(5, 3)).toInt();
 		if (row > 1)
 		{
 			QString tmpStr = QString::number(--row);
 			fill0_three(tmpStr);
-			newTh.replace(4, 3, tmpStr);
+			newTh.replace(5, 3, tmpStr);
 		}
 		else
 		{
-			char ch = newTh.at(0).toLatin1();
-			newTh.replace(0, 1, ++ch);
-			QString tmpStr = QString::number(mJwc.ranks);
+			QString tmpStr = QString::number(ranks);
 			fill0_three(tmpStr);
-			newTh.replace(4, 3, tmpStr);
+			newTh.replace(5, 3, tmpStr);
+
+			if (newTh.at(1).toLower() == 'a' && newTh.at(0).toLower() == 's')
+			{
+				newTh.replace(0, 1, "N");
+			}
+			else
+			{
+				char ch = newTh.at(1).toLatin1();
+				newTh.replace(1, 1, ++ch);
+			}
 		}
 	}
 	else if (possition == 3)
@@ -385,40 +427,40 @@ QString ipfFractalManagement::getAdjacentFrac(const QString &strName, const int 
 	}
 	else if (possition == 4)
 	{
-		int column = (newTh.mid(7, 3)).toInt();
+		int column = (newTh.mid(8, 3)).toInt();
 		if (column > 1)
 		{
 			QString tmpStr = QString::number(--column);
 			fill0_three(tmpStr);
-			newTh.replace(7, 3, tmpStr);
+			newTh.replace(8, 3, tmpStr);
 		}
 		else
 		{
-			int iColumn = (newTh.mid(1, 2)).toInt();
+			int iColumn = (newTh.mid(2, 2)).toInt();
 			QString tmpStr = QString::number(--iColumn);
 			fill0_two(tmpStr);
-			newTh.replace(1, 2, tmpStr);
-			QString bwColumn = QString::number(mJwc.ranks);
+			newTh.replace(2, 2, tmpStr);
+			QString bwColumn = QString::number(ranks);
 			fill0_three(bwColumn);
-			newTh.replace(7, 3, bwColumn);
+			newTh.replace(8, 3, bwColumn);
 		}
 	}
 	else if (possition == 5)
 	{
-		int column = (newTh.mid(7, 3)).toInt();
-		if (column < mJwc.ranks)
+		int column = (newTh.mid(8, 3)).toInt();
+		if (column < ranks)
 		{
 			QString tmpStr = QString::number(++column);
 			fill0_three(tmpStr);
-			newTh.replace(7, 3, tmpStr);
+			newTh.replace(8, 3, tmpStr);
 		}
 		else
 		{
-			int iColumn = (newTh.mid(1, 2)).toInt();
+			int iColumn = (newTh.mid(2, 2)).toInt();
 			QString tmpStr = QString::number(++iColumn);
 			fill0_two(tmpStr);
-			newTh.replace(1, 2, tmpStr);
-			newTh.replace(7, 3, "001");
+			newTh.replace(2, 2, tmpStr);
+			newTh.replace(8, 3, "001");
 		}
 	}
 	else if (possition == 6)
@@ -428,18 +470,26 @@ QString ipfFractalManagement::getAdjacentFrac(const QString &strName, const int 
 	}
 	else if (possition == 7)
 	{
-		int row = (newTh.mid(4, 3)).toInt();
-		if (row < mJwc.ranks)
+		int row = (newTh.mid(5, 3)).toInt();
+		if (row < ranks)
 		{
 			QString tmpStr = QString::number(++row);
 			fill0_three(tmpStr);
-			newTh.replace(4, 3, tmpStr);
+			newTh.replace(5, 3, tmpStr);
 		}
 		else
 		{
-			char c = newTh.at(0).toLatin1();
-			newTh.replace(0, 1, --c);
-			newTh.replace(4, 3, "001");
+			newTh.replace(5, 3, "001");
+
+			if (newTh.at(1).toLower() == 'a' && newTh.at(0).toLower() == 'n')
+			{
+				newTh.replace(0, 1, "S");
+			}
+			else
+			{
+				char c = newTh.at(1).toLatin1();
+				newTh.replace(1, 1, --c);
+			}
 		}
 	}
 	else if (possition == 8)
@@ -619,7 +669,7 @@ bool ipfFractalManagement::setGCS()
 bool ipfFractalManagement::checkLBisExtent(const QgsPointXY &point)
 {
     if (point.x()>=-180 && point.x()<=180 &&
-        point.y()>=0 && point.y()<=90)
+        point.y()>=-90 && point.y()<=90)
     {
         return true;
     }

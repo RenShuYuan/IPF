@@ -9,13 +9,13 @@ ipfModelerProcessChildResample::ipfModelerProcessChildResample(QObject *parent, 
 	setId(QUuid::createUuid().toString());
 
 	res = 0.0;
-	resample = new ipfModelerResampleDialog();
+	dialog = new ipfModelerResampleDialog();
 }
 
 
 ipfModelerProcessChildResample::~ipfModelerProcessChildResample()
 {
-	if (resample) { delete resample; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildResample::checkParameter()
@@ -33,9 +33,9 @@ bool ipfModelerProcessChildResample::checkParameter()
 
 void ipfModelerProcessChildResample::setParameter()
 {
-	if (resample->exec())
+	if (dialog->exec())
 	{
-		QMap<QString, QString> map = resample->getParameter();
+		QMap<QString, QString> map = dialog->getParameter();
 		resampling_method = map["resampling_method"];
 		res = map["res"].toDouble();
 	}
@@ -52,7 +52,7 @@ QMap<QString, QString> ipfModelerProcessChildResample::getParameter()
 
 void ipfModelerProcessChildResample::setDialogParameter(QMap<QString, QString> map)
 {
-	resample->setParameter(map);
+	dialog->setParameter(map);
 	resampling_method = map["resampling_method"];
 	res = map["res"].toDouble();
 }

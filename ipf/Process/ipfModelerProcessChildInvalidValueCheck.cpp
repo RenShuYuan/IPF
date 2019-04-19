@@ -14,29 +14,17 @@ ipfModelerProcessChildInvalidValueCheck::ipfModelerProcessChildInvalidValueCheck
 
 ipfModelerProcessChildInvalidValueCheck::~ipfModelerProcessChildInvalidValueCheck()
 {
-	if (dialog) { delete dialog; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildInvalidValueCheck::checkParameter()
 {
-	bool isbl = true;
-
-	if (saveName.isEmpty())
+	if (!QDir(saveName).exists())
 	{
-		isbl = false;
 		addErrList(QStringLiteral("无效的输出文件夹。"));
+		return false;
 	}
-	else
-	{
-		QDir dir(saveName);
-		if (!dir.exists())
-		{
-			isbl = false;
-			addErrList(QStringLiteral("无效的输出文件夹。"));
-		}
-	}
-
-	return isbl;
+	return true;
 }
 
 void ipfModelerProcessChildInvalidValueCheck::setParameter()
@@ -45,13 +33,17 @@ void ipfModelerProcessChildInvalidValueCheck::setParameter()
 	{
 		QMap<QString, QString> map = dialog->getParameter();
 
-		saveName = map["saveName"];
 		invalidValue = map["invalidValue"];
+		saveName = map["saveName"];
 
 		if (map["isNegative"] == "YES")
 			isNegative = true;
 		else
 			isNegative = false;
+		if (map["isNodata"] == "YES")
+			isNodata = true;
+		else
+			isNodata = false;
 	}
 }
 
@@ -66,6 +58,10 @@ QMap<QString, QString> ipfModelerProcessChildInvalidValueCheck::getParameter()
 		map["isNegative"] = "YES";
 	else
 		map["isNegative"] = "NO";
+	if (isNodata)
+		map["isNodata"] = "YES";
+	else
+		map["isNodata"] = "NO";
 
 	return map;
 }
@@ -73,156 +69,86 @@ QMap<QString, QString> ipfModelerProcessChildInvalidValueCheck::getParameter()
 void ipfModelerProcessChildInvalidValueCheck::setDialogParameter(QMap<QString, QString> map)
 {
 	dialog->setParameter(map);
-	saveName = map["saveName"];
 	invalidValue = map["invalidValue"];
+	saveName = map["saveName"];
 
 	if (map["isNegative"] == "YES")
 		isNegative = true;
 	else
 		isNegative = false;
+	if (map["isNodata"] == "YES")
+		isNodata = true;
+	else
+		isNodata = false;
 }
 
 void ipfModelerProcessChildInvalidValueCheck::run()
 {
 	clearOutFiles();
 	clearErrList();
-	QStringList errList;
 
-	// 分割特定无效值
-	QStringList valueList;
-	if (!invalidValue.isEmpty())
-		valueList = invalidValue.split('@', QString::SkipEmptyParts);
+	QStringList outList;
 
-	ipfProgress proDialog;
-	proDialog.setRangeTotal(0, filesIn().size());
-	proDialog.show();
+	ipfGdalProgressTools gdal;
+	gdal.setProgressSize(filesIn().size());
+	gdal.showProgressDialog();
 
 	foreach(QString var, filesIn())
 	{
-		// 打开栅格
-		ipfOGR ogr(var);
-		if (!ogr.isOpen())
+		QString rasterFileName = QFileInfo(var).fileName();
+		QString target = ipfFlowManage::instance()->getTempVrtFile(var);
+
+		QString err = gdal.filterInvalidValue(var, target, invalidValue, isNegative, isNodata);
+		if (err.isEmpty())
 		{
-			addErrList(var + QStringLiteral(": 读取栅格数据失败，无法继续。"));
-			continue;
-		}
-
-		/*
-		// 创建输出栅格
-		QString file = "d:\\1.img";
-		GDALDataset* poDataset_target = ogr.createNewRaster(file);
-		if (!poDataset_target)
-		{
-			addErrList(var + QStringLiteral(": 创建输出栅格数据失败，无法继续。"));
-			continue;
-		}
-		*/
-
-		int nBands = ogr.getBandSize();
-		int nXSize = ogr.getYXSize().at(1);
-		int nYSize = ogr.getYXSize().at(0);
-		double nodata = ogr.getNodataValue(1);
-
-		// 分块参数
-		int nBlockSize = 512;
-		long blockSize = nBlockSize * nBlockSize * nBands;
-		double *pSrcData = new double[blockSize];
-
-		// 计算进度条值
-		int proX = 0;
-		int proY = 0;
-		if (nXSize % nBlockSize == 0)
-			proX = nXSize / nBlockSize;
-		else
-			proX = nXSize / nBlockSize + 1;
-		if (nYSize % nBlockSize == 0)
-			proY = nYSize / nBlockSize;
-		else
-			proY = nYSize / nBlockSize + 1;
-		proDialog.setRangeChild(0, proX * proY);
-
-		//循环分块并进行处理
-		int proCount = 0;
-		bool isbl = true;
-		for (int i = 0; i < nYSize; i += nBlockSize)
-		{
-			for (int j = 0; j < nXSize; j += nBlockSize)
+			// 输出为img文件
+			QString format = "img";
+			QString targetTo = saveName + "\\" + removeDelimiter(target) + '.' + format;
+			QString err = gdal.formatConvert(target, targetTo, gdal.enumFormatToString(format), "NONE", "NO", "none");
+			if (!err.isEmpty())
 			{
-				// 保存分块实际大小
-				int nXBK = nBlockSize;
-				int nYBK = nBlockSize;
-
-				//如果最下面和最右边的块不够，剩下多少读取多少
-				if (i + nBlockSize > nYSize)
-					nYBK = nYSize - i;
-				if (j + nBlockSize > nXSize)
-					nXBK = nXSize - j;
-
-				long size = nYBK * nXBK * nBands;
-
-				// 读取原始图像块
-				if (!ogr.readRasterIO(pSrcData, j, i, nXBK, nYBK, GDT_Float64))
-				{
-					addErrList(var + QStringLiteral(": 读取栅格分块数据失败，已跳过。"));
-					isbl = false;
-					break;
-				}
-
-				// 处理算法
-				for (long mi = 0; mi < size; ++mi)
-				{
-					if (isNegative)
-					{
-						if (pSrcData[mi] < 0)
-						{
-							errList << var + QStringLiteral(": 该栅格存在负值。");
-							isbl = false;
-						}
-					}
-
-					foreach(QString str, valueList)
-					{
-						if (str == "nodata")
-						{
-							if (pSrcData[mi] == nodata)
-							{
-								errList << var + QStringLiteral(": 该栅格存在无效值--> ") + invalidValue;
-								isbl = false;
-							}
-						}
-						else
-						{
-							double value = pSrcData[mi];
-							double value1 = str.toDouble();
-							if (value == value1)
-							{
-								errList << var + QStringLiteral(": 该栅格存在无效值--> ") + str;
-								isbl = false;
-							}
-						}
-						if (!isbl) break;
-					}
-					if (!isbl) break;
-				}
-				if (!isbl) break;
-
-				proDialog.setValue(++proCount);
-				QApplication::processEvents();
-				if (proDialog.wasCanceled())
-					return;
+				addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -1。"));
+				continue;
 			}
-			if (!isbl)
+
+			// 计算最大最小值
+			double adfMinMax[2];
+			ipfOGR ogr(targetTo);
+			if (!ogr.isOpen())
 			{
-				proDialog.pulsValueTatal();
-				break;
+				addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -2。"));
+				continue;
+			}
+			if (ogr.getBandSize() != 1)
+			{
+				addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -3。"));
+				continue;
+			}
+			CPLErr cerr = ogr.getRasterBand(1)->ComputeRasterMinMax(TRUE, adfMinMax);
+			ogr.close();
+
+			if (cerr != CE_None)
+			{
+				addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -4。"));
+				continue;
+			}
+
+			// 检查该栅格是否存在无效值
+			if (adfMinMax[0] == 0 && adfMinMax[1] == 0)
+			{
+				QFile::remove(targetTo);
+				outList << rasterFileName + QStringLiteral(": 正确。");
+			}
+			else
+			{
+				outList << rasterFileName + QStringLiteral(": 检查到栅格数据中存在无效值，并在输出栅格中被标记为1。");
 			}
 		}
-
-		//释放申请的内存
-		delete[] pSrcData; pSrcData = 0;
+		else
+			addErrList(var + ": " + err);
 	}
 
-	QString outName = saveName + QStringLiteral("/栅格无效值检查.txt");
+	QString outName = saveName + QStringLiteral("/无效值检查.txt");
 	QFile file(outName);
 	if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
 	{
@@ -230,7 +156,7 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 		return;
 	}
 	QTextStream out(&file);
-	foreach(QString str, errList)
+	foreach(QString str, outList)
 		out << str << endl;
 	file.close();
 }

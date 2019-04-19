@@ -23,16 +23,9 @@ ipfModelerTransformDialog::ipfModelerTransformDialog(QWidget *parent)
 	ui.comboBox->addItems(list);
 	resampling_method = QStringLiteral("near");
 
-	// 设置的参考坐标系
-	//static const QString globalCrs = "/prjTransform/projectDefaultCrs";
-
 	// 添加参照坐标系选择小组件
 	leUavLayerSrcCrs = new QgsProjectionSelectionWidget(this);
-	//QString mylayerDefaultCrs = mSettings.value(globalCrs, GEO_EPSG_CRS_AUTHID).toString();
-	//mLayerDefaultCrs.createFromOgcWmsCrs(mylayerDefaultCrs);
-	//leUavLayerGlobalCrs->setCrs(mLayerDefaultCrs);
 	leUavLayerSrcCrs->setOptionVisible(QgsProjectionSelectionWidget::DefaultCrs, false);
-	//ui.verticalLayout->addWidget(leUavLayerSrcCrs);
 	ui.verticalLayout->insertWidget(0, leUavLayerSrcCrs);
 
 	leUavLayerDestCrs = new QgsProjectionSelectionWidget(this);

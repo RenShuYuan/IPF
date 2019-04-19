@@ -3,6 +3,7 @@
 #include "../ipf/gdal/ipfgdalprogresstools.h"
 #include "../../ui/ipfModelerRasterInfoPrintDialog.h"
 
+#include <QDir>
 #include <QFileInfo>
 #include <QProgressDialog>
 
@@ -16,13 +17,17 @@ ipfModelerProcessChildRasterInfoPrint::ipfModelerProcessChildRasterInfoPrint(QOb
 
 ipfModelerProcessChildRasterInfoPrint::~ipfModelerProcessChildRasterInfoPrint()
 {
-	if (dialog) { delete dialog; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildRasterInfoPrint::checkParameter()
 {
-	if (saveName.isEmpty())
+	QDir dir = QFileInfo(saveName).dir();
+	if (!dir.exists())
+	{
+		addErrList(QStringLiteral("无效的输出文件夹。"));
 		return false;
+	}
 	return true;
 }
 

@@ -12,6 +12,19 @@ ipfProgress::~ipfProgress()
 {
 }
 
+void ipfProgress::addProgress(QProgressBar * pProcess)
+{
+	if (childList.contains(pProcess))
+		return;
+
+//#pragma omp critical
+	//{
+		childList << pProcess;
+		ui.verticalLayout->insertWidget(0, pProcess);
+		QApplication::processEvents();
+	//}
+}
+
 void ipfProgress::setTitle(const QString & label)
 {
 	if (label.isEmpty())
@@ -20,11 +33,18 @@ void ipfProgress::setTitle(const QString & label)
 		this->setWindowTitle(label);
 }
 
-void ipfProgress::setValue(int value)
+void ipfProgress::setValue(int value, QProgressBar *pProcessChild)
 {
-	ui.progressBarChild->setValue(value);
-	if (value == ui.progressBarChild->maximum())
-		pulsValueTatal();
+#pragma omp critical
+		{
+		pProcessChild->setValue(value);
+		QApplication::processEvents();
+		if (value == ui.progressBarChild->maximum())
+		{
+			ui.verticalLayout->removeWidget(pProcessChild);
+			pulsValueTatal();
+		}
+	}
 }
 
 void ipfProgress::pulsValueTatal()

@@ -21,7 +21,7 @@ public:
 	void run();
 
 private:
-	ipfModelerQuickViewDialog * quickView;
+	ipfModelerQuickViewDialog * dialog;
 	int bs;
 };
 

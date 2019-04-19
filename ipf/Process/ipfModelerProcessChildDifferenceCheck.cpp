@@ -23,7 +23,7 @@ ipfModelerProcessChildDifferenceCheck::ipfModelerProcessChildDifferenceCheck(QOb
 
 ipfModelerProcessChildDifferenceCheck::~ipfModelerProcessChildDifferenceCheck()
 {
-	if (out) { delete out; }
+	RELEASE(out);
 }
 
 bool ipfModelerProcessChildDifferenceCheck::checkParameter()
@@ -37,8 +37,7 @@ bool ipfModelerProcessChildDifferenceCheck::checkParameter()
 		isbl = false;
 		addErrList(QStringLiteral("错误或不支持的数据格式。"));
 	}
-	QDir dir(outPath);
-	if (!dir.exists())
+	if (!QDir(outPath).exists())
 	{
 		isbl = false;
 		addErrList(QStringLiteral("无效的输出文件夹。"));
@@ -101,7 +100,7 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 		return oneFileName + QStringLiteral(": 栅格数据读取失败。");
 	if (!twoLayer->isValid())
 		return twoFileName + QStringLiteral(": 栅格数据读取失败。");
-
+	
 	// 获取波段数
 	int oneBandSize = oneLayer->bandCount();
 	int twoBandSize = twoLayer->bandCount();
@@ -228,7 +227,7 @@ bool ipfModelerProcessChildDifferenceCheck::chackRasterVaule0(const QString & fi
 int ipfModelerProcessChildDifferenceCheck::getFilesIndex(const QStringList & lists, const QString & th)
 {
 	int index = -1;
-	QRegExp strExp("[N](" + th + ")[UG][.]");
+	QRegExp strExp("(" + th + ")(DSMU.|DOMU.|DEMU.|U.)");
 	for (int i = 0; i < lists.size(); ++i)
 	{
 		if (lists.at(i).contains(strExp))
@@ -246,15 +245,15 @@ void ipfModelerProcessChildDifferenceCheck::run()
 	clearErrList();
 
 	QStringList files;
-	ipfFractalManagement frac(50000);
+	ipfFractalManagement frac;
 	foreach(QString var, filesIn())
 	{
 		// 获得文件名称
 		QFileInfo info(var);
 		QString fileName = info.baseName();
 
-		// 去掉前后缀 N G/U
-		fileName = fileName.mid(1, 10);
+		// 提取其中的标准图号
+		fileName = fileName.mid(0, 11);
 
 		// 检查是否为标准分幅图号
 		if (!frac.effectiveness(fileName))
@@ -271,25 +270,29 @@ void ipfModelerProcessChildDifferenceCheck::run()
 	dialog.show();
 
 	QStringList outList;
-	ipfGdalProgressTools gdal;
-	foreach(QString var, files)
+	for (int i = 0; i < files.size(); ++i)
 	{
+		QString var = files.at(i);
+
 		// 从路径中获得图号
 		QFileInfo info(var);
 		QString fileName = info.baseName();
 
-		// 去掉前后缀 N G/U
-		fileName = fileName.mid(1, 10);
+		// 去掉前后缀
+		fileName = fileName.mid(0, 11);
 
 		// 计算西、北、西北三幅图的图号
 		QStringList jbList;
 		QString northWestFrac = frac.getAdjacentFrac(fileName, 1);
 		QString northFrac = frac.getAdjacentFrac(fileName, 2);
 		QString westFrac = frac.getAdjacentFrac(fileName, 4);
-		jbList << northWestFrac << northFrac << westFrac;
+		QString westSouthFrac = frac.getAdjacentFrac(fileName, 6);
 
-		foreach (QString file, jbList)
+		jbList << northWestFrac << northFrac << westFrac << westSouthFrac;
+
+		for (int i = 0; i < jbList.size(); ++i)
 		{
+			QString file = jbList.at(i);
 			int index = getFilesIndex(files, file);
 			if (index != -1)
 			{
@@ -301,6 +304,12 @@ void ipfModelerProcessChildDifferenceCheck::run()
 					addErrList(var + ": " + err);
 				else
 				{
+					if (returnRasters.isEmpty())
+					{
+						outList << QStringLiteral("警告: ") + fileName + " " + file
+							+ QStringLiteral(", 该两幅图具有相邻关系，但并未提取到接边数据，疑似换带，请核实。");
+					}
+
 					// 检查是否接边
 					for (int i=0; i<returnRasters.size(); ++i)
 					{

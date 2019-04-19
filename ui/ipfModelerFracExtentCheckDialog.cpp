@@ -14,26 +14,19 @@ ipfModelerFracExtentCheckDialog::~ipfModelerFracExtentCheckDialog()
 QMap<QString, QString> ipfModelerFracExtentCheckDialog::getParameter()
 {
 	QMap<QString, QString> map;
-	map["ext"] = QString::number(ext);
 	map["saveName"] = saveName;
-
 	return map;
 }
 
 void ipfModelerFracExtentCheckDialog::setParameter(QMap<QString, QString> map)
 {
-	ext = map["ext"].toInt();
 	saveName = map["saveName"];
-
 	ui.lineEdit_2->setText(saveName);
-	ui.spinBox->setValue(ext);
 }
 
 void ipfModelerFracExtentCheckDialog::on_pushButton_clicked()
 {
 	saveName = ui.lineEdit_2->text();
-	ext = ui.spinBox->value();
-
 	accept();
 }
 

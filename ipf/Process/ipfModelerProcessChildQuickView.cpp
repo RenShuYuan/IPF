@@ -8,14 +8,14 @@ ipfModelerProcessChildQuickView::ipfModelerProcessChildQuickView(QObject *parent
 {
 	setId(QUuid::createUuid().toString());
 
-	quickView = new ipfModelerQuickViewDialog();
-	bs = quickView->getParameter();
+	dialog = new ipfModelerQuickViewDialog();
+	bs = dialog->getParameter();
 }
 
 
 ipfModelerProcessChildQuickView::~ipfModelerProcessChildQuickView()
 {
-	if (quickView) { delete quickView; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildQuickView::checkParameter()
@@ -33,9 +33,9 @@ bool ipfModelerProcessChildQuickView::checkParameter()
 
 void ipfModelerProcessChildQuickView::setParameter()
 {
-	if (quickView->exec())
+	if (dialog->exec())
 	{
-		bs = quickView->getParameter();
+		bs = dialog->getParameter();
 	}
 }
 
@@ -49,7 +49,7 @@ QMap<QString, QString> ipfModelerProcessChildQuickView::getParameter()
 
 void ipfModelerProcessChildQuickView::setDialogParameter(QMap<QString, QString> map)
 {
-	quickView->setParameter(map);
+	dialog->setParameter(map);
 	map["bs"] = QString::number(bs);
 }
 

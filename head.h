@@ -33,6 +33,12 @@
 #define GL_UNSIGNED_BYTE                  0x1401
 #define GL_FLOAT                          0x1406
 
+// 全球项目分幅产品分辨率 Global geographic information
+#define GGI_DOM_2M		2.0
+#define GGI_DOM_16M		16.0
+#define GGI_DEM			10.0
+#define GGI_DSM			10.0
+
 // IPF
 static const QString NAME_DELIMITER(QStringLiteral("^&"));
 

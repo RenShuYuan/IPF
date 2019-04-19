@@ -3,6 +3,7 @@
 
 #include "head.h"
 #include "qgspointxy.h"
+#include <QProgressBar>
 
 class ipfProgress;
 
@@ -11,9 +12,18 @@ extern int IPF_DECIMAL;
 extern double IPF_VALUE_OLD;
 extern double IPF_VALUE_NEW;
 extern double IPF_NODATA;
+extern QList<double> IPF_BANSNODATA;
 extern double IPF_BACKGROUND;
+extern QList<double> IPF_INVALIDVALUE;
+extern bool IPF_ISNEGATIVE;
+extern bool IPF_ISNODATA;
 
 #define PI 3.14159265
+
+struct cs {
+	ipfProgress * pdialog;
+	QProgressBar *pProcess;
+};
 
 class ipfGdalProgressTools
 {
@@ -106,6 +116,9 @@ public:
 	// 通过统一赋值分离有效值与无效值
 	QString extractRasterRange(const QString &source, const QString &target, const double background);
 
+	// 过滤栅格指定无效值
+	QString filterInvalidValue(const QString &source, const QString &target, const QString invalidString, const bool isNegative, const bool isNodata);
+
 	// 修改栅格值
 	QString pixelModifyValue(const QString &source, const QString &target, const double valueOld, const double valueNew);
 
@@ -188,6 +201,17 @@ private:
 	* @return
 	*/
 	errType eqiGDALOgrToOgr(const QString &str);
+
+	/**
+	* \brief 调用GDALrasterize处理函数
+	*
+	* 该函数与GDALrasterize实用工具功能一致。
+	*
+	* @param QString 输入与GDALrasterize实用工具一致的参数
+	*
+	* @return
+	*/
+	errType eqiGDALrasterize(const QString &str);
 
     /**
     * \brief 分割QString字符串

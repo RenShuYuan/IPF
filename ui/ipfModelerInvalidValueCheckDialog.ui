@@ -26,19 +26,6 @@
      <item>
       <widget class="QLineEdit" name="lineEdit"/>
      </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
     </layout>
    </item>
    <item>
@@ -46,7 +33,7 @@
      <item>
       <widget class="QCheckBox" name="checkBox">
        <property name="text">
-        <string>不能存在负值</string>
+        <string>检查是否存在负值</string>
        </property>
       </widget>
      </item>
@@ -66,38 +53,43 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
-      <widget class="QLabel" name="label_4">
-       <property name="minimumSize">
-        <size>
-         <width>95</width>
-         <height>25</height>
-        </size>
-       </property>
+      <widget class="QCheckBox" name="checkBox_2">
        <property name="text">
-        <string>输出错误文件</string>
+        <string>检查是否存在NODATA值</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_2">
-       <property name="minimumSize">
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
         <size>
-         <width>0</width>
-         <height>25</height>
+         <width>37</width>
+         <height>17</height>
         </size>
        </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>输出错误路径</string>
+       </property>
       </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEdit_2"/>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_2">
-       <property name="minimumSize">
-        <size>
-         <width>75</width>
-         <height>25</height>
-        </size>
-       </property>
        <property name="text">
         <string>保存...</string>
        </property>

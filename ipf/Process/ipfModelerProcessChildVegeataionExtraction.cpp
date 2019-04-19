@@ -26,8 +26,7 @@ ipfModelerProcessChildVegeataionExtraction::~ipfModelerProcessChildVegeataionExt
 
 bool ipfModelerProcessChildVegeataionExtraction::checkParameter()
 {
-	QDir dir(fileName);
-	if (!dir.exists())
+	if (!QDir(fileName).exists())
 	{
 		addErrList(QStringLiteral("无效的输出文件夹。"));
 		return false;
@@ -156,7 +155,6 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 
 		//循环分块并进行处理
 		int proCount = 0;
-		bool isbl = true;
 		for (int i = 0; i < nYSize; i += nBlockSize)
 		{
 			for (int j = 0; j < nXSize; j += nBlockSize)
@@ -206,7 +204,8 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 					{
 						if (stlip_index != 0)
 						{
-							double ylVI = ylviIndex(B, G);
+							//double ylVI = ylviIndex(B, G);
+							double ylVI = ylviIndex(B, R);
 							if (abs(ylVI) > stlip_index)
 								pDstData[mi / nBands] = NDVI;
 							else
@@ -328,18 +327,6 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 
 		// 定义投影
 		poDS->SetProjection(prj.toStdString().c_str());
-
-		//// 新增字段
-		//if (OGRERR_NONE != poLayer->CreateField(new OGRFieldDefn(fieldName.toStdString().c_str(), OFTInteger)))
-		//{
-		//	addErrList(vectorFile + QStringLiteral(": 创建矢量文件失败。"));
-
-		//	// 删除临时栅格数据
-		//	QFile::remove(rasterFile);
-
-		//	continue;
-		//}
-		//int dst_field = poLayer->GetLayerDefn()->GetFieldIndex(fieldName.toStdString().c_str());
 		GDALClose(poDS);
 		// 创建矢量文件 ------<
 
@@ -395,8 +382,12 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 				idList << f.id();
 		}
 
-		layer->startEditing();
+		QgsFeatureIds ids;
+		QgsFeatureList features;
 		int size = idList.size();
+		
+		// 这句使用OpenMP来加速
+#pragma omp parallel for
 		for (int i = 0; i < size; ++i)
 		{
 			QgsFeature f = layer->getFeature(idList.at(i));
@@ -404,28 +395,37 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 			// 删除碎面
 			if (f.geometry().area() < minimumArea)
 			{
-				layer->deleteFeature(f.id());
+#pragma omp critical
+				{
+					ids << f.id();
+				}
 			}
 			else
 			{
 				// 删除空洞
-				QgsGeometry geo = f.geometry().removeInteriorRings(minimumRingsArea);
-				QgsFeature outFeature;
-				outFeature.setGeometry(geo);
-				QgsAttributes inattrs = f.attributes();
-				outFeature.setAttributes(inattrs);
-				layer->addFeature(outFeature);
-				layer->deleteFeature(f.id());
+				QgsFeature outFeature = f;
+				QgsGeometry geometry = outFeature.geometry();
+				outFeature.setGeometry(geometry.removeInteriorRings(minimumRingsArea));
+#pragma omp critical
+				{
+					ids << f.id();
+					features << outFeature;
+				}
 			}
 
-			prDialog.setValue(++prCount);
-			QApplication::processEvents();
-			if (prDialog.wasCanceled())
+#pragma omp critical
 			{
-				layer->commitChanges();
-				break;
+				if (++prCount < size)
+				{
+					prDialog.setValue(prCount);
+					QApplication::processEvents();
+				}
 			}
 		}
+
+		layer->startEditing();
+		layer->deleteFeatures(ids);
+		layer->addFeatures(features);
 		layer->commitChanges();
 		RELEASE(layer);
 		// 清除空洞、过滤面积不足的要素 -----<

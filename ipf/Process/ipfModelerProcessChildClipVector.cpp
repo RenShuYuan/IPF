@@ -10,48 +10,36 @@ ipfModelerProcessChildClipVector::ipfModelerProcessChildClipVector(QObject *pare
 	: ipfModelerProcessBase(parent, modelerName)
 {
 	setId(QUuid::createUuid().toString());
-	clip = new ipfModelerClipVectorDialog();
+	dialog = new ipfModelerClipVectorDialog();
 }
 
 
 ipfModelerProcessChildClipVector::~ipfModelerProcessChildClipVector()
 {
-	if (clip) { delete clip; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildClipVector::checkParameter()
 {
-	bool isbl = true;
-
-	if (vectorName.isEmpty())
+	if (!QFileInfo(vectorName).exists())
 	{
-		isbl = false;
-		addErrList(QStringLiteral("没有选择矢量文件。"));
+		addErrList(QStringLiteral("矢量文件路径无效。"));
+		return false;
 	}
-	else
-	{
-		QFileInfo info(vectorName);
-		if (!info.exists())
-		{
-			isbl = false;
-			addErrList(QStringLiteral("矢量文件路径无效。"));
-		}
-	}
-
-	return isbl;
+	return true;
 }
 
 void ipfModelerProcessChildClipVector::setParameter()
 {
-	if (clip->exec())
+	if (dialog->exec())
 	{
-		vectorName = clip->getParameter();
+		vectorName = dialog->getParameter();
 	}
 }
 
 void ipfModelerProcessChildClipVector::setDialogParameter(QMap<QString, QString> map)
 {
-	clip->setParameter(map);
+	dialog->setParameter(map);
 
 	vectorName = map["vectorName"];
 }

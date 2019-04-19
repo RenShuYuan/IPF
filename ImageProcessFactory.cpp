@@ -50,6 +50,7 @@ ImageProcessFactory::ImageProcessFactory(QWidget *parent)
 	QString str = QApplication::applicationDirPath() + QStringLiteral("/resources/data");
 	CPLSetConfigOption("GDAL_DATA", str.toStdString().c_str());
 	CPLSetConfigOption("USE_RRD", "YES");
+	CPLSetConfigOption("GDAL_CACHEMAX", "70%");
 
 	// 注册所有影像格式
 	GDALAllRegister();
@@ -109,7 +110,7 @@ void ImageProcessFactory::initTreeView()
 	model->appendRow(itemCunstomQQAlgorithm);
 	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_FRACCLIP));
 	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_VEGETATION_EXTRACTION));
-	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_TFW));
+	//itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_TFW));	全球项目已用不上
 	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_EXCEL_METADATA));
 
 	QStandardItem* itemCunstomQQCheck = new QStandardItem(QStringLiteral("全球测图质量检查"));
@@ -122,11 +123,11 @@ void ImageProcessFactory::initTreeView()
 	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_INVALIDVALUECHECK));
 	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_DEMGROSSERRORCHECK));
 
-	QStandardItem* itemCunstomSTBC = new QStandardItem(QStringLiteral("科研测试功能"));
-	model->appendRow(itemCunstomSTBC);
-	itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_SLOPCALCULATION));
-	itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_FRACEXTENTPROCESS));
-	itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_EXTRACT_RASTER_RANGE));
+	//QStandardItem* itemCunstomSTBC = new QStandardItem(QStringLiteral("科研测试功能"));
+	//model->appendRow(itemCunstomSTBC);
+	//itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_SLOPCALCULATION));
+	//itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_FRACEXTENTPROCESS));
+	//itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_EXTRACT_RASTER_RANGE));
 
 	ui.treeView->expandAll();
 }

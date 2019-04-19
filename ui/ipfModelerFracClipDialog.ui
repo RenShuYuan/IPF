@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>375</width>
-    <height>213</height>
+    <height>197</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -65,20 +65,17 @@
         </size>
        </property>
        <property name="text">
-        <string>外扩像元数</string>
+        <string>数据类型</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="spinBox">
+      <widget class="QComboBox" name="comboBox">
        <property name="minimumSize">
         <size>
-         <width>70</width>
-         <height>25</height>
+         <width>100</width>
+         <height>0</height>
         </size>
-       </property>
-       <property name="maximum">
-        <number>1000</number>
        </property>
       </widget>
      </item>
@@ -98,51 +95,31 @@
     </layout>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="autoFillBackground">
-      <bool>false</bool>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
-     <property name="title">
-      <string>同时输出外扩坐标</string>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>标准图号示例: H48G001002</string>
      </property>
-     <property name="flat">
-      <bool>true</bool>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>南半球需要加前缀: SH48G001002</string>
      </property>
-     <property name="checkable">
-      <bool>true</bool>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>北半球可加'N',也可不加</string>
      </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
-        <item>
-         <widget class="QLineEdit" name="lineEdit_2">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>25</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_3">
-          <property name="minimumSize">
-           <size>
-            <width>75</width>
-            <height>25</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>保存...</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
     </widget>
    </item>
    <item>

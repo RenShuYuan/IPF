@@ -15,7 +15,7 @@ ipfModelerProcessChildPixelDecimals::ipfModelerProcessChildPixelDecimals(QObject
 
 ipfModelerProcessChildPixelDecimals::~ipfModelerProcessChildPixelDecimals()
 {
-	if (dialog) { delete dialog; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildPixelDecimals::checkParameter()

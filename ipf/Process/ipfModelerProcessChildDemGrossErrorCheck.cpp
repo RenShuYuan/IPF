@@ -16,12 +16,26 @@ ipfModelerProcessChildDemGrossErrorCheck::ipfModelerProcessChildDemGrossErrorChe
 
 ipfModelerProcessChildDemGrossErrorCheck::~ipfModelerProcessChildDemGrossErrorCheck()
 {
-	if (dialog) { delete dialog; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildDemGrossErrorCheck::checkParameter()
 {
-	return true;
+	bool isbl = true;
+
+	QDir dir = QFileInfo(errFile).dir();
+	if (!dir.exists())
+	{
+		addErrList(QStringLiteral("无效的输出路径。"));
+		isbl = false;
+	}
+
+	if (!QFileInfo(rasterName).exists())
+	{
+		addErrList(QStringLiteral("无效的输入路径。"));
+		return false;
+	}
+	return isbl;
 }
 
 void ipfModelerProcessChildDemGrossErrorCheck::setParameter()
@@ -37,11 +51,20 @@ void ipfModelerProcessChildDemGrossErrorCheck::setParameter()
 
 QMap<QString, QString> ipfModelerProcessChildDemGrossErrorCheck::getParameter()
 {
-	return QMap<QString, QString>();
+	QMap<QString, QString> map;
+	map["rasterName"] = rasterName;
+	map["errFile"] = errFile;
+	map["threshold"] = QString::number(threshold);
+
+	return map;
 }
 
 void ipfModelerProcessChildDemGrossErrorCheck::setDialogParameter(QMap<QString, QString> map)
 {
+	dialog->setParameter(map);
+	rasterName = map["rasterName"];
+	errFile = map["errFile"];
+	threshold = map["threshold"].toDouble();
 }
 
 void ipfModelerProcessChildDemGrossErrorCheck::run()

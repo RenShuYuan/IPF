@@ -21,7 +21,7 @@ public:
 	void run();
 
 private:
-	ipfModelerTypeConvertDialog * typeConvert;
+	ipfModelerTypeConvertDialog * dialog;
 	QString dataType;
 };
 

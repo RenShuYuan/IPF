@@ -21,7 +21,7 @@ public:
 	void run();
 
 private:
-	ipfModelerResampleDialog * resample;
+	ipfModelerResampleDialog * dialog;
 	QString resampling_method;
 	double res;
 };

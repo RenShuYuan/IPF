@@ -18,7 +18,7 @@ ipfModelerProcessChildProjectionCheck::ipfModelerProcessChildProjectionCheck(QOb
 
 ipfModelerProcessChildProjectionCheck::~ipfModelerProcessChildProjectionCheck()
 {
-	if (dialog) { delete dialog; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildProjectionCheck::checkParameter()
@@ -31,6 +31,12 @@ bool ipfModelerProcessChildProjectionCheck::checkParameter()
 		addErrList(QStringLiteral("源参考坐标系或目标参考坐标系不正确。"));
 	}
 
+	QDir dir = QFileInfo(saveName).dir();
+	if (!dir.exists())
+	{
+		addErrList(QStringLiteral("无效的输出路径。"));
+		isbl = false;
+	}
 
 	return isbl;
 }
@@ -82,30 +88,28 @@ void ipfModelerProcessChildProjectionCheck::run()
 		if (dialog.wasCanceled())
 			return;
 
-		ipfOGR ogr(var);
-		if (!ogr.isOpen())
+		// 用QGis打开栅格
+		QFileInfo info(var);
+		QString layerName = info.baseName();
+		QgsRasterLayer* layer = new QgsRasterLayer(var, layerName, "gdal");
+		if (!layer->isValid())
 		{
 			addErrList(var + QStringLiteral(": 栅格数据读取失败。"));
 			continue;
 		}
-		QString strProjection = ogr.getProjection();
-		double R = ogr.getPixelSize();
-		QString rasterProjection;
-		if (R < 0.1)
-			rasterProjection = "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4326\"]]";
-		else
-			rasterProjection = "PROJCS[\"WGS_1984_UTM_Zone_49N\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",111],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"32649\"]]";
-		if (strProjection != rasterProjection)
+		QgsCoordinateReferenceSystem layerCrs = layer->crs(); 
+		QString crsId = layerCrs.authid();
+		RELEASE(layer);
+
+		if (s_srs != crsId)
 		{
 			outList << var + QStringLiteral(": 投影信息不一致。");
-			outList << QStringLiteral("\t影像: ") << strProjection;
-			outList << QStringLiteral("\t基准: ") << rasterProjection;
+			outList << QStringLiteral("\t影像: ") + crsId;
+			outList << QStringLiteral("\t基准: ") + s_srs;
 		}
 		else
 		{
 			outList << var + QStringLiteral(": 投影正确。");
-			//outList << QStringLiteral("\t影像: ") << strProjection;
-			//outList << QStringLiteral("\t基准: ") << rasterProjection;
 		}
 	}
 

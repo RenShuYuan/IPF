@@ -59,7 +59,7 @@ public:
 	static int getWgs84Bandwidth(double djd);
     
 	// 创建目标投影参考坐标系
-	ipfProjectionTransformation::errType createTargetCrs(const double cm);
+	ipfProjectionTransformation::errType createTargetCrs(const QgsPointXY point);
 
     // 返回地理坐标系，必须是支持的3种投影坐标系之一
     static QgsCoordinateReferenceSystem getGCS(const QgsCoordinateReferenceSystem& sourceCrs);
@@ -67,7 +67,7 @@ public:
 private:
 	// 输入中央经线、带宽，返回对应分带的EPSG编号
     long getPCSauthid_CGCS2000(const int cm, const int bw);
-	long getPCSauthid_Wgs84Gcs(const double cm, const QChar hemisphere);
+	long getPCSauthid_Wgs84Gcs(const QgsPointXY point);
 
 private:
     QSettings mSettings;

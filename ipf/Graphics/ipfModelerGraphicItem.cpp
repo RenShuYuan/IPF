@@ -161,12 +161,12 @@ ipfModelerGraphicItem::ipfModelerGraphicItem(ipfModelerProcessBase *process, QMe
 		|| process->name() == MODELER_WATERFLATTENCHECK
 		|| process->name() == MODELER_PROJECTIONCHECK
 		|| process->name() == MODELER_ZCHECK
-		|| process->name() == MODELER_INVALIDVALUECHECK
 		|| process->name() == MODELER_DEMGROSSERRORCHECK
 		|| process->name() == MODELER_RASTERINFOPRINT
 		|| process->name() == MODELER_VEGETATION_EXTRACTION
 		|| process->name() == MODELER_EXTRACT_RASTER_RANGE
-		|| process->name() == MODELER_WATERS_EXTRACTION)
+		|| process->name() == MODELER_WATERS_EXTRACTION
+		|| process->name() == MODELER_INVALIDVALUECHECK)
 	{
 		// ÉèÖÃÍ¼±ê
 		QSvgRenderer svg(ipfApplication::getThemeIconPath("output.svg"));
@@ -291,12 +291,12 @@ void ipfModelerGraphicItem::paint(QPainter *painter, const QStyleOptionGraphicsI
 		|| process->name() == MODELER_WATERFLATTENCHECK
 		|| process->name() == MODELER_PROJECTIONCHECK
 		|| process->name() == MODELER_ZCHECK
-		|| process->name() == MODELER_INVALIDVALUECHECK
 		|| process->name() == MODELER_DEMGROSSERRORCHECK
 		|| process->name() == MODELER_RASTERINFOPRINT
 		|| process->name() == MODELER_VEGETATION_EXTRACTION
 		|| process->name() == MODELER_EXTRACT_RASTER_RANGE
-		|| process->name() == MODELER_WATERS_EXTRACTION)
+		|| process->name() == MODELER_WATERS_EXTRACTION
+		|| process->name() == MODELER_INVALIDVALUECHECK)
 	{
 		colorInOut();
 	}

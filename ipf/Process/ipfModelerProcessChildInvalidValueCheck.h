@@ -21,9 +21,10 @@ public:
 	void run();
 private:
 	ipfModelerInvalidValueCheckDialog * dialog;
-	QString saveName;
 	QString invalidValue;
+	QString saveName;
 	bool isNegative;
+	bool isNodata;
 };
 
 #endif // IPFMODELERPROCESSCHILDINVALIDVALUECHECK_H

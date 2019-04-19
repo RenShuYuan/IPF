@@ -147,7 +147,7 @@ int ipfProjectionTransformation::getWgs84Bandwidth(double djd)
 	return (int)((djd / 6) + 31);
 }
 
-ipfProjectionTransformation::errType ipfProjectionTransformation::createTargetCrs(const double cm)
+ipfProjectionTransformation::errType ipfProjectionTransformation::createTargetCrs(const QgsPointXY point)
 {
     // 验证源参照坐标系
     if (!sourceCrs().isValid())
@@ -159,7 +159,7 @@ ipfProjectionTransformation::errType ipfProjectionTransformation::createTargetCr
 
     QgsCoordinateReferenceSystem mTargetCrs;
 
-	long id = getPCSauthid_Wgs84Gcs(cm, QChar('N'));
+	long id = getPCSauthid_Wgs84Gcs(point);
 	mTargetCrs.createFromId(id);
 
 	if (!mTargetCrs.isValid())
@@ -233,13 +233,15 @@ long ipfProjectionTransformation::getPCSauthid_CGCS2000(const int cm, const int 
     return id;
 }
 
-long ipfProjectionTransformation::getPCSauthid_Wgs84Gcs(const double cm, const QChar hemisphere)
+long ipfProjectionTransformation::getPCSauthid_Wgs84Gcs(const QgsPointXY point)
 {
 	long id = 0;
-	int dh = getWgs84Bandwidth(cm);
+	int dh = getWgs84Bandwidth(point.x());
 
-	if (hemisphere == 'N')
+	if (point.y() >= 0)
 		id = 32600 + dh;
+	else
+		id = 32700 + dh;
 
 	return id;
 }

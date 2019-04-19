@@ -23,7 +23,6 @@ public:
 private:
 	ipfModelerFracExtentCheckDialog *dialog;
 	QString saveName;
-	int ext;
 };
 
 #endif // IPFMODELERPROCESSCHILDFRACEXTENTCHECK_H

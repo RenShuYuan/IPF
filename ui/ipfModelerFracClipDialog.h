@@ -19,15 +19,12 @@ public:
 private slots:
 	void on_pushButton_clicked();
 	void on_pushButton_2_clicked();
-	void on_pushButton_3_clicked();
-	void on_groupBox_checked(bool checked);
 private:
 	Ui::ipfModelerFracClipDialog ui;
 	QSettings mSettings;
 
 	QString fileName;
-	QString saveName;
-	int ext;
+	QString dateType;
 };
 
 #endif // IPFMODELERFRACCLIPDIALOG_H

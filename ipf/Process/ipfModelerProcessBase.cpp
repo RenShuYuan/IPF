@@ -42,7 +42,9 @@ void ipfModelerProcessBase::appendOutFile(const QString file)
 QString ipfModelerProcessBase::removeDelimiter(const QString file)
 {
 	QFileInfo info(file);
-	QString name = info.baseName();
+	QString name = info.fileName();
+	name = name.left(name.lastIndexOf('.'));
+
 	QStringList list = name.split(NAME_DELIMITER);
 	if (list.isEmpty())
 		return QString();
@@ -53,7 +55,7 @@ QString ipfModelerProcessBase::removeDelimiter(const QString file)
 QString ipfModelerProcessBase::addDelimiter(const QString file, const QString mark)
 {
 	QFileInfo info(file);
-	QString name = info.baseName() + NAME_DELIMITER + mark;
+	QString name = info.fileName() + NAME_DELIMITER + mark;
 	return name;
 }
 

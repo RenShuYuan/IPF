@@ -47,23 +47,23 @@ void ipfModelerProcessChildSlopCalculation::run()
 
 	foreach(QString var, filesIn())
 	{
-		QFileInfo info(var);
-		QString baseName = info.baseName();
+		//QFileInfo info(var);
+		//QString baseName = info.baseName();
 
-		// 打开源栅格
-		ipfOGR ogr(var);
-		if (!ogr.isOpen())
-		{
-			addErrList(var + QStringLiteral(": 读取栅格数据失败，无法继续。"));
-			continue;
-		}
-		int nBands = ogr.getBandSize();
+		//// 打开源栅格
+		//ipfOGR ogr(var);
+		//if (!ogr.isOpen())
+		//{
+		//	addErrList(var + QStringLiteral(": 读取栅格数据失败，无法继续。"));
+		//	continue;
+		//}
+		//int nBands = ogr.getBandSize();
 
-		// 使用3x3模板计算栅格标准差 ----->
-		for (int i = 0; i < nBands; ++i)
-		{
-			// 创建输出栅格
-			QString rasterFile = ipfFlowManage::instance()->getTempFormatFile(QString("%1@%2").arg(baseName).arg(i+1), ".tif");
+		//// 使用3x3模板计算栅格标准差 ----->
+		//for (int i = 0; i < nBands; ++i)
+		//{
+		//	// 创建输出栅格
+		//	QString rasterFile = ipfFlowManage::instance()->getTempFormatFile(QString("%1@%2").arg(baseName).arg(i+1), ".tif");
 
 			//GDALDataset* poDataset_target = ogr.createNewRaster(rasterFile, 1, GDT_Float32);
 			//if (!poDataset_target)
@@ -80,11 +80,19 @@ void ipfModelerProcessChildSlopCalculation::run()
 			//	poDataset_target = nullptr;
 			//}
 
-			QString err = gdal.stdevp3x3Alg(var, rasterFile, i + 1);
-			if (err.isEmpty())
-				appendOutFile(rasterFile);
-			else
-				addErrList(QStringLiteral("标准差计算: ") + err);
-		}
+
+		//	QString err = gdal.stdevp3x3Alg(var, rasterFile, i + 1);
+		//	if (err.isEmpty())
+		//		appendOutFile(rasterFile);
+		//	else
+		//		addErrList(QStringLiteral("标准差计算: ") + err);
+		//}
+
+		QString target = ipfFlowManage::instance()->getTempFormatFile(var, ".vrt");
+		QString err = gdal.slopCalculation_S2(var, target);
+		if (err.isEmpty())
+			appendOutFile(target);
+		else
+			addErrList(var + ": " + err);
 	}
 }

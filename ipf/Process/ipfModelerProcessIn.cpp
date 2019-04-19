@@ -14,7 +14,7 @@ ipfModelerProcessIn::ipfModelerProcessIn(QObject *parent, const QString modelerN
 
 ipfModelerProcessIn::~ipfModelerProcessIn()
 {
-	if (in)	{ delete in; }
+	RELEASE(in);
 }
 
 void ipfModelerProcessIn::setParameter()

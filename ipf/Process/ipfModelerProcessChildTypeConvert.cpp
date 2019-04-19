@@ -8,13 +8,13 @@ ipfModelerProcessChildTypeConvert::ipfModelerProcessChildTypeConvert(QObject *pa
 {
 	setId(QUuid::createUuid().toString());
 
-	typeConvert = new ipfModelerTypeConvertDialog();
-	dataType = typeConvert->getParameter();
+	dialog = new ipfModelerTypeConvertDialog();
+	dataType = dialog->getParameter();
 }
 
 ipfModelerProcessChildTypeConvert::~ipfModelerProcessChildTypeConvert()
 {
-	if (typeConvert) { delete typeConvert; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildTypeConvert::checkParameter()
@@ -32,9 +32,9 @@ bool ipfModelerProcessChildTypeConvert::checkParameter()
 
 void ipfModelerProcessChildTypeConvert::setParameter()
 {
-	if (typeConvert->exec())
+	if (dialog->exec())
 	{
-		dataType = typeConvert->getParameter();
+		dataType = dialog->getParameter();
 	}
 }
 
@@ -48,7 +48,7 @@ QMap<QString, QString> ipfModelerProcessChildTypeConvert::getParameter()
 
 void ipfModelerProcessChildTypeConvert::setDialogParameter(QMap<QString, QString> map)
 {
-	typeConvert->setParameter(map);
+	dialog->setParameter(map);
 	dataType = map["dataType"];
 }
 

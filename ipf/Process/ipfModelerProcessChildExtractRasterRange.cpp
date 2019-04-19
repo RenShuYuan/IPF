@@ -22,8 +22,7 @@ ipfModelerProcessChildExtractRasterRange::~ipfModelerProcessChildExtractRasterRa
 
 bool ipfModelerProcessChildExtractRasterRange::checkParameter()
 {
-	QDir dir(fileName);
-	if (!dir.exists())
+	if (!QDir(fileName).exists())
 	{
 		addErrList(QStringLiteral("无效的输出文件夹。"));
 		return false;

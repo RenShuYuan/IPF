@@ -14,26 +14,18 @@ ipfModelerProcessChildWaterFlatten::ipfModelerProcessChildWaterFlatten(QObject *
 
 ipfModelerProcessChildWaterFlatten::~ipfModelerProcessChildWaterFlatten()
 {
-	if (dialog) { delete dialog; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildWaterFlatten::checkParameter()
 {
 	bool isbl = true;
 
-	if (vectorName.isEmpty())
+	QFileInfo info(vectorName);
+	if (!info.exists())
 	{
 		isbl = false;
-		addErrList(QStringLiteral("没有选择矢量文件。"));
-	}
-	else
-	{
-		QFileInfo info(vectorName);
-		if (!info.exists())
-		{
-			isbl = false;
-			addErrList(QStringLiteral("矢量文件路径无效。"));
-		}
+		addErrList(QStringLiteral("矢量文件路径无效。"));
 	}
 
 	QDir dir(outPath);

@@ -15,7 +15,7 @@ ipfModelerProcessChildFracClip::ipfModelerProcessChildFracClip(QObject *parent, 
 
 ipfModelerProcessChildFracClip::~ipfModelerProcessChildFracClip()
 {
-	if (clip) { delete clip; }
+	RELEASE(clip);
 }
 
 bool ipfModelerProcessChildFracClip::checkParameter()
@@ -24,12 +24,6 @@ bool ipfModelerProcessChildFracClip::checkParameter()
 
 	// 验证图号
 	isbl = readTh();
-
-	if (ext < 0)
-	{
-		isbl = false;
-		addErrList(QStringLiteral("外扩像元数量不能为负数。"));
-	}
 
 	return isbl;
 }
@@ -40,9 +34,7 @@ void ipfModelerProcessChildFracClip::setParameter()
 	{
 		QMap<QString, QString> map = clip->getParameter();
 		fileName = map["fileName"];
-		saveName = map["saveName"];
-		ext = map["ext"].toInt();
-		isChecked = map["isChecked"];
+		dateType = map["dateType"];
 	}
 }
 
@@ -50,9 +42,7 @@ QMap<QString, QString> ipfModelerProcessChildFracClip::getParameter()
 {
 	QMap<QString, QString> map;
 	map["fileName"] = fileName;
-	map["saveName"] = saveName;
-	map["isChecked"] = isChecked;
-	map["ext"] = QString::number(ext);
+	map["dateType"] = dateType;
 
 	return map;
 }
@@ -62,16 +52,13 @@ void ipfModelerProcessChildFracClip::setDialogParameter(QMap<QString, QString> m
 	clip->setParameter(map);
 
 	fileName = map["fileName"];
-	saveName = map["saveName"];
-	ext = map["ext"].toInt();
+	dateType = map["dateType"];
 }
 
 void ipfModelerProcessChildFracClip::run()
 {
 	clearOutFiles();
 	clearErrList();
-
-	ipfFractalManagement frac(50000);
 
 	// 暂时读取第一个影像处理
 	if (filesIn().size() != 1)
@@ -91,9 +78,20 @@ void ipfModelerProcessChildFracClip::run()
 		return;
 	}
 	double R = ogr.getPixelSize();
-	QString strR = QString::number(R, 'f', 11);
-	R = strR.toDouble();
 	ogr.close();
+
+	// 检查分辨率正确否
+	if (R != 10.0 && R != 2.0 && R != 16.0)
+	{
+		addErrList(soucre + QStringLiteral(": 栅格数据分辨率与全球项目设计不符，无法继续。"));
+		return;
+	}
+
+	// 定义比例尺
+	int blc = 50000;
+	if (R == 16.0)
+		blc = 250000;
+	ipfFractalManagement frac(blc);
 
 	// 计算每幅图的外扩距离，并裁切
 	ipfGdalProgressTools gdal;
@@ -106,10 +104,7 @@ void ipfModelerProcessChildFracClip::run()
 		QString err;
 
 		QList<QgsPointXY> four;
-		if (R < 0.1)
-			four = frac.dNToLal(var);
-		else
-			four = frac.dNToXy(var);
+		four = frac.dNToXy(var);
 
 		if (four.size() != 4)
 		{
@@ -118,46 +113,40 @@ void ipfModelerProcessChildFracClip::run()
 		}
 
 		// 计算外扩范围
+		int ext = 50;
+		if (R == 2.0)
+			ext = 200;
+		else if (R == 16.0)
+			ext = 100;
+
 		QList<double> list = ipfFractalManagement::external(four, R, ext);
 
-		// 用于范围输出
-		QList<double> listR = ipfFractalManagement::external(four, R, ext, false);
-		outList << QString("%1 %2 %3 %4 %5").arg(var)
-			.arg(listR.at(0), 0, 'f', 11).arg(listR.at(1), 0, 'f', 11)
-			.arg(listR.at(2), 0, 'f', 11).arg(listR.at(3), 0, 'f', 11);
-
 		QString target;
-		if (R < 0.1)
-			target  = ipfFlowManage::instance()->getTempVrtFile('N' + var + 'G');
+		QString hemisphere = "N";
+		if (var.size() == 11)
+			hemisphere = "";
+
+		if (dateType == "DOM")
+			target = ipfFlowManage::instance()->getTempVrtFile(hemisphere + var + "DOMU");
+		else if (dateType == "DSM")
+			target = ipfFlowManage::instance()->getTempVrtFile(hemisphere + var + "DSMU");
 		else
-			target  = ipfFlowManage::instance()->getTempVrtFile('N' + var + 'U');
+			target = ipfFlowManage::instance()->getTempVrtFile(hemisphere + var + "DEMU");
 
 		// 当数据范围不正确时，会自动进行重采样
-		err = gdal.proToClip_Warp(soucre, target, list);	//
+		err = gdal.proToClip_Warp(soucre, target, list);
 		if (err.isEmpty())
 			appendOutFile(target);
 		else
 			addErrList(var + ": " + err);
 	}
-
-	// 输出外扩坐标
-	if (!saveName.isEmpty())
-	{
-		QFile file(saveName);
-		if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
-		{
-			addErrList(saveName + QStringLiteral("创建文件失败，已终止。"));
-			return;
-		}
-		QTextStream out(&file);
-		foreach(QString str, outList)
-			out << str << endl;
-		file.close();
-	}
 }
 
 bool ipfModelerProcessChildFracClip::readTh() // 把图号验证放这里
 {
+	clearErrList();
+	thList.clear();
+
 	// 读取文件内容
 	QFile file(fileName);
 	if (!file.open(QFile::ReadOnly | QFile::Text))
@@ -166,10 +155,10 @@ bool ipfModelerProcessChildFracClip::readTh() // 把图号验证放这里
 		return false;
 	}
 	
-	thList.clear();
 	bool isOk = true;
 	QTextStream in(&file);
-	ipfFractalManagement frac(50000);
+
+	ipfFractalManagement frac;
 	while (!in.atEnd())
 	{
 		QString line = in.readLine();

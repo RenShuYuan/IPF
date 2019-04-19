@@ -20,7 +20,7 @@ public:
 	void run();
 
 private:
-	ipfModelerClipVectorDialog * clip;
+	ipfModelerClipVectorDialog * dialog;
 	QString vectorName;
 };
 

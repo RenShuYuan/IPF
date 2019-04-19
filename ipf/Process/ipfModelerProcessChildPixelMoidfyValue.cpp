@@ -15,7 +15,7 @@ ipfModelerProcessChildPixelMoidfyValue::ipfModelerProcessChildPixelMoidfyValue(Q
 
 ipfModelerProcessChildPixelMoidfyValue::~ipfModelerProcessChildPixelMoidfyValue()
 {
-	if (dialog) { delete dialog; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildPixelMoidfyValue::checkParameter()

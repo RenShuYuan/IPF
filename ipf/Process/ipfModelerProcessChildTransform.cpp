@@ -7,14 +7,13 @@ ipfModelerProcessChildTransform::ipfModelerProcessChildTransform(QObject *parent
 	: ipfModelerProcessBase(parent, modelerName)
 {
 	setId(QUuid::createUuid().toString());
-
-	transform = new ipfModelerTransformDialog();
+	dialog = new ipfModelerTransformDialog();
 }
 
 
 ipfModelerProcessChildTransform::~ipfModelerProcessChildTransform()
 {
-	if (transform) { delete transform; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildTransform::checkParameter()
@@ -32,9 +31,9 @@ bool ipfModelerProcessChildTransform::checkParameter()
 
 void ipfModelerProcessChildTransform::setParameter()
 {
-	if (transform->exec())
+	if (dialog->exec())
 	{
-		QMap<QString, QString> map = transform->getParameter();
+		QMap<QString, QString> map = dialog->getParameter();
 		resampling_method = map["resampling_method"];
 		s_srs = map["s_srs"];
 		t_srs = map["t_srs"];
@@ -53,7 +52,7 @@ QMap<QString, QString> ipfModelerProcessChildTransform::getParameter()
 
 void ipfModelerProcessChildTransform::setDialogParameter(QMap<QString, QString> map)
 {
-	transform->setParameter(map);
+	dialog->setParameter(map);
 
 	resampling_method = map["resampling_method"];
 	s_srs = map["s_srs"];

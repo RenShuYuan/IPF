@@ -17,7 +17,7 @@ public:
     // 返回指定影像的四至角点坐标
 	QList<double> getXY();
 
-	// 返回指定影像角点的中心点坐标
+	// 返回指定影像的四至中心点坐标
 	QList<double> getXYcenter();
 
 	bool Projection2ImageRowCol(double dProjX, double dProjY, int &iCol, int &iRow);

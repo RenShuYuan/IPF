@@ -16,7 +16,7 @@ ipfModelerProcessChildZCheck::ipfModelerProcessChildZCheck(QObject *parent, cons
 
 ipfModelerProcessChildZCheck::~ipfModelerProcessChildZCheck()
 {
-	if (dialog) { delete dialog; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildZCheck::checkParameter()
@@ -101,62 +101,97 @@ void ipfModelerProcessChildZCheck::run()
 		}
 
 		// 检查波段
-		int bands = ogr.getBandSize();
-		if (bands != 1)
+		if (ogr.getBandSize() != 1)
 		{
 			addErrList(var + QStringLiteral(": 该功能针对的是单波段高程数字模型，波段数量不正确。"));
-			ogr.close();
 			continue;
 		}
 
 		// 获得栅格NODATA值
 		double nodata = ogr.getNodataValue(1);
 
+		// 获得栅格外接矩形范围
+		QList<double> xyList = ogr.getXY();
+		if (xyList.size() != 4)
+		{
+			addErrList(var + QStringLiteral(": 获取栅格范围失败。"));
+			continue;
+		}
+		double wX = xyList.at(0);
+		double eX = xyList.at(2);
+		double nY = xyList.at(1);
+		double sY = xyList.at(3);
+
 		// 遍历检查点
 		QStringList outLines;
 		double count = 0.0;
 		double maxValue = 0.0;
 
-		foreach(QStringList errs, jcList)
+		//foreach(QStringList errs, jcList)
+		// 这句使用OpenMP来加速
+#pragma omp parallel for
+		for( int i=0; i<jcList.size(); ++i)
 		{
-			dialog.setValue(++prCount);
-			QApplication::processEvents();
-			if (dialog.wasCanceled())
-				return;
+			++prCount;
 
 			int iCol = 0;
 			int iRow = 0;
+			QStringList errs = jcList.at(i);
 			double dProjX = errs.at(1).toDouble();
 			double dProjY = errs.at(2).toDouble();
 			double dProjZ = errs.at(3).toDouble();
 			double value = 0.0;
 
+			// 检查点是否在栅格的外接矩形范围内
+			if (!(dProjX > wX && dProjX<eX && dProjY>sY && dProjY < nY))
+			{
+				continue;
+			}
+
 			QString err = gdal.locationPixelInfo(var, dProjX, dProjY, iRow, iCol);
 			if (!err.isEmpty())
 			{
 				if (err != gdal.enumErrTypeToString(ipfGdalProgressTools::eRowColErr))
-					addErrList(errs.at(0) + QStringLiteral(": ") + err);
+				{
+#pragma omp critical
+					{
+						addErrList(errs.at(0) + QStringLiteral(": ") + err);
+					}
+				}
 			}
 			else
 			{
-				if (ogr.getPixelValue(iCol, iRow, value))
+#pragma omp critical
 				{
-					// 忽略NODATA
-					if (value != nodata)
+					if (ogr.getPixelValue(iCol, iRow, value))
 					{
-						double dd = dProjZ - value;
-						outLines << errs.at(0) + ' ' + errs.at(1) + ' ' + errs.at(2) + ' ' + errs.at(3)
-							+ ' ' + QString::number(value, 'f', 3) + ' ' + QString::number(dd, 'f', 3);
-						count += dd * dd;
-						if (fabs(dd) > fabs(maxValue))
-							maxValue = dd;
+						// 忽略NODATA
+						if (value != nodata)
+						{
+							double dd = dProjZ - value;
+
+							outLines << errs.at(0) + ' ' + errs.at(1) + ' ' + errs.at(2) + ' ' + errs.at(3)
+								+ ' ' + QString::number(value, 'f', 3) + ' ' + QString::number(dd, 'f', 3);
+							count += dd * dd;
+							if (fabs(dd) > fabs(maxValue))
+								maxValue = dd;
+						}
+					}
+					else
+					{
+						addErrList(errs.at(0) + QStringLiteral(": 获取像元值失败。"));
 					}
 				}
-				else
-					addErrList(errs.at(0) + QStringLiteral(": 获取像元值失败。"));
+			}
+#pragma omp critical
+			{
+				if (prCount < jcList.size())
+				{
+					dialog.setValue(prCount);
+					QApplication::processEvents();
+				}
 			}
 		}
-		ogr.close();
 
 		// 输出错误文件
 		QFileInfo info(var);

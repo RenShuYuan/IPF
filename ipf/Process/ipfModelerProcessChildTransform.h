@@ -21,7 +21,7 @@ public:
 	void run();
 
 private:
-	ipfModelerTransformDialog * transform;
+	ipfModelerTransformDialog * dialog;
 	QString resampling_method;
 	QString s_srs;
 	QString t_srs;

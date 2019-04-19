@@ -16,17 +16,17 @@ ipfModelerProcessChildFracExtentCheck::ipfModelerProcessChildFracExtentCheck(QOb
 
 ipfModelerProcessChildFracExtentCheck::~ipfModelerProcessChildFracExtentCheck()
 {
-	if (dialog) { delete dialog; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildFracExtentCheck::checkParameter()
 {
-	if (ext < 0)
+	QDir dir = QFileInfo(saveName).dir();
+	if (!dir.exists())
 	{
-		addErrList(QStringLiteral("外扩像元数量不能为负数。"));
+		addErrList(QStringLiteral("无效的输出文件夹。"));
 		return false;
 	}
-
 	return true;
 }
 
@@ -36,7 +36,6 @@ void ipfModelerProcessChildFracExtentCheck::setParameter()
 	{
 		QMap<QString, QString> map = dialog->getParameter();
 		saveName = map["saveName"];
-		ext = map["ext"].toInt();
 	}
 }
 
@@ -44,7 +43,6 @@ QMap<QString, QString> ipfModelerProcessChildFracExtentCheck::getParameter()
 {
 	QMap<QString, QString> map;
 	map["saveName"] = saveName;
-	map["ext"] = QString::number(ext);
 
 	return map;
 }
@@ -52,9 +50,7 @@ QMap<QString, QString> ipfModelerProcessChildFracExtentCheck::getParameter()
 void ipfModelerProcessChildFracExtentCheck::setDialogParameter(QMap<QString, QString> map)
 {
 	dialog->setParameter(map);
-
 	saveName = map["saveName"];
-	ext = map["ext"].toInt();
 }
 
 void ipfModelerProcessChildFracExtentCheck::run()
@@ -70,7 +66,6 @@ void ipfModelerProcessChildFracExtentCheck::run()
 	dialog.show();
 
 	QStringList outList;
-	ipfFractalManagement frac(50000);
 	foreach(QString var, filesIn())
 	{
 		dialog.setValue(++prCount);
@@ -78,18 +73,11 @@ void ipfModelerProcessChildFracExtentCheck::run()
 		if (dialog.wasCanceled())
 			return;
 
-		// 检查图号是否正确
 		QFileInfo info(var);
 		QString fileName = info.baseName();
 
-		// 去掉前后缀 N G/U
-		fileName = fileName.mid(1, 10);
-
-		if (!frac.effectiveness(fileName))
-		{
-			addErrList(fileName + QStringLiteral(": 无效的图号。"));
-			continue;
-		}
+		// 去掉后缀
+		fileName = fileName.mid(0, 11);
 
 		// 打开影像，并读取坐标
 		ipfOGR ogr(var);
@@ -100,21 +88,29 @@ void ipfModelerProcessChildFracExtentCheck::run()
 		}
 		QList<double> xyList = ogr.getXY();
 		double R = ogr.getPixelSize();
-		QString strR = QString::number(R, 'f', 12);
-		R = strR.toDouble();
 		ogr.close();
+
 		if (xyList.size() != 4)
 		{
 			addErrList(var + QStringLiteral(": 读取影像四至范围失败，无法继续。"));
 			continue;
 		}
 
+		int blc = 50000;
+		if (R == 16.0)
+			blc = 250000;
+		ipfFractalManagement frac(blc);
+
+		// 检查图号是否正确
+		if (!frac.effectiveness(fileName))
+		{
+			addErrList(fileName + QStringLiteral(": 无效的图号。"));
+			continue;
+		}
+
 		// 计算图幅坐标
 		QList<QgsPointXY> four;
-		if (R < 0.1)
-			four = frac.dNToLal(fileName);
-		else
-			four = frac.dNToXy(fileName);
+		four = frac.dNToXy(fileName);
 
 		if (four.size() != 4)
 		{
@@ -122,43 +118,32 @@ void ipfModelerProcessChildFracExtentCheck::run()
 			continue;
 		}
 
+		int ext = 0;
+		if (R == 2.0) // 2米DOM
+			ext = 200;
+		else if (R == 16.0) // 16米DOM
+			ext = 100;
+		else if (R == 10.0) // DSM/DEM
+			ext = 50;
+		else
+		{
+			outList << fileName + QStringLiteral(": 像元大小不正确，范围检查失败！！");
+			continue;
+		}
+
 		// 计算外扩坐标
 		QList<double> extList = ipfFractalManagement::external(four, R, ext);
 
 		// 坐标比较
-		//QString xy0 = QString::number(xyList.at(0), 'f', 11);
-		//QString xy1 = QString::number(xyList.at(1), 'f', 11);
-		//QString xy2 = QString::number(xyList.at(2), 'f', 11);
-		//QString xy3 = QString::number(xyList.at(3), 'f', 11);
-		qulonglong xy0l = xyList.at(0) * 100000000000;
-		qulonglong xy1l = xyList.at(1) * 100000000000;
-		qulonglong xy2l = xyList.at(2) * 100000000000;
-		qulonglong xy3l = xyList.at(3) * 100000000000;
-
-		//QString ext0 = QString::number(extList.at(0), 'f', 11);
-		//QString ext1 = QString::number(extList.at(1), 'f', 11);
-		//QString ext2 = QString::number(extList.at(2), 'f', 11);
-		//QString ext3 = QString::number(extList.at(3), 'f', 11);
-		qulonglong ext0l = extList.at(0) * 100000000000;
-		qulonglong ext1l = extList.at(1) * 100000000000;
-		qulonglong ext2l = extList.at(2) * 100000000000;
-		qulonglong ext3l = extList.at(3) * 100000000000;
-
 		bool isbl = false;
-		long c0 = abs((long)(xy0l - ext0l));
-		long c1 = abs((long)(xy1l - ext1l));
-		long c2 = abs((long)(xy2l - ext2l));
-		long c3 = abs((long)(xy3l - ext3l));
-		if (R < 0.1)
-		{
-			if (c0 < 2 && c1 < 2 && c2 < 2 && c3 < 2)
-				isbl = true;
-		}
-		else
-		{
-			if (c0 == 0 && c1 == 0 && c2 == 0 && c3 == 0)
-				isbl = true;
-		}
+		double c0 = xyList.at(0) - extList.at(0);
+		double c1 = xyList.at(1) - extList.at(1);
+		double c2 = xyList.at(2) - extList.at(2);
+		double c3 = xyList.at(3) - extList.at(3);
+
+		if (c0 == 0.0 && c1 == 0.0 && c2 == 0.0 && c3 == 0.0)
+			isbl = true;
+
 		if (isbl)
 		{
 			outList << fileName + QStringLiteral(": 范围正确。");
@@ -167,8 +152,8 @@ void ipfModelerProcessChildFracExtentCheck::run()
 		{
 			QString("%1").arg(var);
 			outList << fileName
-				+ QStringLiteral(": 范围错误。\n\t图幅坐标：") + QString("%1, %2, %3, %4").arg(xyList.at(0), 0, 'f', 13).arg(xyList.at(1), 0, 'f', 13).arg(xyList.at(2), 0, 'f', 13).arg(xyList.at(3), 0, 'f', 13)
-				+ QStringLiteral("\n\t理论坐标：") + QString("%1, %2, %3, %4").arg(extList.at(0), 0, 'f', 13).arg(extList.at(1), 0, 'f', 13).arg(extList.at(2), 0, 'f', 13).arg(extList.at(3), 0, 'f', 13);
+				+ QStringLiteral(": 范围错误。\n\t图幅坐标：") + QString("%1, %2, %3, %4").arg(xyList.at(0), 0, 'f', 6).arg(xyList.at(1), 0, 'f', 6).arg(xyList.at(2), 0, 'f', 6).arg(xyList.at(3), 0, 'f', 6)
+				+ QStringLiteral("\n\t理论坐标：") + QString("%1, %2, %3, %4").arg(extList.at(0), 0, 'f', 6).arg(extList.at(1), 0, 'f', 6).arg(extList.at(2), 0, 'f', 6).arg(extList.at(3), 0, 'f', 6);
 		}
 	}
 

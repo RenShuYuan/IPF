@@ -195,7 +195,7 @@ void ipfFlowManage::check()
 		}
 	}
 
-	// 每个支线最后一个必须时输出模块
+	// 每个支线最后一个必须是输出模块
 	foreach(QList<ipfModelerGraphicItem*> *items, branchManagement)
 	{
 		ipfModelerGraphicItem *item = items->last();
@@ -208,12 +208,12 @@ void ipfFlowManage::check()
 			|| item->modelerProcess()->name() == MODELER_WATERFLATTENCHECK
 			|| item->modelerProcess()->name() == MODELER_PROJECTIONCHECK
 			|| item->modelerProcess()->name() == MODELER_ZCHECK
-			|| item->modelerProcess()->name() == MODELER_INVALIDVALUECHECK
 			|| item->modelerProcess()->name() == MODELER_DEMGROSSERRORCHECK
 			|| item->modelerProcess()->name() == MODELER_RASTERINFOPRINT
 			|| item->modelerProcess()->name() == MODELER_VEGETATION_EXTRACTION
 			|| item->modelerProcess()->name() == MODELER_EXTRACT_RASTER_RANGE
-			|| item->modelerProcess()->name() == MODELER_WATERS_EXTRACTION))
+			|| item->modelerProcess()->name() == MODELER_WATERS_EXTRACTION
+			|| item->modelerProcess()->name() == MODELER_INVALIDVALUECHECK))
 		{
 			item->isErrButton(true);
 			isCheck = false;

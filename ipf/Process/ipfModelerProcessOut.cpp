@@ -16,7 +16,7 @@ ipfModelerProcessOut::ipfModelerProcessOut(QObject *parent, const QString modele
 
 ipfModelerProcessOut::~ipfModelerProcessOut()
 {
-	if (out) { delete out; }
+	RELEASE(out);
 }
 
 void ipfModelerProcessOut::setParameter()
@@ -64,22 +64,21 @@ void ipfModelerProcessOut::run()
 	gdal.setProgressSize(filesIn().size());
 	gdal.showProgressDialog();
 
-	foreach (QString var, filesIn())
-	{
-		// 将NODATA值设置为与原图一致
-		//if (noData == "none")
-		//{
-		//	ipfOGR ogr(var);
-		//	if (ogr.isOpen())
-		//		noData = QString::number(ogr.getNodataValue(1));
-		//}
 
+	// 这句使用OpenMP来加速 	foreach (QString var, filesIn())
+#pragma omp parallel for
+	for (int i = 0; i < filesIn().size(); ++i)
+	{
+		QString var = filesIn().at(i);
 		QString target = outPath + "\\" + removeDelimiter(var) + '.' + format;
 		QString err = gdal.formatConvert(var, target, gdal.enumFormatToString(format), compress, isTfw, noData);
-		if (err.isEmpty())
-			appendOutFile(target);
-		else
-			addErrList(var + ": " + err);
+#pragma omp critical
+		{
+			if (err.isEmpty())
+				appendOutFile(target);
+			else
+				addErrList(var + ": " + err);
+		}
 	}
 }
 

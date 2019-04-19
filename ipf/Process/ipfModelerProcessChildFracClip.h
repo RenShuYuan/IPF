@@ -31,9 +31,7 @@ private:
 
 	QStringList thList;
 	QString fileName;
-	QString saveName;
-	QString isChecked;
-	int ext;
+	QString dateType;
 };
 
 #endif // IPFMODELERPROCESSCHILDFRACCLIP_H

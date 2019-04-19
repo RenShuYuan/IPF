@@ -20,7 +20,7 @@ ipfModelerProcessChildCreateMetadata::ipfModelerProcessChildCreateMetadata(QObje
 
 ipfModelerProcessChildCreateMetadata::~ipfModelerProcessChildCreateMetadata()
 {
-	if (dialog) { delete dialog; }
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildCreateMetadata::checkParameter()
@@ -115,27 +115,24 @@ void ipfModelerProcessChildCreateMetadata::createZjMetaData(const QString & var)
 	}
 
 	// 填写内容
-	// 1. 元数据文件名称
-	excel.editCell("B1", QVariant(fileName + ".XLS"));
-
 	// 2. 数据量大小
 	QString pSize = ipfApplication::dataAmount(var);
 	QString mSize = ipfApplication::dataAmount(muxFile);
-	excel.editCell("B8", QVariant(pSize + '/' + mSize));
+	excel.editCell("B7", QVariant(pSize + '/' + mSize));
 
 	ipfOGR ogrP(var);
 	if (ogrP.isOpen())
 	{
 		// 3. 四至中心坐标
 		QList<double> xyList = ogrP.getXYcenter();
-		excel.editCell("B13", QVariant(xyList.at(3)));	// 西南X
-		excel.editCell("B14", QVariant(xyList.at(0)));	// 西南Y
-		excel.editCell("B15", QVariant(xyList.at(1)));	// 西北X
-		excel.editCell("B16", QVariant(xyList.at(0)));	// 西北Y
-		excel.editCell("B17", QVariant(xyList.at(1)));	// 东北X
-		excel.editCell("B18", QVariant(xyList.at(2)));	// 东北Y
-		excel.editCell("B19", QVariant(xyList.at(3)));	// 东南X
-		excel.editCell("B20", QVariant(xyList.at(2)));	// 东南Y
+		excel.editCell("B12", QVariant(xyList.at(3)));	// 西南X
+		excel.editCell("B13", QVariant(xyList.at(0)));	// 西南Y
+		excel.editCell("B14", QVariant(xyList.at(1)));	// 西北X
+		excel.editCell("B15", QVariant(xyList.at(0)));	// 西北Y
+		excel.editCell("B16", QVariant(xyList.at(1)));	// 东北X
+		excel.editCell("B17", QVariant(xyList.at(2)));	// 东北Y
+		excel.editCell("B18", QVariant(xyList.at(3)));	// 东南X
+		excel.editCell("B19", QVariant(xyList.at(2)));	// 东南Y
 
 		// 4. 中央子午线及带号
 		QString strProjection = ogrP.getProjection();
@@ -143,8 +140,8 @@ void ipfModelerProcessChildCreateMetadata::createZjMetaData(const QString & var)
 		oSRS.SetFromUserInput(strProjection.toStdString().c_str());
 		double d_centralMeridian = oSRS.GetProjParm(SRS_PP_CENTRAL_MERIDIAN);
 		int zoneNo = ipfProjectionTransformation::getWgs84Bandwidth(d_centralMeridian);
-		excel.editCell("B25", QVariant(d_centralMeridian));
-		excel.editCell("B27", QVariant(zoneNo));
+		excel.editCell("B24", QVariant(d_centralMeridian));
+		excel.editCell("B26", QVariant(zoneNo));
 	}
 	else
 	{
@@ -155,10 +152,10 @@ void ipfModelerProcessChildCreateMetadata::createZjMetaData(const QString & var)
 	// 5. 轨道号及获取时间
 	QString orbitCode = rInfo.fileName().mid(3, 6);
 	QString data = rInfo.fileName().mid(9, 8);
-	excel.editCell("B32", QVariant(orbitCode));
-	excel.editCell("B33", QVariant(data));
-	excel.editCell("B38", QVariant(orbitCode));
-	excel.editCell("B39", QVariant(data));
+	excel.editCell("B31", QVariant(orbitCode));
+	excel.editCell("B32", QVariant(data));
+	excel.editCell("B37", QVariant(orbitCode));
+	excel.editCell("B38", QVariant(data));
 
 	excel.close();
 
@@ -209,8 +206,9 @@ void ipfModelerProcessChildCreateMetadata::createDsmMetaData(const QString & var
 	// 从样本创建新的元数据
 	QFileInfo info(var);
 	QString fileName = info.fileName();
-	fileName = fileName.mid(0, fileName.size() - 5);
-	QString target = outPath + "\\" + fileName + ".xls";
+	QString baseName = info.baseName();
+	fileName = fileName.mid(0, 11);
+	QString target = outPath + "\\" + baseName + ".xls";
 	if (!QFile::copy(sample, target))
 	{
 		addErrList(target + QStringLiteral(": 元数据创建失败。"));
@@ -227,30 +225,26 @@ void ipfModelerProcessChildCreateMetadata::createDsmMetaData(const QString & var
 	}
 
 	// 填写内容
-	// 1. 元数据文件名称
-	excel.editCell("B1", QVariant(fileName + +".XLS"));
-
 	// 2. 图号
-	QString baseName = info.baseName();
-	excel.editCell("B8", QVariant(fileName));
+	excel.editCell("B6", QVariant(fileName));
 
 	// 3. 数据量大小
 	QString pSize = ipfApplication::dataAmount(var);
-	excel.editCell("B9", QVariant(pSize));
+	excel.editCell("B7", QVariant(pSize));
 
 	ipfOGR ogrP(var);
 	if (ogrP.isOpen())
 	{
 		// 4. 格网行列数
 		QList<int> list = ogrP.getYXSize();
-		excel.editCell("B12", QVariant(list.at(0)));
-		excel.editCell("B13", QVariant(list.at(1)));
+		excel.editCell("B10", QVariant(list.at(0)));
+		excel.editCell("B11", QVariant(list.at(1)));
 
 		// 5. 起始格网x, y坐标
 		QList<double> xyList = ogrP.getXY();
 		double midSize = ogrP.getPixelSize() / 2;
-		excel.editCell("B16", QVariant(xyList.at(1) - midSize));
-		excel.editCell("B17", QVariant(xyList.at(0) + midSize));
+		excel.editCell("B14", QVariant(xyList.at(1) - midSize));
+		excel.editCell("B15", QVariant(xyList.at(0) + midSize));
 
 		// 6. 中央子午线及带号
 		QString strProjection = ogrP.getProjection();
@@ -258,8 +252,8 @@ void ipfModelerProcessChildCreateMetadata::createDsmMetaData(const QString & var
 		oSRS.SetFromUserInput(strProjection.toStdString().c_str());
 		double d_centralMeridian = oSRS.GetProjParm(SRS_PP_CENTRAL_MERIDIAN);
 		int zoneNo = ipfProjectionTransformation::getWgs84Bandwidth(d_centralMeridian);
-		excel.editCell("B22", QVariant(d_centralMeridian));
-		excel.editCell("B24", QVariant(zoneNo));
+		excel.editCell("B20", QVariant(d_centralMeridian));
+		excel.editCell("B22", QVariant(zoneNo));
 	}
 	else
 	{
@@ -316,8 +310,9 @@ void ipfModelerProcessChildCreateMetadata::createDemMetaData(const QString & var
 	// 从样本创建新的元数据
 	QFileInfo info(var);
 	QString fileName = info.fileName();
-	fileName = fileName.mid(0, fileName.size() - 5);
-	QString target = outPath + "\\" + fileName + ".xls";
+	QString baseName = info.baseName();
+	fileName = fileName.mid(0, 11);
+	QString target = outPath + "\\" + baseName + ".xls";
 	if (!QFile::copy(sample, target))
 	{
 		addErrList(target + QStringLiteral(": 元数据创建失败。"));
@@ -334,30 +329,26 @@ void ipfModelerProcessChildCreateMetadata::createDemMetaData(const QString & var
 	}
 
 	// 填写内容
-	// 1. 元数据文件名称
-	excel.editCell("B1", QVariant(fileName + +".XLS"));
-
 	// 2. 图号
-	QString baseName = info.baseName();
-	excel.editCell("B8", QVariant(fileName));
+	excel.editCell("B6", QVariant(fileName));
 
 	// 3. 数据量大小
 	QString pSize = ipfApplication::dataAmount(var);
-	excel.editCell("B9", QVariant(pSize));
+	excel.editCell("B7", QVariant(pSize));
 
 	ipfOGR ogrP(var);
 	if (ogrP.isOpen())
 	{
 		// 4. 格网行列数
 		QList<int> list = ogrP.getYXSize();
-		excel.editCell("B12", QVariant(list.at(0)));
-		excel.editCell("B13", QVariant(list.at(1)));
+		excel.editCell("B10", QVariant(list.at(0)));
+		excel.editCell("B11", QVariant(list.at(1)));
 
 		// 5. 起始格网x, y坐标
 		QList<double> xyList = ogrP.getXY();
 		double midSize = ogrP.getPixelSize() / 2;
-		excel.editCell("B16", QVariant(xyList.at(1) - midSize));
-		excel.editCell("B17", QVariant(xyList.at(0) + midSize));
+		excel.editCell("B14", QVariant(xyList.at(1) - midSize));
+		excel.editCell("B15", QVariant(xyList.at(0) + midSize));
 
 		// 6. 中央子午线及带号
 		QString strProjection = ogrP.getProjection();
@@ -365,8 +356,8 @@ void ipfModelerProcessChildCreateMetadata::createDemMetaData(const QString & var
 		oSRS.SetFromUserInput(strProjection.toStdString().c_str());
 		double d_centralMeridian = oSRS.GetProjParm(SRS_PP_CENTRAL_MERIDIAN);
 		int zoneNo = ipfProjectionTransformation::getWgs84Bandwidth(d_centralMeridian);
-		excel.editCell("B22", QVariant(d_centralMeridian));
-		excel.editCell("B24", QVariant(zoneNo));
+		excel.editCell("B20", QVariant(d_centralMeridian));
+		excel.editCell("B22", QVariant(zoneNo));
 	}
 	else
 	{
@@ -423,8 +414,9 @@ void ipfModelerProcessChildCreateMetadata::createDomMetaData(const QString & var
 	// 从样本创建新的元数据
 	QFileInfo info(var);
 	QString fileName = info.fileName();
-	fileName = fileName.mid(0, fileName.size() - 5);
-	QString target = outPath + "\\" + fileName + ".xls";
+	QString baseName = info.baseName();
+	fileName = fileName.mid(0, 11);
+	QString target = outPath + "\\" + baseName + ".xls";
 	if (!QFile::copy(sample, target))
 	{
 		addErrList(target + QStringLiteral(": 元数据创建失败。"));
@@ -441,41 +433,50 @@ void ipfModelerProcessChildCreateMetadata::createDomMetaData(const QString & var
 	}
 
 	// 填写内容
-	// 1. 元数据文件名称
-	excel.editCell("B1", QVariant(fileName + ".XLS"));
+	// 1. 图号
+	excel.editCell("B6", QVariant(fileName));
 
-	// 2. 图号
-	QString baseName = info.baseName();
-	excel.editCell("B8", QVariant(fileName));
-
-	// 3. 数据量大小
+	// 2. 数据量大小
 	QString pSize = ipfApplication::dataAmount(var);
-	excel.editCell("B9", QVariant(pSize));
+	excel.editCell("B7", QVariant(pSize));
 
-	ipfOGR ogrP(var);
-	if (ogrP.isOpen())
+	ipfOGR ogr(var);
+	if (ogr.isOpen())
 	{
+		// 3. 地面分辨率
+		double R = 0.0;
+		R = ogr.getPixelSize();
+		QString pixelSize = QString::number(R, 'f', 1);
+		excel.editCell("B9", QVariant(pixelSize));
+
+		// 3. 像素位数
+		QString pixelByte = QString::number(ogr.getBandSize() * 8);
+		excel.editCell("B11", QVariant(pixelByte));
+
 		// 4. 四至坐标
-		ipfFractalManagement frac(50000);
-		QList<QgsPointXY> four = frac.dNToXy(fileName.mid(1));
+		int blc = 50000;
+		if (R == 16.0)
+			blc = 250000;
+		ipfFractalManagement frac(blc);
+		QList<QgsPointXY> four = frac.dNToXy(fileName);
 		
-		excel.editCell("B15", QVariant(QString::number(four.at(0).y(), 'f', 2)));	// 西南X
-		excel.editCell("B16", QVariant(QString::number(four.at(0).x(), 'f', 2)));	// 西南Y
-		excel.editCell("B17", QVariant(QString::number(four.at(1).y(), 'f', 2)));	// 西北X
-		excel.editCell("B18", QVariant(QString::number(four.at(1).x(), 'f', 2)));	// 西北Y
-		excel.editCell("B19", QVariant(QString::number(four.at(2).y(), 'f', 2)));	// 东北X
-		excel.editCell("B20", QVariant(QString::number(four.at(2).x(), 'f', 2)));	// 东北Y
-		excel.editCell("B21", QVariant(QString::number(four.at(3).y(), 'f', 2)));	// 东南X
-		excel.editCell("B22", QVariant(QString::number(four.at(3).x(), 'f', 2)));	// 东南Y
+		excel.editCell("B13", QVariant(QString::number(four.at(0).y(), 'f', 2)));	// 西南X
+		excel.editCell("B14", QVariant(QString::number(four.at(0).x(), 'f', 2)));	// 西南Y
+		excel.editCell("B15", QVariant(QString::number(four.at(1).y(), 'f', 2)));	// 西北X
+		excel.editCell("B16", QVariant(QString::number(four.at(1).x(), 'f', 2)));	// 西北Y
+		excel.editCell("B17", QVariant(QString::number(four.at(2).y(), 'f', 2)));	// 东北X
+		excel.editCell("B18", QVariant(QString::number(four.at(2).x(), 'f', 2)));	// 东北Y
+		excel.editCell("B19", QVariant(QString::number(four.at(3).y(), 'f', 2)));	// 东南X
+		excel.editCell("B20", QVariant(QString::number(four.at(3).x(), 'f', 2)));	// 东南Y
 
 		// 5. 中央子午线及带号
-		QString strProjection = ogrP.getProjection();
+		QString strProjection = ogr.getProjection();
 		OGRSpatialReference oSRS;
 		oSRS.SetFromUserInput(strProjection.toStdString().c_str());
 		double d_centralMeridian = oSRS.GetProjParm(SRS_PP_CENTRAL_MERIDIAN);
 		int zoneNo = ipfProjectionTransformation::getWgs84Bandwidth(d_centralMeridian);
-		excel.editCell("B27", QVariant(d_centralMeridian));
-		excel.editCell("B29", QVariant(zoneNo));
+		excel.editCell("B25", QVariant(d_centralMeridian));
+		excel.editCell("B27", QVariant(zoneNo));
 	}
 	else
 	{
@@ -531,15 +532,38 @@ void ipfModelerProcessChildCreateMetadata::run()
 	clearOutFiles();
 	clearErrList();
 
+	QStringList files = filesIn();
+
 	//进度条
 	int prCount = 0;
-	QProgressDialog dialog(QStringLiteral("制作元数据..."), QStringLiteral("取消"), 0, filesIn().size(), nullptr);
+	QProgressDialog dialog(QStringLiteral("制作元数据..."), QStringLiteral("取消"), 0, files.size(), nullptr);
 	dialog.setWindowTitle(QStringLiteral("制作元数据"));
 	dialog.setWindowModality(Qt::WindowModal);
 	dialog.show();
 
-	foreach(QString var, filesIn())
+	//foreach(QString var, filesIn())
+	//{
+	//	if (metaDataType == QStringLiteral("整景元数据"))
+	//		createZjMetaData(var);
+	//	else if (metaDataType == QStringLiteral("DSM元数据"))
+	//		createDsmMetaData(var);
+	//	else if (metaDataType == QStringLiteral("DEM元数据"))
+	//		createDemMetaData(var);
+	//	else if (metaDataType == QStringLiteral("DOM元数据"))
+	//		createDomMetaData(var);
+
+	//	dialog.setValue(++prCount);
+	//	QApplication::processEvents();
+	//	if (dialog.wasCanceled())
+	//		return;
+	//}
+
+			// 这句使用OpenMP来加速
+#pragma omp parallel for
+	for (int i=0; i< files.size(); ++i)
 	{
+		QString var = files.at(i);
+
 		if (metaDataType == QStringLiteral("整景元数据"))
 			createZjMetaData(var);
 		else if (metaDataType == QStringLiteral("DSM元数据"))
@@ -549,9 +573,13 @@ void ipfModelerProcessChildCreateMetadata::run()
 		else if (metaDataType == QStringLiteral("DOM元数据"))
 			createDomMetaData(var);
 
-		dialog.setValue(++prCount);
-		QApplication::processEvents();
-		if (dialog.wasCanceled())
-			return;
+#pragma omp critical
+		{
+			if (++prCount < files.size())
+			{
+				dialog.setValue(prCount);
+				QApplication::processEvents();
+			}
+		}
 	}
 }
