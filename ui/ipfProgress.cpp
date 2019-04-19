@@ -35,8 +35,8 @@ void ipfProgress::setTitle(const QString & label)
 
 void ipfProgress::setValue(int value, QProgressBar *pProcessChild)
 {
-#pragma omp critical
-		{
+//#pragma omp critical
+		//{
 		pProcessChild->setValue(value);
 		QApplication::processEvents();
 		if (value == ui.progressBarChild->maximum())
@@ -44,7 +44,7 @@ void ipfProgress::setValue(int value, QProgressBar *pProcessChild)
 			ui.verticalLayout->removeWidget(pProcessChild);
 			pulsValueTatal();
 		}
-	}
+	//}
 }
 
 void ipfProgress::pulsValueTatal()
