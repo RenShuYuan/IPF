@@ -25,6 +25,10 @@ QMap<QString, QString> ipfModelerInvalidValueCheckDialog::getParameter()
 		map["isNodata"] = "YES";
 	else
 		map["isNodata"] = "NO";
+	if (isShape)
+		map["isShape"] = "YES";
+	else
+		map["isShape"] = "NO";
 
 	return map;
 }
@@ -42,11 +46,16 @@ void ipfModelerInvalidValueCheckDialog::setParameter(QMap<QString, QString> map)
 		isNodata = true;
 	else
 		isNodata = false;
+	if (map["isShape"] == "YES")
+		isNodata = true;
+	else
+		isNodata = false;
 
 	ui.lineEdit->setText(invalidValue);
 	ui.lineEdit_2->setText(saveName);
 	ui.checkBox->setChecked(isNegative);
 	ui.checkBox_2->setChecked(isNodata);
+	ui.checkBox_3->setChecked(isShape);
 }
 
 void ipfModelerInvalidValueCheckDialog::on_pushButton_2_clicked()
@@ -72,6 +81,10 @@ void ipfModelerInvalidValueCheckDialog::on_pushButton_clicked()
 		isNodata = true;
 	else
 		isNodata = false;
+	if (ui.checkBox_3->isChecked())
+		isShape = true;
+	else
+		isShape = false;
 
 	accept();
 }

@@ -6,6 +6,10 @@
 #include <QTextStream>
 #include <QFileInfo>
 
+
+#include "QgsCoordinateReferenceSystem.h"
+#include "QgsVectorFileWriter.h"
+
 ipfOGR::ipfOGR() : poDataset(nullptr)
 {
 }
@@ -344,6 +348,20 @@ void * ipfOGR::newTypeSpace(const GDALDataType type, long size)
 	}
 
 	return buffData;
+}
+
+bool ipfOGR::createrShape(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QString & wkt)
+{
+	// 参照坐标系
+	QgsCoordinateReferenceSystem mCrs;
+	mCrs.createFromWkt(wkt);
+
+	QgsVectorFileWriter::WriterError error;
+	QgsVectorFileWriter newShape(layerName, "system", fields, geometryType, mCrs, "ESRI Shapefile");
+	error = newShape.hasError();
+	if (error == QgsVectorFileWriter::NoError)
+		return true;
+	return false;
 }
 
 bool ipfOGR::rasterDelete(const QString &file)

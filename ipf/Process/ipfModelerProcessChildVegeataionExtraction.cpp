@@ -355,9 +355,6 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 		// 删除临时栅格数据
 		QFile::remove(rasterFile);
 
-		// 融合要素 ----->
-		// 融合要素 -----<
-
 		// 清除空洞、过滤面积不足的要素 ----->
 		QgsVectorLayer *layer = new QgsVectorLayer(vectorFile, "vector");
 		if (!layer || !layer->isValid())

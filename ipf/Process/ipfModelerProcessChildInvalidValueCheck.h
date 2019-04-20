@@ -25,6 +25,7 @@ private:
 	QString saveName;
 	bool isNegative;
 	bool isNodata;
+	bool isShape;
 };
 
 #endif // IPFMODELERPROCESSCHILDINVALIDVALUECHECK_H

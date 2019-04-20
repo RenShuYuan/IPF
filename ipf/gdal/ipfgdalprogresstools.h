@@ -61,6 +61,8 @@ public:
     ipfGdalProgressTools();
     ~ipfGdalProgressTools();
 
+	//static ipfGdalProgressTools *instance() { return smInstance; }
+
 	QStringList getErrList() { return errList; };
 
 	// 返回空闲物理内存大小, 字节
@@ -250,6 +252,8 @@ private:
 private:
 	ipfProgress * proDialog;
 	QStringList errList;
+
+	//static ipfGdalProgressTools *smInstance;
 };
 
 #endif // IPFGDALPROGRESSTOOLS_H

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>398</width>
-    <height>211</height>
+    <height>240</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -77,6 +77,13 @@
     </layout>
    </item>
    <item>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
       <widget class="QLabel" name="label_2">
@@ -94,6 +101,30 @@
         <string>保存...</string>
        </property>
       </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <widget class="QCheckBox" name="checkBox_3">
+       <property name="text">
+        <string>是否同时输出错误矢量数据</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>37</width>
+         <height>17</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
    </item>

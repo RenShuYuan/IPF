@@ -28,6 +28,7 @@ private:
 	QString invalidValue;
 	bool isNegative;
 	bool isNodata;
+	bool isShape;
 };
 
 #endif // IPFMODELERINVALIDVALUECHECKDIALOG_H

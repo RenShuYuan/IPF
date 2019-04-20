@@ -11,14 +11,18 @@
 #include <omp.h>
 
 int IPF_DECIMAL = 0;
+
 double IPF_VALUE_OLD = 0.0;
 double IPF_VALUE_NEW = 0.0;
+
 double IPF_NODATA = 0.0;
 QList<double> IPF_BANSNODATA;
 double IPF_BACKGROUND = 0.0;
 QList<double> IPF_INVALIDVALUE;
 bool IPF_ISNEGATIVE = false;
 bool IPF_ISNODATA = false;
+
+//ipfGdalProgressTools *ipfGdalProgressTools::smInstance = nullptr;
 
 /************************************************************************/
 /*                 GDALVectorTranslateOptionsForBinaryNew()             */
@@ -443,6 +447,11 @@ CPLErr pixelModifyValueFunction(void **papoSources, int nSources, void *pData, i
 	int ii = 0, iLine = 0, iCol = 0;
 	double x0 = 0.0;
 
+	GDALDatasetH hDS = papoSources[0];
+	
+	GDALDataset *poDataset = (GDALDataset *)hDS;
+	int x = poDataset->GetRasterCount();
+
 	// ---- Init ----
 	if (nSources != 1) return CE_Failure;
 
@@ -548,6 +557,8 @@ CPLErr pixelInvalidValue(void **papoSources, int nSources, void *pData, int nXSi
 
 ipfGdalProgressTools::ipfGdalProgressTools()
 {
+	//smInstance = this;
+
 	// 初始化进度条
 	proDialog = new ipfProgress();
 	proDialog->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -1738,7 +1749,6 @@ QString ipfGdalProgressTools::filterInvalidValue(const QString & source, const Q
 	options = CSLAddNameValue(options, "band", "1");
 	options = CSLAddNameValue(options, "PixelFunctionType", "pixelInvalidValue");
 	poDataset_target->AddBand(GDT_Byte, options); // 由于只用0和1区分，故只用8bit节省空间。
-
 	CSLDestroy(options);
 
 	// 创建新波段
@@ -1830,9 +1840,6 @@ QString ipfGdalProgressTools::slopCalculation_S2(const QString & source, const Q
 QString ipfGdalProgressTools::pixelModifyValue(const QString & source, const QString & target
 	, const double valueOld, const double valueNew)
 {
-	IPF_VALUE_OLD = valueOld;
-	IPF_VALUE_NEW = valueNew;
-
 	GDALDataset* poDataset_source = nullptr;
 	GDALDataset *poDataset_target = nullptr;
 	GDALDriver *poDriver = nullptr;
@@ -1864,7 +1871,7 @@ QString ipfGdalProgressTools::pixelModifyValue(const QString & source, const QSt
 	for (int i = 0; i < nBands; ++i)
 	{
 		char** options = NULL;
-		options = CSLAddNameValue(options, "band", QString::number(i+1).toStdString().c_str());
+		options = CSLAddNameValue(options, "band", QString::number(i+1).toStdString().c_str()); 
 		options = CSLAddNameValue(options, "subclass", "VRTDerivedRasterBand");
 		options = CSLAddNameValue(options, "PixelFunctionType", "pixelModifyValueFunction");
 		poDataset_target->AddBand(type, options);

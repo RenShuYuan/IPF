@@ -2,6 +2,7 @@
 #define IPFOGR_H
 
 #include "head.h"
+#include "qgsfields.h"
 
 class ipfOGR
 {
@@ -61,6 +62,9 @@ public:
 
 	// 创建对应类型的数组
 	static void* newTypeSpace(const GDALDataType type, long size);
+
+	// 创建shp文件 文件名、文件类型、字段列表、投影编号
+	static bool createrShape(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QString & wkt);
 
 	// 删除栅格数据
 	bool rasterDelete(const QString &file);
