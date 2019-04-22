@@ -3,6 +3,7 @@
 
 // 释放指针
 #define RELEASE(x)  if(x!=NULL) {delete x; x = NULL;}
+#define RELEASE_ARRAY(x)  if(x!=NULL) {delete [] x; x = NULL;}
 
 // Qt
 #include <QSettings>
@@ -32,6 +33,14 @@
 #define GL_INTENSITY8                     0x804B
 #define GL_UNSIGNED_BYTE                  0x1401
 #define GL_FLOAT                          0x1406
+
+typedef enum
+{
+	IPF_ZERO = 0,
+	IPF_EQUAL = 1,
+	IPF_PLUS = 2,
+	IPF_MINUS = 3
+} IPF_COMPUTE_TYPE;
 
 // 全球项目分幅产品分辨率 Global geographic information
 #define GGI_DOM_2M		2.0
@@ -64,11 +73,14 @@ static const QString MODELER_WATERFLATTENCHECK(QStringLiteral("高程模型水�
 static const QString MODELER_PROJECTIONCHECK(QStringLiteral("栅格投影检查"));
 static const QString MODELER_ZCHECK(QStringLiteral("高程模型精度检查"));
 static const QString MODELER_RASTERINFOPRINT(QStringLiteral("栅格基本信息输出"));
-static const QString MODELER_SLOPCALCULATION(QStringLiteral("标准偏差-测试"));
 static const QString MODELER_INVALIDVALUECHECK(QStringLiteral("无效值检查"));
 static const QString MODELER_DEMGROSSERRORCHECK(QStringLiteral("数字高程模型粗差检查"));
 static const QString MODELER_VEGETATION_EXTRACTION(QStringLiteral("植被提取"));
 static const QString MODELER_WATERS_EXTRACTION(QStringLiteral("水域提取"));
+static const QString MODELER_SETNODATA(QStringLiteral("设置NODATA"));
+static const QString MODELER_DSMDEMDIFFECHECK(QStringLiteral("DSM/DEM差值检查"));
+
+static const QString MODELER_SLOPCALCULATION(QStringLiteral("标准偏差-测试"));
 static const QString MODELER_FRACEXTENTPROCESS(QStringLiteral("测试专用"));
 static const QString MODELER_EXTRACT_RASTER_RANGE(QStringLiteral("提取栅格有效范围-测试"));
 

@@ -12,8 +12,10 @@
 
 int IPF_DECIMAL = 0;
 
-double IPF_VALUE_OLD = 0.0;
-double IPF_VALUE_NEW = 0.0;
+double IPF_VALUE_OLD_1 = 0.0;
+double IPF_VALUE_NEW_1 = 0.0;
+double IPF_VALUE_OLD_2 = 0.0;
+double IPF_VALUE_NEW_2 = 0.0;
 
 double IPF_NODATA = 0.0;
 QList<double> IPF_BANSNODATA;
@@ -463,8 +465,16 @@ CPLErr pixelModifyValueFunction(void **papoSources, int nSources, void *pData, i
 			ii = iLine * nXSize + iCol;
 			/* 使用SRCVAL获取源栅格的像素 */
 			x0 = SRCVAL(papoSources[0], eSrcType, ii);
-			if (x0 == IPF_VALUE_OLD)
-				x0 = IPF_VALUE_NEW;
+			if (IPF_VALUE_OLD_1 != IPF_VALUE_NEW_1)
+			{
+				if (x0 == IPF_VALUE_OLD_1)
+					x0 = IPF_VALUE_NEW_1;
+				else if (IPF_VALUE_OLD_2 != IPF_VALUE_NEW_2)
+				{
+					if (x0 == IPF_VALUE_OLD_2)
+						x0 = IPF_VALUE_NEW_2;
+				}
+			}
 
 			// write
 			GDALCopyWords(&x0, GDT_Float64, 0,
@@ -1837,12 +1847,18 @@ QString ipfGdalProgressTools::slopCalculation_S2(const QString & source, const Q
 	return enumErrTypeToString(eOK);
 }
 
-QString ipfGdalProgressTools::pixelModifyValue(const QString & source, const QString & target
-	, const double valueOld, const double valueNew)
+QString ipfGdalProgressTools::pixelModifyValue(const QString &source, const QString &target
+	, const double valueOld_1, const double valueNew_1
+	, const double valueOld_2, const double valueNew_2)
 {
 	GDALDataset* poDataset_source = nullptr;
 	GDALDataset *poDataset_target = nullptr;
 	GDALDriver *poDriver = nullptr;
+
+	IPF_VALUE_OLD_1 = valueOld_1;
+	IPF_VALUE_NEW_1 = valueNew_1;
+	IPF_VALUE_OLD_2 = valueOld_2;
+	IPF_VALUE_NEW_2 = valueNew_2;
 
 	// 尝试打开数据源
 	poDataset_source = (GDALDataset*)GDALOpenEx(source.toStdString().c_str(), GDAL_OF_RASTER, NULL, NULL, NULL);
@@ -2366,6 +2382,11 @@ void ipfGdalProgressTools::showProgressDialog()
 void ipfGdalProgressTools::hideProgressDialog()
 {
 	proDialog->hide();
+}
+
+void ipfGdalProgressTools::pulsValueTatal()
+{
+	proDialog->pulsValueTatal();
 }
 
 void ipfGdalProgressTools::setProgressTitle(const QString & label)

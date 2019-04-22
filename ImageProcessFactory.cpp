@@ -105,6 +105,7 @@ void ImageProcessFactory::initTreeView()
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_WATERS_EXTRACTION));
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_RASTERINFOPRINT));
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_BUILDOVERVIEWS));
+	itemCoreAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_SETNODATA));
 
 	QStandardItem* itemCunstomQQAlgorithm = new QStandardItem(QStringLiteral("全球测图数据处理"));
 	model->appendRow(itemCunstomQQAlgorithm);
@@ -121,7 +122,8 @@ void ImageProcessFactory::initTreeView()
 	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_ZCHECK));
 	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_PROJECTIONCHECK));
 	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_INVALIDVALUECHECK));
-	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_DEMGROSSERRORCHECK));
+	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_DEMGROSSERRORCHECK)); 
+	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_DSMDEMDIFFECHECK));
 
 	//QStandardItem* itemCunstomSTBC = new QStandardItem(QStringLiteral("科研测试功能"));
 	//model->appendRow(itemCunstomSTBC);

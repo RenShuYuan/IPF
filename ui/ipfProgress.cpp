@@ -30,6 +30,7 @@ void ipfProgress::setValue(int value)
 void ipfProgress::pulsValueTatal()
 {
 	ui.progressBar->setValue(++tatalCount);
+	QApplication::processEvents();
 }
 
 void ipfProgress::setRangeChild(int minimum, int maximum)

@@ -240,6 +240,15 @@
     <ClCompile Include="ui\ipfModelerWatersExtractionDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildSetNodata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\ipfModelerSetNodataDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildDSMDEMDifferenceCheck.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="ImageProcessFactory.h">
@@ -341,6 +350,9 @@
     <QtMoc Include="ui\ipfModelerWatersExtractionDialog.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="ui\ipfModelerSetNodataDialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="ImageProcessFactory.ui">
@@ -422,6 +434,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="ui\ipfModelerWatersExtractionDialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="ui\ipfModelerSetNodataDialog.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>
@@ -541,6 +556,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ipf\Process\ipfModelerProcessChildWatersExtraction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildSetNodata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildDSMDEMDifferenceCheck.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -113,52 +113,52 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 		QString err = gdal.filterInvalidValue(var, target, invalidValue, isNegative, isNodata);
 		if (err.isEmpty())
 		{
-			// 输出为img文件
-			QString format = "img";
-			QString targetTo = saveName + "\\" + removeDelimiter(target) + '.' + format;
-			QString err = gdal.formatConvert(target, targetTo, gdal.enumFormatToString(format), "NONE", "NO", "0");
-			if (!err.isEmpty())
-			{
-				addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -1。"));
-				continue;
-			}
-
 			// 计算最大最小值
 			double adfMinMax[2];
-			ipfOGR ogr(targetTo);
+			ipfOGR ogr(target);
 			if (!ogr.isOpen())
 			{
 				addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -2。"));
+				gdal.pulsValueTatal();
 				continue;
 			}
 			if (ogr.getBandSize() != 1)
 			{
 				addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -3。"));
+				gdal.pulsValueTatal();
 				continue;
 			}
-			CPLErr cerr = ogr.getRasterBand(1)->ComputeRasterMinMax(TRUE, adfMinMax);
-
+			CPLErr cerr = ogr.getRasterBand(1)->ComputeRasterMinMax(FALSE, adfMinMax);
 			int nXSize = ogr.getYXSize().at(1);
 			int nYSize = ogr.getYXSize().at(0);
-
 			QString wkt = ogr.getProjection();
-
 			ogr.close();
 
 			if (cerr != CE_None)
 			{
 				addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -4。"));
+				gdal.pulsValueTatal();
 				continue;
 			}
 
 			// 检查该栅格是否存在无效值
 			if (adfMinMax[0] == 0 && adfMinMax[1] == 0)
 			{
-				QFile::remove(targetTo);
 				outList << rasterFileName + QStringLiteral(": 正确。");
+				gdal.pulsValueTatal();
 			}
 			else
 			{
+				// 输出为img文件
+				QString format = "img";
+				QString targetTo = saveName + "\\" + removeDelimiter(target) + '.' + format;
+				QString err = gdal.formatConvert(target, targetTo, gdal.enumFormatToString(format), "NONE", "NO", "0");
+				if (!err.isEmpty())
+				{
+					addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -1。"));
+					gdal.pulsValueTatal();
+					continue;
+				}
 				outList << rasterFileName + QStringLiteral(": 检查到栅格数据中存在无效值，并在输出栅格中被标记为1。");
 
 				// 是否输出矢量
@@ -190,6 +190,7 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 							if (!err.isEmpty())
 							{
 								addErrList(rasterFileName + QStringLiteral(": 输出错误矢量失败，已跳过。"));
+								gdal.pulsValueTatal();
 								continue;
 							}
 							else
@@ -203,6 +204,7 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 					if (!ipfOGR::createrShape(vectorFile, QgsWkbTypes::Polygon, QgsFields(), wkt))
 					{
 						addErrList(rasterFileName + QStringLiteral(": 创建错误矢量文件失败，已跳过。"));
+						gdal.pulsValueTatal();
 						continue;
 					}
 					// 创建矢量文件 ------<
@@ -219,6 +221,7 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 						if (!err.isEmpty())
 						{
 							addErrList(rasterFileName + QStringLiteral(": 栅格转矢量失败，已跳过。"));
+							gdal.pulsValueTatal();
 							continue;
 						}
 					}
@@ -228,7 +231,10 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 			}
 		}
 		else
+		{
 			addErrList(var + ": " + err);
+			gdal.pulsValueTatal();
+		}
 	}
 
 	QString outName = saveName + QStringLiteral("/无效值检查.txt");

@@ -284,50 +284,14 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 		}
 		// 分隔栅格，提升栅格转矢量的效率 -----<
 
-		// 创建矢量文件 ------>
-		// 加载shp驱动
-		const char *pszDriverName = "ESRI Shapefile";
-		GDALDriver *poDriver;
-		poDriver = GetGDALDriverManager()->GetDriverByName(pszDriverName);
-		if (poDriver == NULL)
+		// 创建矢量图层 ----->
+		if (!ipfOGR::createrShape(vectorFile, QgsWkbTypes::Polygon, QgsFields(), prj))
 		{
-			addErrList(vectorFile + QStringLiteral(": 加载矢量驱动失败。"));
-
+			addErrList(vectorFile + QStringLiteral(": 创建矢量文件失败，已跳过。"));
 			// 删除临时栅格数据
 			QFile::remove(rasterFile);
-
 			continue;
 		}
-
-		// 创建矢量文件
-		GDALDataset *poDS;
-		poDS = poDriver->Create(vectorFile.toStdString().c_str(), 0, 0, 0, GDT_Unknown, NULL);
-		if (poDS == NULL)
-		{
-			addErrList(vectorFile + QStringLiteral(": 创建矢量文件失败。"));
-
-			// 删除临时栅格数据
-			QFile::remove(rasterFile);
-
-			continue;
-		}
-
-		// 创建矢量图层
-		OGRLayer *poLayer;
-		poLayer = poDS->CreateLayer(baseName.toStdString().c_str(), NULL, wkbPolygon, NULL);
-		if (poLayer == NULL)
-		{
-			addErrList(vectorFile + QStringLiteral(": 创建图层失败。"));
-
-			// 删除临时栅格数据
-			QFile::remove(rasterFile);
-
-			continue;
-		}
-
-		// 定义投影
-		poDS->SetProjection(prj.toStdString().c_str());
-		GDALClose(poDS);
 		// 创建矢量文件 ------<
 
 		// 栅格转矢量 ----->

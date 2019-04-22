@@ -12,6 +12,7 @@ public:
 	~ipfModelerProcessIn();
 
 	ipfModelerProcessIn* classType() { return this; };
+	const QString typeName() { return QString("IN"); };
 
 	void setParameter();
 	bool checkParameter();

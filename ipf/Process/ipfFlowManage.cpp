@@ -199,21 +199,7 @@ void ipfFlowManage::check()
 	foreach(QList<ipfModelerGraphicItem*> *items, branchManagement)
 	{
 		ipfModelerGraphicItem *item = items->last();
-		if (!(item->modelerProcess()->name() == MODELER_OUT
-			|| item->modelerProcess()->name() == MODELER_EXCEL_METADATA
-			|| item->modelerProcess()->name() == MODELER_TFW
-			|| item->modelerProcess()->name() == MODELER_BUILDOVERVIEWS
-			|| item->modelerProcess()->name() == MODELER_FRACDIFFERCHECK
-			|| item->modelerProcess()->name() == MODELER_FRACEXTENTCHECK
-			|| item->modelerProcess()->name() == MODELER_WATERFLATTENCHECK
-			|| item->modelerProcess()->name() == MODELER_PROJECTIONCHECK
-			|| item->modelerProcess()->name() == MODELER_ZCHECK
-			|| item->modelerProcess()->name() == MODELER_DEMGROSSERRORCHECK
-			|| item->modelerProcess()->name() == MODELER_RASTERINFOPRINT
-			|| item->modelerProcess()->name() == MODELER_VEGETATION_EXTRACTION
-			|| item->modelerProcess()->name() == MODELER_EXTRACT_RASTER_RANGE
-			|| item->modelerProcess()->name() == MODELER_WATERS_EXTRACTION
-			|| item->modelerProcess()->name() == MODELER_INVALIDVALUECHECK))
+		if (item->modelerProcess()->typeName() != QString("OUT"))
 		{
 			item->isErrButton(true);
 			isCheck = false;

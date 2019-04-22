@@ -13,6 +13,7 @@ public:
 	~ipfModelerProcessOut();
 
 	ipfModelerProcessOut* classType() { return this; };
+	const QString typeName() { return QString("OUT"); };
 
 	bool checkParameter();
 	void setParameter();

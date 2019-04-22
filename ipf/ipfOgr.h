@@ -8,7 +8,7 @@ class ipfOGR
 {
 public:
 	ipfOGR();
-    ipfOGR(const QString &fileName);
+    ipfOGR(const QString &fileName, bool isUpdata = false);
     ~ipfOGR();
 
     bool open(const QString &fileName);
@@ -42,7 +42,7 @@ public:
 	// 返回对应波段对象
 	GDALRasterBand * getRasterBand(const int nBand);
 
-	bool readRasterIO(float **pDataBuffer);
+	bool readRasterIO(float **pDataBuffer, const int bandNo = 1);
 	bool readRasterIO(void *pDataBuffer, int qsX, int qsY, int xSize, int ySize, GDALDataType type = GDT_Byte);
 
 	// 获得NODATA值
@@ -69,6 +69,8 @@ public:
 	// 删除栅格数据
 	bool rasterDelete(const QString &file);
 
+	// 使用统计值方法检查栅格数据是否为0
+	CPLErr ComputeMinMax(IPF_COMPUTE_TYPE type);
 private:
     GDALDataset* poDataset;
 };

@@ -253,46 +253,12 @@ void ipfModelerProcessChildWatersExtraction::run()
 		}
 		// 分隔栅格，提升栅格转矢量的效率 -----<
 
-		// 创建矢量文件 ------>
-		// 加载shp驱动
-		const char *pszDriverName = "ESRI Shapefile";
-		GDALDriver *poDriver;
-		poDriver = GetGDALDriverManager()->GetDriverByName(pszDriverName);
-		if (poDriver == NULL)
+		// 创建矢量图层 ----->
+		if (!ipfOGR::createrShape(vectorFile, QgsWkbTypes::Polygon, QgsFields(), prj))
 		{
-			addErrList(vectorFile + QStringLiteral(": 加载驱动失败。"));
+			addErrList(vectorFile + QStringLiteral(": 创建矢量文件失败，已跳过。"));
 			continue;
 		}
-
-		// 创建矢量文件
-		GDALDataset *poDS;
-		poDS = poDriver->Create(vectorFile.toStdString().c_str(), 0, 0, 0, GDT_Unknown, NULL);
-		if (poDS == NULL)
-		{
-			addErrList(vectorFile + QStringLiteral(": 创建矢量文件失败。"));
-			continue;
-		}
-
-		// 创建矢量图层
-		OGRLayer *poLayer;
-		poLayer = poDS->CreateLayer(baseName.toStdString().c_str(), NULL, wkbPolygon, NULL);
-		if (poLayer == NULL)
-		{
-			addErrList(vectorFile + QStringLiteral(": 创建图层失败。"));
-			continue;
-		}
-
-		// 定义投影
-		//poDS->SetProjection(prj.toStdString().c_str());
-
-		// 新增字段
-		if (OGRERR_NONE != poLayer->CreateField(new OGRFieldDefn(fieldName.toStdString().c_str(), OFTInteger)))
-		{
-			addErrList(vectorFile + QStringLiteral(": 创建字段失败。"));
-			continue;
-		}
-		int dst_field = poLayer->GetLayerDefn()->GetFieldIndex(fieldName.toStdString().c_str());
-		GDALClose(poDS);
 		// 创建矢量文件 ------<
 
 		// 栅格转矢量 ----->
@@ -303,7 +269,7 @@ void ipfModelerProcessChildWatersExtraction::run()
 		for (int i = 0; i < clipRasers.size(); ++i)
 		{
 			QString clipRaster = clipRasers.at(i);
-			QString err = gdal_v.rasterToVector(clipRaster, vectorFile, dst_field);
+			QString err = gdal_v.rasterToVector(clipRaster, vectorFile, 0);
 			if (!err.isEmpty())
 			{
 				addErrList(QStringLiteral("水域提取: ") + err);

@@ -141,6 +141,7 @@
     <ClCompile Include="ipf\ipfOgr.cpp" />
     <ClCompile Include="ipf\ipfProjectionTransformation.cpp" />
     <ClCompile Include="ipf\Process\ipfFlowManage.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildDSMDEMDifferenceCheck.cpp" />
     <ClCompile Include="ipf\Process\ipfModelerProcessChildExtractRasterRange.cpp" />
     <ClCompile Include="ipf\Process\ipfModelerProcessBase.cpp" />
     <ClCompile Include="ipf\Process\ipfModelerProcessChild.cpp" />
@@ -161,6 +162,7 @@
     <ClCompile Include="ipf\Process\ipfModelerProcessChildQuickView.cpp" />
     <ClCompile Include="ipf\Process\ipfModelerProcessChildRasterInfoPrint.cpp" />
     <ClCompile Include="ipf\Process\ipfModelerProcessChildResample.cpp" />
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildSetNodata.cpp" />
     <ClCompile Include="ipf\Process\ipfModelerProcessChildSlopCalculation.cpp" />
     <ClCompile Include="ipf\Process\ipfModelerProcessChildTransform.cpp" />
     <ClCompile Include="ipf\Process\ipfModelerProcessChildTypeConvert.cpp" />
@@ -188,6 +190,7 @@
     <ClCompile Include="ui\ipfModelerQuickViewDialog.cpp" />
     <ClCompile Include="ui\ipfModelerRasterInfoPrintDialog.cpp" />
     <ClCompile Include="ui\ipfModelerResampleDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerSetNodataDialog.cpp" />
     <ClCompile Include="ui\ipfModelerTransformDialog.cpp" />
     <ClCompile Include="ui\ipfModelerTypeConvertDialog.cpp" />
     <ClCompile Include="ui\ipfModelerCreateMetadataDialog.cpp" />
@@ -220,6 +223,7 @@
     <QtUic Include="ui\ipfModelerQuickViewDialog.ui" />
     <QtUic Include="ui\ipfModelerRasterInfoPrintDialog.ui" />
     <QtUic Include="ui\ipfModelerResampleDialog.ui" />
+    <QtUic Include="ui\ipfModelerSetNodataDialog.ui" />
     <QtUic Include="ui\ipfModelerTransformDialog.ui" />
     <QtUic Include="ui\ipfModelerTypeConvertDialog.ui" />
     <QtUic Include="ui\ipfModelerCreateMetadataDialog.ui" />
@@ -233,6 +237,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="head.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildDSMDEMDifferenceCheck.h" />
     <ClInclude Include="ipf\Process\ipfModelerProcessChildExtractRasterRange.h" />
     <ClInclude Include="ipf\Process\ipfModelerProcessChildbuildOverviews.h" />
     <ClInclude Include="ipf\Process\ipfModelerProcessChildConsistency.h" />
@@ -244,6 +249,7 @@
     <ClInclude Include="ipf\Process\ipfModelerProcessChildProcessRasterRectPosition.h" />
     <ClInclude Include="ipf\Process\ipfModelerProcessChildProjectionCheck.h" />
     <ClInclude Include="ipf\Process\ipfModelerProcessChildRasterInfoPrint.h" />
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildSetNodata.h" />
     <ClInclude Include="ipf\Process\ipfModelerProcessChildSlopCalculation.h" />
     <ClInclude Include="ipf\Process\ipfModelerProcessChildVegeataionExtraction.h" />
     <ClInclude Include="ipf\Process\ipfModelerProcessChildWaterFlatten.h" />
@@ -251,6 +257,10 @@
     <ClInclude Include="ipf\Process\ipfModelerProcessChildZCheck.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource1.h" />
+    <QtMoc Include="ui\ipfModelerSetNodataDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+    </QtMoc>
     <QtMoc Include="ui\ipfModelerWatersExtractionDialog.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
       <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>

@@ -152,21 +152,7 @@ ipfModelerGraphicItem::ipfModelerGraphicItem(ipfModelerProcessBase *process, QMe
 		QPainter painter(&picture);
 		svg.render(&painter);
 	}
-	else if (process->name() == MODELER_OUT
-		|| process->name() == MODELER_EXCEL_METADATA
-		|| process->name() == MODELER_TFW
-		|| process->name() == MODELER_BUILDOVERVIEWS
-		|| process->name() == MODELER_FRACDIFFERCHECK
-		|| process->name() == MODELER_FRACEXTENTCHECK
-		|| process->name() == MODELER_WATERFLATTENCHECK
-		|| process->name() == MODELER_PROJECTIONCHECK
-		|| process->name() == MODELER_ZCHECK
-		|| process->name() == MODELER_DEMGROSSERRORCHECK
-		|| process->name() == MODELER_RASTERINFOPRINT
-		|| process->name() == MODELER_VEGETATION_EXTRACTION
-		|| process->name() == MODELER_EXTRACT_RASTER_RANGE
-		|| process->name() == MODELER_WATERS_EXTRACTION
-		|| process->name() == MODELER_INVALIDVALUECHECK)
+	else if (process->typeName() == QString("OUT"))
 	{
 		// 设置图标
 		QSvgRenderer svg(ipfApplication::getThemeIconPath("output.svg"));
@@ -281,22 +267,7 @@ void ipfModelerGraphicItem::paint(QPainter *painter, const QStyleOptionGraphicsI
 	QRectF rect = QRectF(-(BOX_WIDTH + 2) / 2.0, -(BOX_HEIGHT + 2) / 2.0, BOX_WIDTH + 2, BOX_HEIGHT + 2);
 
 	// 不同模块设置不同颜色
-	if (process->name() == MODELER_OUT
-		|| process->name() == MODELER_IN
-		|| process->name() == MODELER_EXCEL_METADATA
-		|| process->name() == MODELER_TFW
-		|| process->name() == MODELER_BUILDOVERVIEWS
-		|| process->name() == MODELER_FRACDIFFERCHECK
-		|| process->name() == MODELER_FRACEXTENTCHECK
-		|| process->name() == MODELER_WATERFLATTENCHECK
-		|| process->name() == MODELER_PROJECTIONCHECK
-		|| process->name() == MODELER_ZCHECK
-		|| process->name() == MODELER_DEMGROSSERRORCHECK
-		|| process->name() == MODELER_RASTERINFOPRINT
-		|| process->name() == MODELER_VEGETATION_EXTRACTION
-		|| process->name() == MODELER_EXTRACT_RASTER_RANGE
-		|| process->name() == MODELER_WATERS_EXTRACTION
-		|| process->name() == MODELER_INVALIDVALUECHECK)
+	if (process->typeName() == QString("OUT") || process->typeName() == QString("IN"))
 	{
 		colorInOut();
 	}

@@ -14,11 +14,13 @@ ipfOGR::ipfOGR() : poDataset(nullptr)
 {
 }
 
-ipfOGR::ipfOGR(const QString &fileName)
+ipfOGR::ipfOGR(const QString &fileName, bool isUpdata)
 	: poDataset(nullptr)
 {
-    //已只读方式打开影像文件
-	poDataset = (GDALDataset*)GDALOpenEx(fileName.toStdString().c_str(), GDAL_OF_RASTER, NULL, NULL, NULL);
+    if (isUpdata)
+		poDataset = (GDALDataset*)GDALOpenEx(fileName.toStdString().c_str(), GDAL_OF_RASTER | GDAL_OF_UPDATE, NULL, NULL, NULL);
+	else
+		poDataset = (GDALDataset*)GDALOpenEx(fileName.toStdString().c_str(), GDAL_OF_RASTER, NULL, NULL, NULL);
 }
 
 ipfOGR::~ipfOGR()
@@ -189,13 +191,13 @@ GDALRasterBand * ipfOGR::getRasterBand(const int nBand)
 	return poDataset->GetRasterBand(nBand);
 }
 
-bool ipfOGR::readRasterIO(float ** pDataBuffer)
+bool ipfOGR::readRasterIO(float ** pDataBuffer, const int bandNo)
 {
 	if (poDataset != NULL)
 	{
-		if (poDataset->GetRasterCount() > 0)
+		if (poDataset->GetRasterCount() > 0 && poDataset->GetRasterCount() <= bandNo)
 		{
-			GDALRasterBand* pBand = poDataset->GetRasterBand(1);
+			GDALRasterBand* pBand = poDataset->GetRasterBand(bandNo);
 			QList<int> xyList = getYXSize();
 			int xSize = xyList.at(1);
 			int ySize = xyList.at(0);
@@ -376,4 +378,64 @@ bool ipfOGR::rasterDelete(const QString &file)
 		return true;
 	else
 		return false;
+}
+
+CPLErr ipfOGR::ComputeMinMax(IPF_COMPUTE_TYPE type)
+{
+	CPLErr err = CE_None;
+
+	//float *pDataBuffer = 0;
+	//if (!readRasterIO(&pDataBuffer))
+	//	return CE_Failure;
+
+	//double nodata = getNodataValue(1);
+	//QList<int> list = getYXSize();
+	//int count = list.at(0) * list.at(1);
+
+	//for (int i = 0; i < count; ++i)
+	//{
+	//	if (pDataBuffer[i] != 0 && pDataBuffer[i] != nodata)
+	//	{
+	//		err = CE_Warning;
+	//		break;
+	//	}
+	//}
+
+	//RELEASE_ARRAY(pDataBuffer);
+
+	double adfMinMax[2];
+	err = getRasterBand(1)->ComputeRasterMinMax(FALSE, adfMinMax);
+	if (err != CE_None)
+		return err;
+
+	if (type == IPF_ZERO)
+	{
+		if (adfMinMax[0] == 0 && adfMinMax[1] == 0)
+			return CE_None;
+		else
+			return CE_Warning;
+	}
+	else if (type == IPF_EQUAL)
+	{
+		if (adfMinMax[0] == adfMinMax[1])
+			return CE_None;
+		else
+			return CE_Warning;
+	}
+	else if (type == IPF_PLUS)
+	{
+		if (adfMinMax[0] >= 0 && adfMinMax[1] >= 0)
+			return CE_None;
+		else
+			return CE_Warning;
+	}
+	else if (type == IPF_MINUS)
+	{
+		if (adfMinMax[0] <= 0 && adfMinMax[1] <= 0)
+			return CE_None;
+		else
+			return CE_Warning;
+	}
+
+	return err;
 }

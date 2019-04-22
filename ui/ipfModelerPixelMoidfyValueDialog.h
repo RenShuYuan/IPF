@@ -20,8 +20,10 @@ private slots:
 
 private:
 	Ui::ipfModelerProcessChildPixelMoidfyValueDialog ui;
-	QString oldValue;
-	QString newValue;
+	QString oldValue_1;
+	QString newValue_1;
+	QString oldValue_2;
+	QString newValue_2;
 };
 
 #endif // IPFMODELERPROCESSCHILDPIXELMOIDFYVALUEDIALOG_H

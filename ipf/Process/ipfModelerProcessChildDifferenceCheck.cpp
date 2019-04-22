@@ -314,6 +314,7 @@ void ipfModelerProcessChildDifferenceCheck::run()
 					for (int i=0; i<returnRasters.size(); ++i)
 					{
 						QFileInfo info(returnRasters.at(i));
+						//if (chackRasterVaule0(returnRasters.at(i)))
 						if (chackRasterVaule0(returnRasters.at(i)))
 						{
 							QFile::remove(returnRasters.at(i));

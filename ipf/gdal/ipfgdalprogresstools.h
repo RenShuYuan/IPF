@@ -9,8 +9,10 @@ class ipfProgress;
 
 // 用于vrt格式像元值计算的参数
 extern int IPF_DECIMAL;
-extern double IPF_VALUE_OLD;
-extern double IPF_VALUE_NEW;
+extern double IPF_VALUE_OLD_1;
+extern double IPF_VALUE_NEW_1;
+extern double IPF_VALUE_OLD_2;
+extern double IPF_VALUE_NEW_2;
 extern double IPF_NODATA;
 extern QList<double> IPF_BANSNODATA;
 extern double IPF_BACKGROUND;
@@ -122,7 +124,7 @@ public:
 	QString filterInvalidValue(const QString &source, const QString &target, const QString invalidString, const bool isNegative, const bool isNodata);
 
 	// 修改栅格值
-	QString pixelModifyValue(const QString &source, const QString &target, const double valueOld, const double valueNew);
+	QString pixelModifyValue(const QString &source, const QString &target, const double valueOld_1, const double valueNew_1, const double valueOld_2, const double valueNew_2);
 
 	// 创建金字塔
 	QString buildOverviews(const QString &source);
@@ -145,6 +147,7 @@ public:
 
 	void showProgressDialog();
 	void hideProgressDialog();
+	void pulsValueTatal();
 	void setProgressTitle(const QString& label);
 	void setProgressSize( const int max );
 

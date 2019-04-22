@@ -57,6 +57,7 @@ public:
 
 	// 返回自身类型
 	virtual ipfModelerProcessBase* classType() { return this; };
+	virtual const QString typeName() { return QString(); };
 
 private:
 	/*模块名称				*/ QString modelerName;
