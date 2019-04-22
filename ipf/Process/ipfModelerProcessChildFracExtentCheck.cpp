@@ -157,14 +157,5 @@ void ipfModelerProcessChildFracExtentCheck::run()
 		}
 	}
 
-	QFile file(saveName);
-	if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
-	{
-		addErrList(saveName + QStringLiteral("创建文件失败，已终止。"));
-		return;
-	}
-	QTextStream out(&file);
-	foreach(QString str, outList)
-		out << str << endl;
-	file.close();
+	printErrToFile(saveName, outList);
 }

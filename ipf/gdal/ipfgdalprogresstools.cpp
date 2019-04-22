@@ -240,7 +240,6 @@ int ALGTermProgress(double dfComplete, const char *pszMessage, void *pProgressAr
 		ipfProgress * pProcess = (ipfProgress*)pProgressArg;
 		pProcess->setValue((int)(dfComplete * 100));
 
-		QApplication::processEvents();
 		if (pProcess->wasCanceled())
 		{
 			return FALSE;

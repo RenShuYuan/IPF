@@ -21,6 +21,7 @@ public:
 	void run();
 private:
 	QString compareRastersDiff(const QString &oneRaster, const QString &twoRaster, QString &raster);
+	int getFilesIndex(const QStringList & lists, const QString & th);
 
 private:
 	QMap<QString, QString> map;

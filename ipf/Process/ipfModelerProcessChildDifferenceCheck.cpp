@@ -314,15 +314,25 @@ void ipfModelerProcessChildDifferenceCheck::run()
 					for (int i=0; i<returnRasters.size(); ++i)
 					{
 						QFileInfo info(returnRasters.at(i));
-						//if (chackRasterVaule0(returnRasters.at(i)))
-						if (chackRasterVaule0(returnRasters.at(i)))
+						ipfOGR org(returnRasters.at(i));
+						if (!org.isOpen())
+						{
+							outList << info.baseName() + QStringLiteral(": 无法读取错误文件，请重新尝试。");
+						}
+						CPLErr err = org.ComputeMinMax(IPF_ZERO);
+						org.close();
+						if (err == CE_None)
 						{
 							QFile::remove(returnRasters.at(i));
 							outList << info.baseName() + QStringLiteral(": 接边正确。");
 						}
-						else
+						else if (err == CE_Warning)
 						{
 							outList << info.baseName() + QStringLiteral(": 接边错误。");
+						}
+						else
+						{
+							outList << info.baseName() + QStringLiteral(": 计算接边差值异常，请重新尝试。");
 						}
 					}
 				}
@@ -336,14 +346,5 @@ void ipfModelerProcessChildDifferenceCheck::run()
 	}
 
 	QString saveName = outPath + QStringLiteral("/接边检查.txt");
-	QFile file(saveName);
-	if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
-	{
-		addErrList(saveName + QStringLiteral("创建错误文件失败，已终止。"));
-		return;
-	}
-	QTextStream out(&file);
-	foreach(QString str, outList)
-		out << str << endl;
-	file.close();
+	printErrToFile(saveName, outList);
 }

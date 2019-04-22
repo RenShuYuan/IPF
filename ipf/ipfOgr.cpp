@@ -403,6 +403,9 @@ CPLErr ipfOGR::ComputeMinMax(IPF_COMPUTE_TYPE type)
 
 	//RELEASE_ARRAY(pDataBuffer);
 
+	if (getBandSize() != 1)
+		return CE_Failure;
+
 	double adfMinMax[2];
 	err = getRasterBand(1)->ComputeRasterMinMax(FALSE, adfMinMax);
 	if (err != CE_None)

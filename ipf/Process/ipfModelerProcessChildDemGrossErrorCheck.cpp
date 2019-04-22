@@ -171,14 +171,5 @@ void ipfModelerProcessChildDemGrossErrorCheck::run()
 			outList << var + QStringLiteral(": 高程模型最大、最小值未超过阈值。");
 	}
 
-	QFile file(errFile);
-	if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
-	{
-		addErrList(errFile + QStringLiteral("创建错误文件失败，已终止。"));
-		return;
-	}
-	QTextStream out(&file);
-	foreach(QString str, outList)
-		out << str << endl;
-	file.close();
+	printErrToFile(errFile, outList);
 }

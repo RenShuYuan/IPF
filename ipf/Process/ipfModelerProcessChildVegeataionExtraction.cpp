@@ -176,7 +176,6 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 				{
 					addErrList(baseName + QStringLiteral(": 读取影像分块数据失败，已跳过。"));
 					proDialog.setValue(++proCount);
-					QApplication::processEvents();
 					continue;
 				}
 
@@ -222,7 +221,6 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 				datasetBand->RasterIO(GF_Write, j, i, nXBK, nYBK, pDstData, nXBK, nYBK, GDT_Float64, 0, 0, 0);
 
 				proDialog.setValue(++proCount);
-				QApplication::processEvents();
 				if (proDialog.wasCanceled())
 				{
 					//释放申请的内存
@@ -379,7 +377,6 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 				if (++prCount < size)
 				{
 					prDialog.setValue(prCount);
-					QApplication::processEvents();
 				}
 			}
 		}

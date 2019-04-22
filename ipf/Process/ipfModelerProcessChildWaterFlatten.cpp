@@ -211,7 +211,6 @@ void ipfModelerProcessChildWaterFlatten::run()
 		foreach(QString shp, shps)
 		{
 			proDialog.setValue(++proCount);
-			QApplication::processEvents();
 			if (proDialog.wasCanceled())
 				return;
 
@@ -329,14 +328,5 @@ void ipfModelerProcessChildWaterFlatten::run()
 	}
 
 	QString saveName = outPath + QStringLiteral("/水平检查.txt");
-	QFile file(saveName);
-	if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
-	{
-		addErrList(saveName + QStringLiteral("创建错误文件失败，已终止。"));
-		return;
-	}
-	QTextStream out(&file);
-	foreach(QString str, outList)
-		out << str << endl;
-	file.close();
+	printErrToFile(saveName, outList);
 }

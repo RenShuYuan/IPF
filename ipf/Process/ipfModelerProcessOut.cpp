@@ -55,6 +55,21 @@ void ipfModelerProcessOut::setDialogParameter(QMap<QString, QString> map)
 	noData = map["noData"];
 }
 
+bool ipfModelerProcessOut::printErrToFile(const QString &fileName, const QStringList &errList)
+{
+	QFile file(fileName);
+	if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
+	{
+		addErrList(fileName + QStringLiteral("创建错误文件失败，已终止。"));
+		return false;
+	}
+	QTextStream out(&file);
+	foreach(QString str, errList)
+		out << str << endl;
+	file.close();
+	return true;
+}
+
 void ipfModelerProcessOut::run()
 {
 	clearOutFiles();

@@ -23,6 +23,7 @@ void ipfProgress::setTitle(const QString & label)
 void ipfProgress::setValue(int value)
 {
 	ui.progressBarChild->setValue(value);
+	QApplication::processEvents();
 	if (value == ui.progressBarChild->maximum())
 		pulsValueTatal();
 }

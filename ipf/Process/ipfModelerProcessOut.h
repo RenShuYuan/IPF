@@ -20,6 +20,8 @@ public:
 	QMap<QString, QString> getParameter();
 	void setDialogParameter(QMap<QString, QString> map);
 
+	bool printErrToFile(const QString &fileName, const QStringList &errList);
+
 	void run();
 
 private:

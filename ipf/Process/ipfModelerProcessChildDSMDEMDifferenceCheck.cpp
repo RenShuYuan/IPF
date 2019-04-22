@@ -86,8 +86,17 @@ void ipfModelerProcessChildDSMDEMDifferenceCheck::run()
 	clearOutFiles();
 	clearErrList();
 
-	// 查找包含DSM的数据
-	QStringList filesDSM = filesIn().filter(QRegExp("(DSM)"));
+	// 查找文件名包含DSM的数据
+	QRegExp regexp("(DSM)");
+	QStringList filesDSM;
+	for (int i=0; i< filesIn().size(); ++i)
+	{
+		QString dsm = filesIn().at(i);
+		if (QFileInfo(dsm).baseName().contains(regexp))
+		{
+			filesDSM << dsm;
+		}
+	}
 
 	//进度条
 	int prCount = 0;
@@ -100,19 +109,18 @@ void ipfModelerProcessChildDSMDEMDifferenceCheck::run()
 	for (int i = 0; i < filesDSM.size(); ++i)
 	{
 		QString dsm = filesDSM.at(i);
-		QString dem = dsm;
+		QString dem = QFileInfo(dsm).baseName();
+		QString fileName = dem;
 		dem = dem.replace("DSM", "DEM");
 
-		QFileInfo info(dsm);
-		QString fileName = info.baseName();
-
 		// 匹配DEM数据
-		int index = filesIn().indexOf(dem);
+		int index = getFilesIndex(filesIn(), dem);
 		if (index == -1)
 		{
 			outList << fileName + QStringLiteral(": 没有在数据列表中匹配到对应的DEM数据。");
 			continue;
 		}
+		dem = filesIn().at(index);
 
 		// 计算差值栅格
 		QString raster;
@@ -155,16 +163,7 @@ void ipfModelerProcessChildDSMDEMDifferenceCheck::run()
 	}
 
 	QString saveName = outPath + QStringLiteral("/DSMDEM差值检查.txt");
-	QFile file(saveName);
-	if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
-	{
-		addErrList(saveName + QStringLiteral("创建错误文件失败，已终止。"));
-		return;
-	}
-	QTextStream out(&file);
-	foreach(QString str, outList)
-		out << str << endl;
-	file.close();
+	printErrToFile(saveName, outList);
 }
 
 QString ipfModelerProcessChildDSMDEMDifferenceCheck::compareRastersDiff(const QString & oneRaster, const QString & twoRaster, QString &raster)
@@ -275,4 +274,19 @@ QString ipfModelerProcessChildDSMDEMDifferenceCheck::compareRastersDiff(const QS
 	}
 
 	return outErr;
+}
+
+int ipfModelerProcessChildDSMDEMDifferenceCheck::getFilesIndex(const QStringList & lists, const QString & th)
+{
+	int index = -1;
+	QRegExp strExp("(\\" + th + ".)");
+	for (int i = 0; i < lists.size(); ++i)
+	{
+		if (lists.at(i).contains(strExp))
+		{
+			index = i;
+			break;
+		}
+	}
+	return index;
 }

@@ -114,7 +114,6 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 		if (err.isEmpty())
 		{
 			// 计算最大最小值
-			double adfMinMax[2];
 			ipfOGR ogr(target);
 			if (!ogr.isOpen())
 			{
@@ -122,32 +121,14 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 				gdal.pulsValueTatal();
 				continue;
 			}
-			if (ogr.getBandSize() != 1)
-			{
-				addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -3。"));
-				gdal.pulsValueTatal();
-				continue;
-			}
-			CPLErr cerr = ogr.getRasterBand(1)->ComputeRasterMinMax(FALSE, adfMinMax);
+
+			CPLErr cerr = ogr.ComputeMinMax(IPF_ZERO);
 			int nXSize = ogr.getYXSize().at(1);
 			int nYSize = ogr.getYXSize().at(0);
 			QString wkt = ogr.getProjection();
 			ogr.close();
 
-			if (cerr != CE_None)
-			{
-				addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -4。"));
-				gdal.pulsValueTatal();
-				continue;
-			}
-
-			// 检查该栅格是否存在无效值
-			if (adfMinMax[0] == 0 && adfMinMax[1] == 0)
-			{
-				outList << rasterFileName + QStringLiteral(": 正确。");
-				gdal.pulsValueTatal();
-			}
-			else
+			if (cerr == CE_Warning)
 			{
 				// 输出为img文件
 				QString format = "img";
@@ -229,6 +210,16 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 					// 栅格转矢量 -----<
 				}
 			}
+			else if (cerr == CE_None)
+			{
+				outList << rasterFileName + QStringLiteral(": 正确。");
+				gdal.pulsValueTatal();
+			}
+			else
+			{
+				addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -4。"));
+				gdal.pulsValueTatal();
+			}
 		}
 		else
 		{
@@ -238,14 +229,5 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 	}
 
 	QString outName = saveName + QStringLiteral("/无效值检查.txt");
-	QFile file(outName);
-	if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
-	{
-		addErrList(outName + QStringLiteral("创建错误文件失败，已终止。"));
-		return;
-	}
-	QTextStream out(&file);
-	foreach(QString str, outList)
-		out << str << endl;
-	file.close();
+	printErrToFile(outName, outList);
 }

@@ -165,7 +165,6 @@ void ipfModelerProcessChildWatersExtraction::run()
 				{
 					addErrList(var + QStringLiteral(": 读取影像分块数据失败，已跳过。"));
 					proDialog.setValue(++proCount);
-					QApplication::processEvents();
 					continue;
 				}
 
@@ -203,7 +202,6 @@ void ipfModelerProcessChildWatersExtraction::run()
 				datasetBand->RasterIO(GF_Write, j, i, nXBK, nYBK, pDstData, nXBK, nYBK, GDT_Float64, 0, 0, 0);
 
 				proDialog.setValue(++proCount);
-				QApplication::processEvents();
 				if (proDialog.wasCanceled())
 					return;
 			}
@@ -331,7 +329,6 @@ void ipfModelerProcessChildWatersExtraction::run()
 			layer->deleteFeature(f.id());
 
 			prDialog.setValue(++prCount);
-			QApplication::processEvents();
 			if (prDialog.wasCanceled())
 			{
 				layer->commitChanges();
