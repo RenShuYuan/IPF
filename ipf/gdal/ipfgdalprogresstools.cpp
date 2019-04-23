@@ -24,6 +24,9 @@ QList<double> IPF_INVALIDVALUE;
 bool IPF_ISNEGATIVE = false;
 bool IPF_ISNODATA = false;
 
+double IPF_DSM_NODATA = 0.0;
+double IPF_DEM_NODATA = 0.0;
+
 //ipfGdalProgressTools *ipfGdalProgressTools::smInstance = nullptr;
 
 /************************************************************************/
@@ -441,6 +444,46 @@ CPLErr pixelSlopFunction_S2(void **papoSources, int nSources, void *pData, int n
 	return CE_None;
 }
 
+CPLErr pixelDSMDEMDiffProcessFunction(void **papoSources, int nSources, void *pData, int nXSize, int nYSize,
+	GDALDataType eSrcType, GDALDataType eBufType, int nPixelSpace, int nLineSpace)
+{
+	int ii = 0, iLine = 0, iCol = 0;
+	int index_dsm = 0; // 对应dsm的波段索引，从0开始
+	int index_dem = 1; // 对应dem的波段索引，从0开始
+	double dsm = 0.0;
+	double dem = 0.0;
+	int index = 0;
+	double x0 = 0.0;
+
+	if (nSources != 2) return CE_Failure;
+
+	// ---- Set pixels ----
+	for (iLine = 0; iLine < nYSize; iLine++) // 遍历行
+	{
+		for (iCol = 0; iCol < nXSize; iCol++) // 遍历列
+		{
+			index = iLine * nXSize + iCol;
+			dsm = SRCVAL(papoSources[index_dsm], eSrcType, index);
+			dem = SRCVAL(papoSources[index_dem], eSrcType, index);
+
+			if ( dsm == IPF_DSM_NODATA )
+				x0 = dem;
+			else if (dem == IPF_DEM_NODATA)
+				x0 = dsm;
+			else
+				x0 = dsm + dem;
+
+			// write
+			GDALCopyWords(&x0, GDT_Float64, 0,
+				((GByte *)pData) + nLineSpace * iLine + iCol * nPixelSpace,
+				eBufType, nPixelSpace, 1);
+		}
+	}
+
+	// ---- Return success ----
+	return CE_None;
+}
+
 // 替换像元值
 CPLErr pixelModifyValueFunction(void **papoSources, int nSources, void *pData, int nXSize, int nYSize,
 	GDALDataType eSrcType, GDALDataType eBufType, int nPixelSpace, int nLineSpace)
@@ -577,6 +620,7 @@ ipfGdalProgressTools::ipfGdalProgressTools()
 	GDALAddDerivedBandPixelFunc("pixelDecimalFunction", pixelDecimalFunction);
 	GDALAddDerivedBandPixelFunc("pixelModifyValueFunction", pixelModifyValueFunction);
 	GDALAddDerivedBandPixelFunc("pixelModifyUnBackGroundFunction", pixelModifyUnBackGroundFunction); 
+	GDALAddDerivedBandPixelFunc("pixelDSMDEMDiffProcessFunction", pixelDSMDEMDiffProcessFunction);
 	GDALAddDerivedBandPixelFunc("pixelInvalidValue", pixelInvalidValue);
 	GDALAddDerivedBandPixelFunc("pixelSlopFunction_S2", pixelSlopFunction_S2);
 }
@@ -1841,6 +1885,72 @@ QString ipfGdalProgressTools::slopCalculation_S2(const QString & source, const Q
 
 	// 设置NODATA
 	poDataset_target->GetRasterBand(1)->SetNoDataValue(IPF_NODATA);
+
+	GDALClose((GDALDatasetH)poDataset_target);
+	return enumErrTypeToString(eOK);
+}
+
+QString ipfGdalProgressTools::dsmdemDiffeProcess(const QString & dsm, const QString & dem, const QString &outRaster, const QString & type, const double threshold)
+{
+	ipfOGR ogr_dsm(dsm);
+	ipfOGR ogr_dem(dem);
+	if (!ogr_dsm.isOpen() || !ogr_dem.isOpen())
+		return enumErrTypeToString(eSourceOpenErr);
+
+	//if (ogr_dsm.getBandSize() != 1 || ogr_dem.getBandSize() != 1)
+	//	return QStringLiteral("DSM或DEM波段数量不正确。");
+
+	ipfOGR *ogr = nullptr;
+	if (type == "DSM")
+		ogr = &ogr_dsm;
+	else if (type == "DEM")
+		ogr = &ogr_dem;
+
+	// 获取行列数
+	QList<int> xySize_dsm = ogr_dsm.getYXSize();
+	int nXSize_dsm = xySize_dsm.at(1);
+	int nYSize_dsm = xySize_dsm.at(0);
+	QList<int> xySize_dem = ogr_dem.getYXSize();
+	int nXSize_dem = xySize_dem.at(1);
+	int nYSize_dem = xySize_dem.at(0);
+
+	// 计算相交矩形左上角在栅格数据中的行列数
+
+
+	// 创建新栅格
+	GDALDataset *poDataset_target = ogr->createNewRaster(outRaster, 0);
+
+	// 设置NODATA
+	IPF_DSM_NODATA = ogr_dsm.getNodataValue(1);
+	IPF_DEM_NODATA = ogr_dem.getNodataValue(1);
+
+	// 向vrt注册自定义算法
+	char** options = NULL;
+	options = CSLAddNameValue(options, "subclass", "VRTDerivedRasterBand");
+
+	// 向vrt添加波段
+	options = CSLAddNameValue(options, "band", "1");
+	options = CSLAddNameValue(options, "PixelFunctionType", "pixelDSMDEMDiffProcessFunction");
+	poDataset_target->AddBand(ogr->getDataType_y(), options);
+
+	CSLDestroy(options);
+
+	// 创建新栅格
+	GDALRasterBand* new_band = poDataset_target->GetRasterBand(1);
+
+	VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band),
+		ogr_dsm.getRasterBand(1),
+		0, 0, nXSize_dsm, nYSize_dsm,
+		0, 0, nXSize_dsm, nYSize_dsm,
+		NULL, -9999);
+	VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band),
+		ogr_dem.getRasterBand(1),
+		0, 0, nXSize_dem, nYSize_dem,
+		2583, 10, nXSize_dem, nYSize_dem,
+		NULL, -9999);
+
+	// 设置NODATA
+	//poDataset_target->GetRasterBand(1)->SetNoDataValue(IPF_NODATA);
 
 	GDALClose((GDALDatasetH)poDataset_target);
 	return enumErrTypeToString(eOK);

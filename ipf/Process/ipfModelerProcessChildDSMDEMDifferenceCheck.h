@@ -3,7 +3,7 @@
 
 #include "ipfModelerProcessOut.h"
 
-class ipfModelerOutDialog;
+class ipfModelerPrintErrRasterDialog;
 
 class ipfModelerProcessChildDSMDEMDifferenceCheck : public ipfModelerProcessOut
 {
@@ -25,13 +25,9 @@ private:
 
 private:
 	QMap<QString, QString> map;
-	ipfModelerOutDialog *out;
+	ipfModelerPrintErrRasterDialog *dialog;
 
-	QString format;
-	QString outPath;
-	QString compress;
-	QString isTfw;
-	QString noData;
+	QString saveName;
 };
 
 #endif IPFMODELERPROCESSCHILDDSMDEMDIFFERENCECHECK_H

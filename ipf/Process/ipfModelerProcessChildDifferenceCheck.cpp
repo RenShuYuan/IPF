@@ -2,7 +2,7 @@
 #include "../ipfOgr.h"
 #include "../ipfFractalmanagement.h"
 #include "../gdal/ipfgdalprogresstools.h"
-#include "../ui/ipfModelerOutDialog.h"
+#include "../ui/ipfModelerPrintErrRasterDialog.h"
 #include "qgsrastercalculator.h"
 #include "ipfFlowManage.h"
 
@@ -16,70 +16,46 @@ ipfModelerProcessChildDifferenceCheck::ipfModelerProcessChildDifferenceCheck(QOb
 	: ipfModelerProcessOut(parent, modelerName)
 {
 	setId(QUuid::createUuid().toString());
-
-	out = new ipfModelerOutDialog();
-	map = out->getParameter();
+	dialog = new ipfModelerPrintErrRasterDialog();
 }
 
 ipfModelerProcessChildDifferenceCheck::~ipfModelerProcessChildDifferenceCheck()
 {
-	RELEASE(out);
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildDifferenceCheck::checkParameter()
 {
-	bool isbl = true;
 	clearErrList();
 
-	if (ipfGdalProgressTools::enumFormatToString(format)
-		== QStringLiteral("other"))
+	if (!QDir(saveName).exists())
 	{
-		isbl = false;
-		addErrList(QStringLiteral("错误或不支持的数据格式。"));
-	}
-	if (!QDir(outPath).exists())
-	{
-		isbl = false;
 		addErrList(QStringLiteral("无效的输出文件夹。"));
+		return false;
 	}
-
-	return isbl;
+	return true;
 }
 
 void ipfModelerProcessChildDifferenceCheck::setParameter()
 {
-	if (out->exec())
+	if (dialog->exec())
 	{
-		map = out->getParameter();
-		format = map["format"];
-		outPath = map["outPath"];
-		compress = map["compress"];
-		isTfw = map["isTfw"];
-		noData = map["noData"];
+		QMap<QString, QString> map = dialog->getParameter();
+		saveName = map["saveName"];
 	}
 }
 
 QMap<QString, QString> ipfModelerProcessChildDifferenceCheck::getParameter()
 {
 	QMap<QString, QString> map;
-	map["format"] = format;
-	map["outPath"] = outPath;
-	map["compress"] = compress;
-	map["isTfw"] = isTfw;
-	map["noData"] = noData;
-
+	map["saveName"] = saveName;
 	return map;
 }
 
 void ipfModelerProcessChildDifferenceCheck::setDialogParameter(QMap<QString, QString> map)
 {
-	out->setParameter(map);
-
-	format = map["format"];
-	outPath = map["outPath"];
-	compress = map["compress"];
-	isTfw = map["isTfw"];
-	noData = map["noData"];
+	dialog->setParameter(map);
+	saveName = map["saveName"];
 }
 
 QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
@@ -149,9 +125,9 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 		entries << oneEntry << twoEntry;
 
 		// 构建QgsRasterCalculator
-		QString outFile = outPath + "/" + oneEntry.ref + "@" + twoEntry.ref + "." + format;
+		QString outFile = saveName + "/" + oneEntry.ref + "@" + twoEntry.ref + ".tif";
 		QgsRasterCalculator rc(oneEntry.ref + " - " + twoEntry.ref, outFile
-			, ipfGdalProgressTools::enumFormatToString(format)
+			, ipfGdalProgressTools::enumFormatToString("tif")
 			, bbox, oneLayer->crs(), mNColumns, mNRows, entries);
 
 		// 开始处理
@@ -314,7 +290,7 @@ void ipfModelerProcessChildDifferenceCheck::run()
 					for (int i=0; i<returnRasters.size(); ++i)
 					{
 						QFileInfo info(returnRasters.at(i));
-						ipfOGR org(returnRasters.at(i));
+						ipfOGR org(returnRasters.at(i), true);
 						if (!org.isOpen())
 						{
 							outList << info.baseName() + QStringLiteral(": 无法读取错误文件，请重新尝试。");
@@ -332,7 +308,7 @@ void ipfModelerProcessChildDifferenceCheck::run()
 						}
 						else
 						{
-							outList << info.baseName() + QStringLiteral(": 计算接边差值异常，请重新尝试。");
+							outList << info.baseName() + QStringLiteral(": 计算接边差值异常，该情况主要出现在接边区域均为nodata情况下，请核查。");
 						}
 					}
 				}
@@ -345,6 +321,6 @@ void ipfModelerProcessChildDifferenceCheck::run()
 			return;
 	}
 
-	QString saveName = outPath + QStringLiteral("/接边检查.txt");
-	printErrToFile(saveName, outList);
+	QString savefileName = saveName + QStringLiteral("/接边检查.txt");
+	printErrToFile(savefileName, outList);
 }

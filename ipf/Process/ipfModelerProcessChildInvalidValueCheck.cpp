@@ -131,7 +131,7 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 			if (cerr == CE_Warning)
 			{
 				// 输出为img文件
-				QString format = "img";
+				QString format = "tif";
 				QString targetTo = saveName + "\\" + removeDelimiter(target) + '.' + format;
 				QString err = gdal.formatConvert(target, targetTo, gdal.enumFormatToString(format), "NONE", "NO", "0");
 				if (!err.isEmpty())

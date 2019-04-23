@@ -384,25 +384,6 @@ CPLErr ipfOGR::ComputeMinMax(IPF_COMPUTE_TYPE type)
 {
 	CPLErr err = CE_None;
 
-	//float *pDataBuffer = 0;
-	//if (!readRasterIO(&pDataBuffer))
-	//	return CE_Failure;
-
-	//double nodata = getNodataValue(1);
-	//QList<int> list = getYXSize();
-	//int count = list.at(0) * list.at(1);
-
-	//for (int i = 0; i < count; ++i)
-	//{
-	//	if (pDataBuffer[i] != 0 && pDataBuffer[i] != nodata)
-	//	{
-	//		err = CE_Warning;
-	//		break;
-	//	}
-	//}
-
-	//RELEASE_ARRAY(pDataBuffer);
-
 	if (getBandSize() != 1)
 		return CE_Failure;
 
@@ -441,4 +422,13 @@ CPLErr ipfOGR::ComputeMinMax(IPF_COMPUTE_TYPE type)
 	}
 
 	return err;
+}
+
+QgsRectangle ipfOGR::intersect(ipfOGR * ogr)
+{
+	QList<double> A = getXY();
+	QList<double> B = ogr->getXY();
+	QgsRectangle aBox();
+	QgsRectangle bBox();
+	QgsRectangle box = aBox.intersect(&bBox);
 }

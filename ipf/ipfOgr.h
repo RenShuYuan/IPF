@@ -71,6 +71,9 @@ public:
 
 	// 使用统计值方法检查栅格数据是否为0
 	CPLErr ComputeMinMax(IPF_COMPUTE_TYPE type);
+
+	// 返回两个栅格相交的范围坐标
+	QgsRectangle intersect(ipfOGR *ogr);
 private:
     GDALDataset* poDataset;
 };

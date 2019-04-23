@@ -1,7 +1,7 @@
 #include "ipfModelerProcessChildDSMDEMDifferenceCheck.h"
 #include "../ipfOgr.h"
 #include "../gdal/ipfgdalprogresstools.h"
-#include "../ui/ipfModelerOutDialog.h"
+#include "../ui/ipfModelerPrintErrRasterDialog.h"
 #include "qgsrastercalculator.h"
 #include "ipfFlowManage.h"
 
@@ -16,69 +16,46 @@ ipfModelerProcessChildDSMDEMDifferenceCheck::ipfModelerProcessChildDSMDEMDiffere
 {
 	setId(QUuid::createUuid().toString());
 
-	out = new ipfModelerOutDialog();
-	map = out->getParameter();
+	dialog = new ipfModelerPrintErrRasterDialog();
 }
 
 ipfModelerProcessChildDSMDEMDifferenceCheck::~ipfModelerProcessChildDSMDEMDifferenceCheck()
 {
-	RELEASE(out);
+	RELEASE(dialog);
 }
 
 bool ipfModelerProcessChildDSMDEMDifferenceCheck::checkParameter()
 {
-	bool isbl = true;
 	clearErrList();
 
-	if (ipfGdalProgressTools::enumFormatToString(format)
-		== QStringLiteral("other"))
+	if (!QDir(saveName).exists())
 	{
-		isbl = false;
-		addErrList(QStringLiteral("错误或不支持的数据格式。"));
-	}
-	if (!QDir(outPath).exists())
-	{
-		isbl = false;
 		addErrList(QStringLiteral("无效的输出文件夹。"));
+		return false;
 	}
-
-	return isbl;
+	return true;
 }
 
 void ipfModelerProcessChildDSMDEMDifferenceCheck::setParameter()
 {
-	if (out->exec())
+	if (dialog->exec())
 	{
-		map = out->getParameter();
-		format = map["format"];
-		outPath = map["outPath"];
-		compress = map["compress"];
-		isTfw = map["isTfw"];
-		noData = map["noData"];
+		QMap<QString, QString> map = dialog->getParameter();
+		saveName = map["saveName"];
 	}
 }
 
 QMap<QString, QString> ipfModelerProcessChildDSMDEMDifferenceCheck::getParameter()
 {
 	QMap<QString, QString> map;
-	map["format"] = format;
-	map["outPath"] = outPath;
-	map["compress"] = compress;
-	map["isTfw"] = isTfw;
-	map["noData"] = noData;
-
+	map["saveName"] = saveName;
 	return map;
 }
 
 void ipfModelerProcessChildDSMDEMDifferenceCheck::setDialogParameter(QMap<QString, QString> map)
 {
-	out->setParameter(map);
-
-	format = map["format"];
-	outPath = map["outPath"];
-	compress = map["compress"];
-	isTfw = map["isTfw"];
-	noData = map["noData"];
+	dialog->setParameter(map);
+	saveName = map["saveName"];
 }
 
 void ipfModelerProcessChildDSMDEMDifferenceCheck::run()
@@ -162,8 +139,8 @@ void ipfModelerProcessChildDSMDEMDifferenceCheck::run()
 			return;
 	}
 
-	QString saveName = outPath + QStringLiteral("/DSMDEM差值检查.txt");
-	printErrToFile(saveName, outList);
+	QString savefileName = saveName + QStringLiteral("/DSMDEM差值检查.txt");
+	printErrToFile(savefileName, outList);
 }
 
 QString ipfModelerProcessChildDSMDEMDifferenceCheck::compareRastersDiff(const QString & oneRaster, const QString & twoRaster, QString &raster)
@@ -229,9 +206,9 @@ QString ipfModelerProcessChildDSMDEMDifferenceCheck::compareRastersDiff(const QS
 	entries << oneEntry << twoEntry;
 
 	// 构建QgsRasterCalculator
-	QString outFile = outPath + "/" + oneEntry.ref + "@" + twoEntry.ref + "." + format;
+	QString outFile = saveName + "/" + oneEntry.ref + "@" + twoEntry.ref + ".tif";
 	QgsRasterCalculator rc(oneEntry.ref + " - " + twoEntry.ref, outFile
-		, ipfGdalProgressTools::enumFormatToString(format)
+		, ipfGdalProgressTools::enumFormatToString("tif")
 		, bbox, oneLayer->crs(), mNColumns, mNRows, entries);
 
 	// 开始处理

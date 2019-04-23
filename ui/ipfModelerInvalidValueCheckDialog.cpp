@@ -47,9 +47,9 @@ void ipfModelerInvalidValueCheckDialog::setParameter(QMap<QString, QString> map)
 	else
 		isNodata = false;
 	if (map["isShape"] == "YES")
-		isNodata = true;
+		isShape = true;
 	else
-		isNodata = false;
+		isShape = false;
 
 	ui.lineEdit->setText(invalidValue);
 	ui.lineEdit_2->setText(saveName);

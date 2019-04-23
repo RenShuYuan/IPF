@@ -186,6 +186,7 @@
     <ClCompile Include="ui\ipfModelerOutDialog.cpp" />
     <ClCompile Include="ui\ipfModelerPixelDecimalsDialog.cpp" />
     <ClCompile Include="ui\ipfModelerPixelMoidfyValueDialog.cpp" />
+    <ClCompile Include="ui\ipfModelerPrintErrRasterDialog.cpp" />
     <ClCompile Include="ui\ipfModelerProjectionCheckDialog.cpp" />
     <ClCompile Include="ui\ipfModelerQuickViewDialog.cpp" />
     <ClCompile Include="ui\ipfModelerRasterInfoPrintDialog.cpp" />
@@ -219,6 +220,7 @@
     <QtUic Include="ui\ipfModelerOut.ui" />
     <QtUic Include="ui\ipfModelerPixelDecimalsDialog.ui" />
     <QtUic Include="ui\ipfModelerPixelMoidfyValueDialog.ui" />
+    <QtUic Include="ui\ipfModelerPrintErrRasterDialog.ui" />
     <QtUic Include="ui\ipfModelerProjectionCheckDialog.ui" />
     <QtUic Include="ui\ipfModelerQuickViewDialog.ui" />
     <QtUic Include="ui\ipfModelerRasterInfoPrintDialog.ui" />
@@ -257,6 +259,10 @@
     <ClInclude Include="ipf\Process\ipfModelerProcessChildZCheck.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource1.h" />
+    <QtMoc Include="ui\ipfModelerPrintErrRasterDialog.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
+    </QtMoc>
     <QtMoc Include="ui\ipfModelerSetNodataDialog.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>

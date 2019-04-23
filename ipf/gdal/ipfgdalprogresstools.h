@@ -20,6 +20,9 @@ extern QList<double> IPF_INVALIDVALUE;
 extern bool IPF_ISNEGATIVE;
 extern bool IPF_ISNODATA;
 
+extern double IPF_DSM_NODATA;
+extern double IPF_DEM_NODATA;
+
 #define PI 3.14159265
 
 struct cs {
@@ -116,6 +119,9 @@ public:
 	QString pixelDecimal(const QString &source, const QString &target, const int decimal);
 
 	QString slopCalculation_S2(const QString &source, const QString &target);
+
+	// 处理DSM/DEM差值 type = DSM or DSM or DSMDEM
+	QString dsmdemDiffeProcess(const QString &dsm, const QString &dem, const QString &outRaster, const QString &type, const double threshold);
 
 	// 通过统一赋值分离有效值与无效值
 	QString extractRasterRange(const QString &source, const QString &target, const double background);

@@ -249,6 +249,9 @@
     <ClCompile Include="ipf\Process\ipfModelerProcessChildDSMDEMDifferenceCheck.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\ipfModelerPrintErrRasterDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="ImageProcessFactory.h">
@@ -353,6 +356,9 @@
     <QtMoc Include="ui\ipfModelerSetNodataDialog.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="ui\ipfModelerPrintErrRasterDialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="ImageProcessFactory.ui">
@@ -437,6 +443,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="ui\ipfModelerSetNodataDialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="ui\ipfModelerPrintErrRasterDialog.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>
