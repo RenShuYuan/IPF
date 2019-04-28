@@ -252,6 +252,18 @@
     <ClCompile Include="ui\ipfModelerPrintErrRasterDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildDSMDEMDifferenceProcess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\ipfModelerDSMDEMDifferenceProcessDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ipf\Process\ipfModelerProcessChildRangeMoidfyValue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\ipfModelerRangeMoidfyValueDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="ImageProcessFactory.h">
@@ -359,6 +371,12 @@
     <QtMoc Include="ui\ipfModelerPrintErrRasterDialog.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="ui\ipfModelerDSMDEMDifferenceProcessDialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="ui\ipfModelerRangeMoidfyValueDialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="ImageProcessFactory.ui">
@@ -446,6 +464,12 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="ui\ipfModelerPrintErrRasterDialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="ui\ipfModelerDSMDEMDifferenceProcessDialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="ui\ipfModelerRangeMoidfyValueDialog.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>
@@ -571,6 +595,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ipf\Process\ipfModelerProcessChildDSMDEMDifferenceCheck.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildDSMDEMDifferenceProcess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ipf\Process\ipfModelerProcessChildRangeMoidfyValue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

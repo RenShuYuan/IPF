@@ -67,14 +67,32 @@ void ipfModelerProcessChildClipVector::run()
 	}
 	QString soucre = filesIn().at(0);
 
-	// 获取影像分辨率
+	// 计算裁切范围
 	ipfOGR ogr(soucre);
 	if (!ogr.isOpen())
 	{
-		addErrList(soucre + QStringLiteral(": 1.读取影像分辨率失败，无法继续。"));
+		addErrList(soucre + QStringLiteral(": 读取栅格数据失败，已跳过。"));
 		return;
 	}
-	double R = ogr.getPixelSize();
+
+	QgsRectangle rect;
+	if (!ogr.shpEnvelope(vectorName, rect))
+	{
+		addErrList(soucre + QStringLiteral(": 计算矢量范围失败，已跳过。"));
+		return;
+	}
+	int iRowLu = 0;
+	int iColLu = 0;
+	int iRowRd = 0;
+	int iColRd = 0;
+	QList<int> srcList;
+	if (!ogr.Projection2ImageRowCol(rect.xMinimum(), rect.yMaximum(), iColLu, iRowLu)
+		|| !ogr.Projection2ImageRowCol(rect.xMaximum(), rect.yMinimum(), iColRd, iRowRd))
+	{
+		addErrList(soucre + QStringLiteral(": 匹配像元行列失败，无法继续。"));
+		return;
+	}
+	srcList << iColLu << iRowLu << iColRd - iColLu << iRowRd - iRowLu;
 	ogr.close();
 
 	ipfGdalProgressTools gdal;
@@ -86,60 +104,14 @@ void ipfModelerProcessChildClipVector::run()
 	QString err = gdal.AOIClip(soucre, target, vectorName);
 	if (!err.isEmpty())
 	{
-		addErrList(soucre + ": 2." + err);
+		addErrList(soucre + ": " + err);
 		return;
 	}
 
-	// 裁切多余画布
-	GDALDataset *poDS = NULL;
-	poDS = (GDALDataset*)GDALOpenEx(vectorName.toStdString().c_str(),
-		GDAL_OF_READONLY | GDAL_OF_VECTOR, NULL, NULL, NULL);
-	if (!poDS)
-	{
-		addErrList(soucre + ": 3.失败，无法打开矢量数据。");
-		return;
-	}
-
-	OGRLayer *poLayer = poDS->GetLayer(0);
-	if (!poLayer)
-	{
-		addErrList(soucre + ": 4.失败，无法获取矢量图层。");
-		return;
-	}
-
-	OGREnvelope oExt;
-	for (int iGeom = 0; iGeom < 1; ++iGeom)
-	{
-		if (poLayer->GetExtent(iGeom, &oExt, TRUE) != OGRERR_NONE)
-		{
-			addErrList(soucre + ": 5.失败，无法获取矢量面的范围。");
-			return;
-		}
-	}
-
-	GDALClose(poDS);
-
-	double ulx = 0.0, uly = 0.0, lrx = 0.0, lry = 0.0;
-	if (oExt.MinX < 360)
-		ulx = ((int)(oExt.MinX / R)) * R + R;
-	else
-		ulx = ((int)(oExt.MinX / R)) * R;
-
-	uly = (int)(oExt.MaxY / R) * R;
-	if (oExt.MaxY > uly) uly += R;
-
-	lrx = (int)(oExt.MaxX / R) * R;
-	if (oExt.MaxX > lrx) lrx += R;
-
-	if (oExt.MinY < 360)
-		lry = (int)(oExt.MinY / R) * R - R;
-	else
-		lry = (int)(oExt.MinY / R) * R;
-
-	QString new_target = ipfFlowManage::instance()->getTempVrtFile(target);
-	err = gdal.proToClip_Translate(target, new_target, QList<double>() << ulx << uly << lrx << lry);
+	QString new_target = ipfFlowManage::instance()->getTempVrtFile(soucre);
+	err = gdal.proToClip_Translate_src(target, new_target, srcList);
 	if (err.isEmpty())
 		appendOutFile(new_target);
 	else
-		addErrList(soucre + ": 6." + err);
+		addErrList(soucre + ": " + err);
 }

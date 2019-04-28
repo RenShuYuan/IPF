@@ -15,11 +15,14 @@ public:
 	void close();
     bool isOpen();
 
-    // 返回指定影像的四至角点坐标
-	QList<double> getXY();
+    // 返回指定栅格的四至角点坐标
+	QgsRectangle getXY();
 
-	// 返回指定影像的四至中心点坐标
+	// 返回指定栅格的四至中心点坐标
 	QList<double> getXYcenter();
+
+	// 设置栅格的左上角坐标
+	bool setGeoXy(const double x, const double y);
 
 	bool Projection2ImageRowCol(double dProjX, double dProjY, int &iCol, int &iRow);
 
@@ -66,14 +69,17 @@ public:
 	// 创建shp文件 文件名、文件类型、字段列表、投影编号
 	static bool createrShape(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QString & wkt);
 
+	// 分割矢量面，保存到临时文件中
+	static bool splitShp(const QString & shpName, QStringList & shps);
+
+	// 计算矢量裁切后的四至范围
+	bool shpEnvelope(const QString & shpFile, QgsRectangle &rect);
+
 	// 删除栅格数据
 	bool rasterDelete(const QString &file);
 
 	// 使用统计值方法检查栅格数据是否为0
 	CPLErr ComputeMinMax(IPF_COMPUTE_TYPE type);
-
-	// 返回两个栅格相交的范围坐标
-	QgsRectangle intersect(ipfOGR *ogr);
 private:
     GDALDataset* poDataset;
 };

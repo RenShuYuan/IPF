@@ -24,6 +24,9 @@
 #include "ipf/gdal/commonutils.h"
 #include "ipf/gdal/gdal_utils_priv.h"
 
+// QGis
+#include "qgsrectangle.h"
+
 // OpenGL
 #define GL_RED                            0x1903
 #define GL_RGB                            0x1907
@@ -78,7 +81,9 @@ static const QString MODELER_DEMGROSSERRORCHECK(QStringLiteral("数字高程模�
 static const QString MODELER_VEGETATION_EXTRACTION(QStringLiteral("植被提取"));
 static const QString MODELER_WATERS_EXTRACTION(QStringLiteral("水域提取"));
 static const QString MODELER_SETNODATA(QStringLiteral("设置NODATA"));
-static const QString MODELER_DSMDEMDIFFECHECK(QStringLiteral("DSM/DEM差值检查"));
+static const QString MODELER_DSMDEMDIFFECHECK(QStringLiteral("DSM-DEM差值检查"));
+static const QString MODELER_DSMDEMDIFFEPROCESS(QStringLiteral("DSM-DEM差值处理"));
+static const QString MODELER_RANGEMOIDFYVALUE(QStringLiteral("范围赋值"));
 
 static const QString MODELER_SLOPCALCULATION(QStringLiteral("标准偏差-测试"));
 static const QString MODELER_FRACEXTENTPROCESS(QStringLiteral("测试专用"));

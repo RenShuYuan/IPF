@@ -111,23 +111,13 @@ void ipfModelerProcessChildZCheck::run()
 		double nodata = ogr.getNodataValue(1);
 
 		// 获得栅格外接矩形范围
-		QList<double> xyList = ogr.getXY();
-		if (xyList.size() != 4)
-		{
-			addErrList(var + QStringLiteral(": 获取栅格范围失败。"));
-			continue;
-		}
-		double wX = xyList.at(0);
-		double eX = xyList.at(2);
-		double nY = xyList.at(1);
-		double sY = xyList.at(3);
+		QgsRectangle rect = ogr.getXY();
 
 		// 遍历检查点
 		QStringList outLines;
 		double count = 0.0;
 		double maxValue = 0.0;
 
-		//foreach(QStringList errs, jcList)
 		// 这句使用OpenMP来加速
 #pragma omp parallel for
 		for( int i=0; i<jcList.size(); ++i)
@@ -143,10 +133,8 @@ void ipfModelerProcessChildZCheck::run()
 			double value = 0.0;
 
 			// 检查点是否在栅格的外接矩形范围内
-			if (!(dProjX > wX && dProjX<eX && dProjY>sY && dProjY < nY))
-			{
+			if (!rect.contains(QgsPointXY(dProjX, dProjY)))
 				continue;
-			}
 
 			QString err = gdal.locationPixelInfo(var, dProjX, dProjY, iRow, iCol);
 			if (!err.isEmpty())

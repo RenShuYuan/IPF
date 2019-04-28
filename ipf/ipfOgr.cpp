@@ -1,5 +1,6 @@
 ﻿#include "ipfOgr.h"
 #include "gdal\ipfgdalprogresstools.h"
+#include "Process\ipfFlowManage.h"
 
 #include <QByteArray>
 #include <QMessageBox>
@@ -8,6 +9,7 @@
 
 
 #include "QgsCoordinateReferenceSystem.h"
+#include "qgsvectorlayer.h"
 #include "QgsVectorFileWriter.h"
 
 ipfOGR::ipfOGR() : poDataset(nullptr)
@@ -59,11 +61,11 @@ bool ipfOGR::isOpen()
         return false;
 }
 
-QList<double> ipfOGR::getXY()
+QgsRectangle ipfOGR::getXY()
 {
-	QList<double> xyList;
+	QgsRectangle rect;
     if (poDataset==NULL)
-        return xyList;
+        return rect;
 
     //获得影像像素大小
     GDALRasterBand *poBand_1 = poDataset->GetRasterBand(1);
@@ -73,9 +75,13 @@ QList<double> ipfOGR::getXY()
     double pro[6];
     poDataset->GetGeoTransform(pro);
 
-    xyList << pro[0] << pro[3] << pro[0] + pro[1] * xSize << pro[3] + pro[5] * ySize;
+	// xMin << yMax << xMax << yMin;
+	rect.setXMinimum(pro[0]);
+	rect.setYMaximum(pro[3]);
+	rect.setXMaximum(pro[0] + pro[1] * xSize);
+	rect.setYMinimum(pro[3] + pro[5] * ySize);
 
-    return xyList;
+    return rect;
 }
 
 QList<double> ipfOGR::getXYcenter()
@@ -100,6 +106,22 @@ QList<double> ipfOGR::getXYcenter()
 		<< pro[3] + pro[5] * ySize + midPixelSize;
 
 	return xyList;
+}
+
+bool ipfOGR::setGeoXy(const double x, const double y)
+{
+	if (poDataset == NULL)
+		return false;
+	if (poDataset->GetAccess() != GA_Update)
+		return false;
+
+	double pro[6];
+	poDataset->GetGeoTransform(pro);
+
+	pro[0] = x;
+	pro[3] = y;
+	poDataset->SetGeoTransform(pro);
+	return true;
 }
 
 bool ipfOGR::Projection2ImageRowCol(double dProjX, double dProjY, int & iCol, int & iRow)
@@ -155,6 +177,9 @@ const char* ipfOGR::getProjection()
 
 double ipfOGR::getPixelSize()
 {
+	if (poDataset == NULL)
+		return 0;
+
     double pro[6];
     poDataset->GetGeoTransform(pro);
 	double sizeX = fabs(pro[1]);
@@ -366,6 +391,109 @@ bool ipfOGR::createrShape(const QString & layerName, QgsWkbTypes::Type geometryT
 	return false;
 }
 
+bool ipfOGR::splitShp(const QString & shpName, QStringList & shps)
+{
+	QgsVectorLayer *layer = new QgsVectorLayer(shpName, "vector");
+	if (!layer || !layer->isValid())
+		return false;
+
+	QgsFeature f;
+	QgsFeatureIterator it = layer->getFeatures();
+	while (it.nextFeature(f))
+	{
+		if (f.isValid())
+		{
+			// 创建新shp
+			QString new_shp = ipfFlowManage::instance()->getTempFormatFile(shpName, ".shp");
+			if (!createrShape(new_shp, layer->wkbType(), layer->fields(), layer->crs().toWkt()))
+			{
+				RELEASE(layer);
+				return false;
+			}
+
+			// 添加要素
+			QgsVectorLayer *layerClip = new QgsVectorLayer(new_shp, "vector");
+			if (!layerClip || !layerClip->isValid())
+			{
+				RELEASE(layer);
+				return false;
+			}
+			layerClip->startEditing();
+			layerClip->addFeature(f);
+			layerClip->commitChanges();
+			shps << new_shp;
+			RELEASE(layerClip);
+		}
+	}
+	RELEASE(layer);
+	return true;
+
+}
+
+bool ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
+{
+	QgsVectorLayer *layer = new QgsVectorLayer(shpFile, "vector");
+	if (!layer || !layer->isValid())
+		return false;
+
+	QgsRectangle rectShp = layer->extent();
+	RELEASE(layer);
+
+	double tmp = 0.0;
+	double R = getPixelSize();
+	double midR = R / 2;
+
+	// XMinimum
+	double JXMin = round(rectShp.xMinimum() / R) * R;
+	if (JXMin >= rectShp.xMinimum())
+		tmp = JXMin - R;
+	else
+		tmp = JXMin;
+	tmp = tmp + midR;
+	if (tmp < JXMin)
+		rect.setXMinimum(tmp + midR);
+	else
+		rect.setXMinimum(tmp - midR);
+
+	// XMaximum
+	double JXMax = round(rectShp.xMaximum() / R) * R;
+	if (JXMax >= rectShp.xMaximum())
+		tmp = JXMax - R;
+	else
+		tmp = JXMax;
+	tmp = tmp + midR;
+	if (tmp < JXMax)
+		rect.setXMaximum(tmp + midR);
+	else
+		rect.setXMaximum(tmp - midR);
+
+	// YMinimum
+	double JYMin = round(rectShp.yMinimum() / R) * R;
+	if (JYMin >= rectShp.yMinimum())
+		tmp = JYMin - R;
+	else
+		tmp = JYMin;
+	tmp = tmp + midR;
+	if (tmp < JYMin)
+		rect.setYMinimum(tmp + midR);
+	else
+		rect.setYMinimum(tmp - midR);
+
+	// YMaximum
+	double JYMax = round(rectShp.yMaximum() / R) * R;
+	if (JYMax >= rectShp.yMaximum())
+		tmp = JYMax - R;
+	else
+		tmp = JYMax;
+	tmp = tmp + midR;
+	if (tmp < JYMax)
+		rect.setYMaximum(tmp + midR);
+	else
+		rect.setYMaximum(tmp - midR);
+
+	return true;
+}
+
 bool ipfOGR::rasterDelete(const QString &file)
 {
 	if (poDataset == NULL) return false;
@@ -422,13 +550,4 @@ CPLErr ipfOGR::ComputeMinMax(IPF_COMPUTE_TYPE type)
 	}
 
 	return err;
-}
-
-QgsRectangle ipfOGR::intersect(ipfOGR * ogr)
-{
-	QList<double> A = getXY();
-	QList<double> B = ogr->getXY();
-	QgsRectangle aBox();
-	QgsRectangle bBox();
-	QgsRectangle box = aBox.intersect(&bBox);
 }

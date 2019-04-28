@@ -43,7 +43,7 @@ void ipfModelerProcessChildCreateTfw::run()
 			continue;
 		}
 		double R = ogr.getPixelSize();
-		QList<double> xy = ogr.getXY();
+		QgsRectangle rect = ogr.getXY();
 		ogr.close();
 
 		// ´´½¨TFW
@@ -62,8 +62,8 @@ void ipfModelerProcessChildCreateTfw::run()
 			out << QString::number(0, 'f', 11) << endl;
 			out << QString::number(0, 'f', 11) << endl;
 			out << '-' + QString::number(R, 'f', 11) << endl;
-			out << QString::number(xy.at(0) + R / 2, 'f', 11) << endl;
-			out << QString::number(xy.at(1) - R / 2, 'f', 11) << endl;
+			out << QString::number(rect.xMinimum() + R / 2, 'f', 11) << endl;
+			out << QString::number(rect.yMaximum() - R / 2, 'f', 11) << endl;
 		}
 		else
 		{
@@ -71,8 +71,8 @@ void ipfModelerProcessChildCreateTfw::run()
 			out << QString::number(0, 'f', 3) << endl;
 			out << QString::number(0, 'f', 3) << endl;
 			out << '-' + QString::number(R, 'f', 3) << endl;
-			out << QString::number(xy.at(0) + R / 2, 'f', 3) << endl;
-			out << QString::number(xy.at(1) - R / 2, 'f', 3) << endl;
+			out << QString::number(rect.xMinimum() + R / 2, 'f', 3) << endl;
+			out << QString::number(rect.yMaximum() - R / 2, 'f', 3) << endl;
 		}
 
 		file.close();

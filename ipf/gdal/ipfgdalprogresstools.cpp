@@ -10,6 +10,8 @@
 #include <windows.h>
 #include <omp.h>
 
+#include "QgsCoordinateReferenceSystem.h"
+
 int IPF_DECIMAL = 0;
 
 double IPF_VALUE_OLD_1 = 0.0;
@@ -26,6 +28,12 @@ bool IPF_ISNODATA = false;
 
 double IPF_DSM_NODATA = 0.0;
 double IPF_DEM_NODATA = 0.0;
+QString IPF_DSMDEM_TYPE = "DSM";
+double IPF_THRESHOLD = 1;
+bool IPF_FILLNODATA = true;
+
+double IPF_RANGE_VALUE = 0.0;
+double IPF_RANGE_NODATA = 0.0;
 
 //ipfGdalProgressTools *ipfGdalProgressTools::smInstance = nullptr;
 
@@ -448,10 +456,10 @@ CPLErr pixelDSMDEMDiffProcessFunction(void **papoSources, int nSources, void *pD
 	GDALDataType eSrcType, GDALDataType eBufType, int nPixelSpace, int nLineSpace)
 {
 	int ii = 0, iLine = 0, iCol = 0;
-	int index_dsm = 0; // 对应dsm的波段索引，从0开始
-	int index_dem = 1; // 对应dem的波段索引，从0开始
-	double dsm = 0.0;
-	double dem = 0.0;
+	int index_b1 = 0;
+	int index_b2 = 1;
+	double band1Value = 0.0;
+	double band2Value = 0.0;
 	int index = 0;
 	double x0 = 0.0;
 
@@ -463,15 +471,67 @@ CPLErr pixelDSMDEMDiffProcessFunction(void **papoSources, int nSources, void *pD
 		for (iCol = 0; iCol < nXSize; iCol++) // 遍历列
 		{
 			index = iLine * nXSize + iCol;
-			dsm = SRCVAL(papoSources[index_dsm], eSrcType, index);
-			dem = SRCVAL(papoSources[index_dem], eSrcType, index);
+			band1Value = SRCVAL(papoSources[index_b1], eSrcType, index);
+			band2Value = SRCVAL(papoSources[index_b2], eSrcType, index);
 
-			if ( dsm == IPF_DSM_NODATA )
-				x0 = dem;
-			else if (dem == IPF_DEM_NODATA)
-				x0 = dsm;
-			else
-				x0 = dsm + dem;
+			if (IPF_DSMDEM_TYPE == "DSM")
+			{
+				if (band1Value == IPF_DSM_NODATA)
+				{
+					if ((band2Value != IPF_DEM_NODATA) && IPF_FILLNODATA)
+					{
+						x0 = band2Value;
+					}
+					else
+					{
+						x0 = band1Value;
+					}
+				}
+				else
+				{
+					if (band2Value == IPF_DEM_NODATA)
+					{
+						x0 = band1Value;
+					}
+					else
+					{
+						double diffVlaue = band1Value - band2Value;
+						if ((diffVlaue < 0) && (abs(diffVlaue) < IPF_THRESHOLD))
+							x0 = band2Value;
+						else
+							x0 = band1Value;
+					}
+				}
+			}
+			else // IPF_DSMDEM_TYPE == "DEM"
+			{
+				if (band1Value == IPF_DEM_NODATA)
+				{
+					if ((band2Value != IPF_DSM_NODATA) && IPF_FILLNODATA)
+					{
+						x0 = band2Value;
+					}
+					else
+					{
+						x0 = band1Value;
+					}
+				}
+				else
+				{
+					if (band2Value == IPF_DSM_NODATA)
+					{
+						x0 = band1Value;
+					}
+					else
+					{
+						double diffVlaue = band2Value - band1Value;
+						if ((diffVlaue < 0) && (abs(diffVlaue) < IPF_THRESHOLD))
+							x0 = band2Value;
+						else
+							x0 = band1Value;
+					}
+				}
+			}
 
 			// write
 			GDALCopyWords(&x0, GDT_Float64, 0,
@@ -490,11 +550,6 @@ CPLErr pixelModifyValueFunction(void **papoSources, int nSources, void *pData, i
 {
 	int ii = 0, iLine = 0, iCol = 0;
 	double x0 = 0.0;
-
-	GDALDatasetH hDS = papoSources[0];
-	
-	GDALDataset *poDataset = (GDALDataset *)hDS;
-	int x = poDataset->GetRasterCount();
 
 	// ---- Init ----
 	if (nSources != 1) return CE_Failure;
@@ -517,6 +572,40 @@ CPLErr pixelModifyValueFunction(void **papoSources, int nSources, void *pData, i
 						x0 = IPF_VALUE_NEW_2;
 				}
 			}
+
+			// write
+			GDALCopyWords(&x0, GDT_Float64, 0,
+				((GByte *)pData) + nLineSpace * iLine + iCol * nPixelSpace,
+				eBufType, nPixelSpace, 1);
+		}
+	}
+
+	// ---- Return success ----
+	return CE_None;
+}
+
+// 填充固定值
+CPLErr pixelFillValueFunction(void **papoSources, int nSources, void *pData, int nXSize, int nYSize,
+	GDALDataType eSrcType, GDALDataType eBufType, int nPixelSpace, int nLineSpace)
+{
+	int ii = 0, iLine = 0, iCol = 0;
+	double x0 = 0.0;
+
+	// ---- Init ----
+	if (nSources != 1) return CE_Failure;
+
+	// ---- Set pixels ----
+	for (iLine = 0; iLine < nYSize; iLine++)
+	{
+		for (iCol = 0; iCol < nXSize; iCol++)
+		{
+			ii = iLine * nXSize + iCol;
+			/* 使用SRCVAL获取源栅格的像素 */
+			x0 = SRCVAL(papoSources[0], eSrcType, ii);
+			if (x0 == IPF_RANGE_NODATA)
+				x0 = IPF_RANGE_NODATA;
+			else
+				x0 = IPF_RANGE_VALUE;
 
 			// write
 			GDALCopyWords(&x0, GDT_Float64, 0,
@@ -621,7 +710,8 @@ ipfGdalProgressTools::ipfGdalProgressTools()
 	GDALAddDerivedBandPixelFunc("pixelModifyValueFunction", pixelModifyValueFunction);
 	GDALAddDerivedBandPixelFunc("pixelModifyUnBackGroundFunction", pixelModifyUnBackGroundFunction); 
 	GDALAddDerivedBandPixelFunc("pixelDSMDEMDiffProcessFunction", pixelDSMDEMDiffProcessFunction);
-	GDALAddDerivedBandPixelFunc("pixelInvalidValue", pixelInvalidValue);
+	GDALAddDerivedBandPixelFunc("pixelInvalidValue", pixelInvalidValue); 
+	GDALAddDerivedBandPixelFunc("pixelFillValueFunction", pixelFillValueFunction);
 	GDALAddDerivedBandPixelFunc("pixelSlopFunction_S2", pixelSlopFunction_S2);
 }
 
@@ -707,11 +797,11 @@ QString ipfGdalProgressTools::typeConvertNoScale(const QString & source, const Q
 	return str;
 }
 
-QString ipfGdalProgressTools::proToClip_Translate(const QString & source, const QString & target, const QList<double> list)
+QString ipfGdalProgressTools::proToClip_Translate(const QString & source, const QString & target, const QgsRectangle & rect)
 {
 	QString strArgv = QString("-projwin %1 %2 %3 %4 -of VRT %5 %6")
-		.arg(list.at(0), 0, 'f', 11).arg(list.at(1), 0, 'f', 11)
-		.arg(list.at(2), 0, 'f', 11).arg(list.at(3), 0, 'f', 11)
+		.arg(rect.xMinimum()).arg(rect.yMaximum())
+		.arg(rect.xMaximum()).arg(rect.yMinimum())
 		.arg(source).arg(target);
 
 	ipfGdalProgressTools::errType err = eqiGDALTranslate(strArgv);
@@ -743,23 +833,12 @@ QString ipfGdalProgressTools::proToClip_Warp(const QString & source, const QStri
 	return str;
 }
 
-QString ipfGdalProgressTools::AOIClip(const QString & source, const QString & target, const QString & vectorName, const bool touched)
+QString ipfGdalProgressTools::AOIClip(const QString & source, const QString & target, const QString & vectorName)
 {
 	QString strArgv;
 
-	if (touched)
-	{
-		// -wo CUTLINE_ALL_TOUCHED=TRUE 与矢量相交的像素都将包含
-		// 裁切后画布大小与原图一致
-		strArgv = QString("gdalwarp -multi -co NUM_THREADS=ALL_CPUS -wo NUM_THREADS=ALL_CPUS -oo NUM_THREADS=ALL_CPUS -doo NUM_THREADS=ALL_CPUS -wo CUTLINE_ALL_TOUCHED=TRUE -cutline %1 -of VRT %2 %3")
-			.arg(vectorName).arg(source).arg(target);
-	}
-	else
-	{
-		// 裁切后画布大小与原图一致
-		strArgv = QString("gdalwarp -multi -co NUM_THREADS=ALL_CPUS -wo NUM_THREADS=ALL_CPUS -oo NUM_THREADS=ALL_CPUS -doo NUM_THREADS=ALL_CPUS -wo CUTLINE_ALL_TOUCHED=FALSE -cutline %1 -of VRT %2 %3")
-			.arg(vectorName).arg(source).arg(target);
-	}
+	strArgv = QString("gdalwarp -multi -co NUM_THREADS=ALL_CPUS -wo NUM_THREADS=ALL_CPUS -oo NUM_THREADS=ALL_CPUS -doo NUM_THREADS=ALL_CPUS -cutline %1 -of VRT %2 %3")
+		.arg(vectorName).arg(source).arg(target);
 
 	ipfGdalProgressTools::errType err = eqiGDALWarp(strArgv);
 	QString str = enumErrTypeToString(err);
@@ -1820,7 +1899,7 @@ QString ipfGdalProgressTools::filterInvalidValue(const QString & source, const Q
 			NULL, 0);
 	}
 
-	// 设置NODATA为0
+	// 设置NODATA为
 	poDataset_target->GetRasterBand(1)->SetNoDataValue(255);
 
 	GDALClose((GDALDatasetH)poDataset_target);
@@ -1890,21 +1969,37 @@ QString ipfGdalProgressTools::slopCalculation_S2(const QString & source, const Q
 	return enumErrTypeToString(eOK);
 }
 
-QString ipfGdalProgressTools::dsmdemDiffeProcess(const QString & dsm, const QString & dem, const QString &outRaster, const QString & type, const double threshold)
+QString ipfGdalProgressTools::dsmdemDiffeProcess(const QString & dsm, const QString & dem
+	, const QString &outRaster, const QString & type
+	, const double threshold, const bool isFillNodata)
 {
 	ipfOGR ogr_dsm(dsm);
 	ipfOGR ogr_dem(dem);
 	if (!ogr_dsm.isOpen() || !ogr_dem.isOpen())
 		return enumErrTypeToString(eSourceOpenErr);
 
-	//if (ogr_dsm.getBandSize() != 1 || ogr_dem.getBandSize() != 1)
-	//	return QStringLiteral("DSM或DEM波段数量不正确。");
+	if (ogr_dsm.getBandSize() != 1 || ogr_dem.getBandSize() != 1)
+		return QStringLiteral("DSM或DEM波段数量不正确。");
+
+	IPF_DSMDEM_TYPE = type;
+	IPF_THRESHOLD = threshold;
+	IPF_FILLNODATA = isFillNodata;
 
 	ipfOGR *ogr = nullptr;
+	GDALRasterBand* band_1 = nullptr;
+	GDALRasterBand* band_2 = nullptr;
 	if (type == "DSM")
+	{
 		ogr = &ogr_dsm;
+		band_1 = ogr_dsm.getRasterBand(1);
+		band_2 = ogr_dem.getRasterBand(1);
+	}
 	else if (type == "DEM")
+	{
 		ogr = &ogr_dem;
+		band_1 = ogr_dem.getRasterBand(1);
+		band_2 = ogr_dsm.getRasterBand(1);
+	}
 
 	// 获取行列数
 	QList<int> xySize_dsm = ogr_dsm.getYXSize();
@@ -1914,8 +2009,21 @@ QString ipfGdalProgressTools::dsmdemDiffeProcess(const QString & dsm, const QStr
 	int nXSize_dem = xySize_dem.at(1);
 	int nYSize_dem = xySize_dem.at(0);
 
-	// 计算相交矩形左上角在栅格数据中的行列数
+	// 计算相交矩形
+	QgsRectangle rect_dsm = ogr_dsm.getXY();
+	QgsRectangle rect_dem = ogr_dem.getXY();
+	QgsRectangle box = rect_dsm.intersect(&rect_dem);
 
+	// 计算在两个栅格中的像素行列位置
+	int iRow_dsm = 0;
+	int iCol_dsm = 0;
+	int iRow_dem = 0;
+	int iCol_dem = 0;
+
+	if (!ogr_dsm.Projection2ImageRowCol(box.xMinimum(), box.yMaximum(), iCol_dsm, iRow_dsm))
+		return dsm + QStringLiteral(": 计算DSM行列位置失败，请检查投影信息等是否定义正确。");
+	if (!ogr_dem.Projection2ImageRowCol(box.xMinimum(), box.yMaximum(), iCol_dem, iRow_dem))
+		return dem + QStringLiteral(": 计算DEM行列位置失败，请检查投影信息等是否定义正确。");
 
 	// 创建新栅格
 	GDALDataset *poDataset_target = ogr->createNewRaster(outRaster, 0);
@@ -1937,20 +2045,19 @@ QString ipfGdalProgressTools::dsmdemDiffeProcess(const QString & dsm, const QStr
 
 	// 创建新栅格
 	GDALRasterBand* new_band = poDataset_target->GetRasterBand(1);
-
 	VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band),
-		ogr_dsm.getRasterBand(1),
+		band_1,
 		0, 0, nXSize_dsm, nYSize_dsm,
 		0, 0, nXSize_dsm, nYSize_dsm,
 		NULL, -9999);
 	VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band),
-		ogr_dem.getRasterBand(1),
-		0, 0, nXSize_dem, nYSize_dem,
-		2583, 10, nXSize_dem, nYSize_dem,
+		band_2,
+		iCol_dem, iRow_dem, nXSize_dem, nYSize_dem,
+		iCol_dsm, iRow_dsm, nXSize_dem, nYSize_dem,
 		NULL, -9999);
 
 	// 设置NODATA
-	//poDataset_target->GetRasterBand(1)->SetNoDataValue(IPF_NODATA);
+	poDataset_target->GetRasterBand(1)->SetNoDataValue(ogr->getNodataValue(1));
 
 	GDALClose((GDALDatasetH)poDataset_target);
 	return enumErrTypeToString(eOK);
@@ -2015,6 +2122,47 @@ QString ipfGdalProgressTools::pixelModifyValue(const QString &source, const QStr
 
 	GDALClose((GDALDatasetH)poDataset_target);
 	GDALClose((GDALDatasetH)poDataset_source);
+	return enumErrTypeToString(eOK);
+}
+
+QString ipfGdalProgressTools::pixelFillValue(const QString & source, const QString & target, const double nodata, const double value)
+{
+	IPF_RANGE_NODATA = nodata;
+	IPF_RANGE_VALUE = value;
+
+	ipfOGR ogr(source);
+	if (!ogr.isOpen())
+		return enumErrTypeToString(eSourceOpenErr);
+
+	int nBands = ogr.getBandSize();
+	if (nBands != 1)
+		return QStringLiteral("该功能主要针对高程模型，目前暂时只支持单波段数据");
+
+	QList<int> xySize = ogr.getYXSize();
+	int nXSize = xySize.at(1);
+	int nYSize = xySize.at(0);
+	
+	// 创建新栅格
+	GDALDataset *poDataset_target = ogr.createNewRaster(target, 0);
+
+	// 给波段注册算法
+	char** options = NULL;
+	options = CSLAddNameValue(options, "band", "1");
+	options = CSLAddNameValue(options, "subclass", "VRTDerivedRasterBand");
+	options = CSLAddNameValue(options, "PixelFunctionType", "pixelFillValueFunction");
+	poDataset_target->AddBand(ogr.getDataType_y(), options);
+	CSLDestroy(options);
+
+	// 添加波段
+	GDALRasterBand* new_band = poDataset_target->GetRasterBand(1);
+	VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band), ogr.getRasterBand(1),
+		0, 0, nXSize, nYSize,
+		0, 0, nXSize, nYSize,
+		"near", IPF_RANGE_NODATA);
+
+	// 设置NODATA为
+	poDataset_target->GetRasterBand(1)->SetNoDataValue(IPF_RANGE_NODATA);
+	GDALClose((GDALDatasetH)poDataset_target);
 	return enumErrTypeToString(eOK);
 }
 
@@ -2184,57 +2332,6 @@ end:
 		return eOK;
 	else
 		return eOther;
-}
-
-QString ipfGdalProgressTools::rangeMultiple(const QString & source, const QString &target)
-{
-	// 计算四至理论坐标
-	ipfOGR ogr(source);
-	if (!ogr.isOpen())
-		return enumErrTypeToString(eSourceOpenErr);
-
-	double xmin = 0.0;
-	double ymax = 0.0;
-
-	// 1/2像元大小
-	double pixelSize = ogr.getPixelSize();
-	double sizeMid = pixelSize / 2;
-
-	// 左上角坐标
-	QList<double> xyList = ogr.getXY();
-	double ufX = xyList.at(0);
-	double ufY = xyList.at(1);
-
-	// 行列数
-	QList<int> crSize = ogr.getYXSize();
-
-	if (sizeMid == 1)
-	{
-		int xtmp = round(ufX);
-		if ((xtmp % 2) == 0)
-			xmin = xtmp + sizeMid;
-		else
-			xmin = xtmp;
-		int ytmp = round(ufY);
-		if ((ytmp % 2) == 0)
-			ymax = ytmp - sizeMid;
-		else
-			ymax = ytmp;
-	}
-	else
-	{
-		int xtmp = round(ufX / sizeMid);
-		xmin = xtmp * sizeMid;
-		int ytmp = round(ufY / sizeMid);
-		ymax = ytmp * sizeMid;
-	}
-
-	// 计算右下角坐标
-	double xmax = xmin + crSize.at(1) *pixelSize;
-	double ymin = ymax - crSize.at(0) *pixelSize;
-
-	QString str = proToClip_Warp(source, target, QList<double>() << xmin << ymax << xmax << ymin);
-	return str;
 }
 
 QString ipfGdalProgressTools::buildOverviews(const QString & source)

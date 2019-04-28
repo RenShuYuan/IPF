@@ -118,21 +118,21 @@ void ipfModelerProcessChildCreateMetadata::createZjMetaData(const QString & var)
 	// 2. 数据量大小
 	QString pSize = ipfApplication::dataAmount(var);
 	QString mSize = ipfApplication::dataAmount(muxFile);
-	excel.editCell("B7", QVariant(pSize + '/' + mSize));
+	excel.editCell("B6", QVariant(pSize + '/' + mSize));
 
 	ipfOGR ogrP(var);
 	if (ogrP.isOpen())
 	{
 		// 3. 四至中心坐标
 		QList<double> xyList = ogrP.getXYcenter();
-		excel.editCell("B12", QVariant(xyList.at(3)));	// 西南X
-		excel.editCell("B13", QVariant(xyList.at(0)));	// 西南Y
-		excel.editCell("B14", QVariant(xyList.at(1)));	// 西北X
-		excel.editCell("B15", QVariant(xyList.at(0)));	// 西北Y
-		excel.editCell("B16", QVariant(xyList.at(1)));	// 东北X
-		excel.editCell("B17", QVariant(xyList.at(2)));	// 东北Y
-		excel.editCell("B18", QVariant(xyList.at(3)));	// 东南X
-		excel.editCell("B19", QVariant(xyList.at(2)));	// 东南Y
+		excel.editCell("B11", QVariant(xyList.at(3)));	// 西南X
+		excel.editCell("B12", QVariant(xyList.at(0)));	// 西南Y
+		excel.editCell("B13", QVariant(xyList.at(1)));	// 西北X
+		excel.editCell("B14", QVariant(xyList.at(0)));	// 西北Y
+		excel.editCell("B15", QVariant(xyList.at(1)));	// 东北X
+		excel.editCell("B16", QVariant(xyList.at(2)));	// 东北Y
+		excel.editCell("B17", QVariant(xyList.at(3)));	// 东南X
+		excel.editCell("B18", QVariant(xyList.at(2)));	// 东南Y
 
 		// 4. 中央子午线及带号
 		QString strProjection = ogrP.getProjection();
@@ -140,8 +140,8 @@ void ipfModelerProcessChildCreateMetadata::createZjMetaData(const QString & var)
 		oSRS.SetFromUserInput(strProjection.toStdString().c_str());
 		double d_centralMeridian = oSRS.GetProjParm(SRS_PP_CENTRAL_MERIDIAN);
 		int zoneNo = ipfProjectionTransformation::getWgs84Bandwidth(d_centralMeridian);
-		excel.editCell("B24", QVariant(d_centralMeridian));
-		excel.editCell("B26", QVariant(zoneNo));
+		excel.editCell("B23", QVariant(d_centralMeridian));
+		excel.editCell("B25", QVariant(zoneNo));
 	}
 	else
 	{
@@ -152,10 +152,10 @@ void ipfModelerProcessChildCreateMetadata::createZjMetaData(const QString & var)
 	// 5. 轨道号及获取时间
 	QString orbitCode = rInfo.fileName().mid(3, 6);
 	QString data = rInfo.fileName().mid(9, 8);
-	excel.editCell("B31", QVariant(orbitCode));
-	excel.editCell("B32", QVariant(data));
-	excel.editCell("B37", QVariant(orbitCode));
-	excel.editCell("B38", QVariant(data));
+	excel.editCell("B30", QVariant(orbitCode));
+	excel.editCell("B31", QVariant(data));
+	excel.editCell("B36", QVariant(orbitCode));
+	excel.editCell("B37", QVariant(data));
 
 	excel.close();
 
@@ -241,10 +241,10 @@ void ipfModelerProcessChildCreateMetadata::createDsmMetaData(const QString & var
 		excel.editCell("B11", QVariant(list.at(1)));
 
 		// 5. 起始格网x, y坐标
-		QList<double> xyList = ogrP.getXY();
+		QgsRectangle rect = ogrP.getXY();
 		double midSize = ogrP.getPixelSize() / 2;
-		excel.editCell("B14", QVariant(xyList.at(1) - midSize));
-		excel.editCell("B15", QVariant(xyList.at(0) + midSize));
+		excel.editCell("B14", QVariant(rect.yMaximum() - midSize));
+		excel.editCell("B15", QVariant(rect.xMinimum() + midSize));
 
 		// 6. 中央子午线及带号
 		QString strProjection = ogrP.getProjection();
@@ -345,10 +345,10 @@ void ipfModelerProcessChildCreateMetadata::createDemMetaData(const QString & var
 		excel.editCell("B11", QVariant(list.at(1)));
 
 		// 5. 起始格网x, y坐标
-		QList<double> xyList = ogrP.getXY();
+		QgsRectangle rect = ogrP.getXY();
 		double midSize = ogrP.getPixelSize() / 2;
-		excel.editCell("B14", QVariant(xyList.at(1) - midSize));
-		excel.editCell("B15", QVariant(xyList.at(0) + midSize));
+		excel.editCell("B14", QVariant(rect.yMaximum() - midSize));
+		excel.editCell("B15", QVariant(rect.xMinimum() + midSize));
 
 		// 6. 中央子午线及带号
 		QString strProjection = ogrP.getProjection();

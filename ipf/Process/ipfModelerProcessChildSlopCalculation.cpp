@@ -47,7 +47,7 @@ void ipfModelerProcessChildSlopCalculation::run()
 		QString dsm = "d:/dsm.tif";
 		QString dem = "d:/dem.tif";
 		QString target = ipfFlowManage::instance()->getTempFormatFile(var, ".vrt");
-		QString err = gdal.dsmdemDiffeProcess(dsm, dem, target, "DSM", 50);
+		QString err = gdal.dsmdemDiffeProcess(dsm, dem, target, "DEM", 50, false);
 		if (err.isEmpty())
 			appendOutFile(target);
 		else

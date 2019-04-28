@@ -86,15 +86,9 @@ void ipfModelerProcessChildFracExtentCheck::run()
 			addErrList(var + QStringLiteral(": 读取影像失败，无法继续。"));
 			continue;
 		}
-		QList<double> xyList = ogr.getXY();
+		QgsRectangle rect = ogr.getXY();
 		double R = ogr.getPixelSize();
 		ogr.close();
-
-		if (xyList.size() != 4)
-		{
-			addErrList(var + QStringLiteral(": 读取影像四至范围失败，无法继续。"));
-			continue;
-		}
 
 		int blc = 50000;
 		if (R == 16.0)
@@ -136,10 +130,10 @@ void ipfModelerProcessChildFracExtentCheck::run()
 
 		// 坐标比较
 		bool isbl = false;
-		double c0 = xyList.at(0) - extList.at(0);
-		double c1 = xyList.at(1) - extList.at(1);
-		double c2 = xyList.at(2) - extList.at(2);
-		double c3 = xyList.at(3) - extList.at(3);
+		double c0 = rect.xMinimum() - extList.at(0);
+		double c1 = rect.yMaximum() - extList.at(1);
+		double c2 = rect.xMaximum() - extList.at(2);
+		double c3 = rect.yMinimum() - extList.at(3);
 
 		if (c0 == 0.0 && c1 == 0.0 && c2 == 0.0 && c3 == 0.0)
 			isbl = true;
@@ -152,7 +146,7 @@ void ipfModelerProcessChildFracExtentCheck::run()
 		{
 			QString("%1").arg(var);
 			outList << fileName
-				+ QStringLiteral(": 范围错误。\n\t图幅坐标：") + QString("%1, %2, %3, %4").arg(xyList.at(0), 0, 'f', 6).arg(xyList.at(1), 0, 'f', 6).arg(xyList.at(2), 0, 'f', 6).arg(xyList.at(3), 0, 'f', 6)
+				+ QStringLiteral(": 范围错误。\n\t图幅坐标：") + QString("%1, %2, %3, %4").arg(rect.xMinimum(), 0, 'f', 6).arg(rect.yMaximum(), 0, 'f', 6).arg(rect.xMaximum(), 0, 'f', 6).arg(rect.yMinimum(), 0, 'f', 6)
 				+ QStringLiteral("\n\t理论坐标：") + QString("%1, %2, %3, %4").arg(extList.at(0), 0, 'f', 6).arg(extList.at(1), 0, 'f', 6).arg(extList.at(2), 0, 'f', 6).arg(extList.at(3), 0, 'f', 6);
 		}
 	}

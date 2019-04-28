@@ -21,11 +21,6 @@ ipfModelerProcessChildSetNodata::~ipfModelerProcessChildSetNodata()
 
 bool ipfModelerProcessChildSetNodata::checkParameter()
 {
-	if ((nodata == 34743735.938444) && (!isDel))
-	{
-		addErrList(QStringLiteral("没有输入有效值。"));
-		return false;
-	}
 	return true;
 }
 
@@ -79,6 +74,7 @@ void ipfModelerProcessChildSetNodata::run()
 			addErrList(var + QStringLiteral(": 读取栅格数据失败，已跳过。"));
 			continue;
 		}
+
 		if (ogr.getBandSize() == 0)
 		{
 			addErrList(var + QStringLiteral(": 读取栅格波段失败，已跳过。"));
@@ -91,12 +87,9 @@ void ipfModelerProcessChildSetNodata::run()
 		{
 			GDALRasterBand *band = ogr.getRasterBand(i);
 			if (isDel)
-				err = band->DeleteNoDataValue();
+				err = band->SetNoDataValue(-999999999);
 			else
-			{
 				err = band->SetNoDataValue(nodata);
-				GDALSetRasterNoDataValue(band, nodata);
-			}
 
 			if (err != CE_None)
 			{

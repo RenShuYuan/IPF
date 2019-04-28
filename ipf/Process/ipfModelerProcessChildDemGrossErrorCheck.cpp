@@ -77,7 +77,7 @@ void ipfModelerProcessChildDemGrossErrorCheck::run()
 
 	foreach(QString var, filesIn())
 	{
-		QList<double> xylist;
+		QgsRectangle rect;
 		QString epsg;
 		QString err;
 
@@ -105,20 +105,20 @@ void ipfModelerProcessChildDemGrossErrorCheck::run()
 		}
 
 		// 获得DEM四至范围
-		xylist = ogr.getXY();
+		rect = ogr.getXY();
 
 		// 利用DEM四至范围计算在参考DEM上的行列位置
 		int iRowLu = 0;
 		int iColLu = 0;
 		int iRowRd = 0;
 		int iColRd = 0;
-		err = gdal.locationPixelInfo(rasterName, epsg, xylist.at(0), xylist.at(1), iRowLu, iColLu);
+		err = gdal.locationPixelInfo(rasterName, epsg, rect.xMinimum(), rect.yMaximum(), iRowLu, iColLu);
 		if (!err.isEmpty())
 		{
 			addErrList(var + QStringLiteral(": 数字高程模型与参考DEM位置匹配失败，请检查参考DEM是否能完全覆盖，无法继续。"));
 			continue;
 		}
-		err = gdal.locationPixelInfo(rasterName, epsg, xylist.at(2), xylist.at(3), iRowRd, iColRd);
+		err = gdal.locationPixelInfo(rasterName, epsg, rect.xMaximum(), rect.yMinimum(), iRowRd, iColRd);
 		if (!err.isEmpty())
 		{
 			addErrList(var + QStringLiteral(": 数字高程模型与参考DEM位置匹配失败，请检查参考DEM是否能完全覆盖，无法继续。"));

@@ -24,7 +24,7 @@ private:
 	Ui::ipfModelerSetNodataDialog ui;
 	QSettings mSettings;
 
-	QString nodata;
+	double nodata;
 	bool isDel;
 };
 

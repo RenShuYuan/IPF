@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>217</width>
-    <height>129</height>
+    <width>262</width>
+    <height>162</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QDoubleSpinBox" name="doubleSpinBox">
+       <property name="minimum">
+        <double>-99999999.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>99999999.000000000000000</double>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -32,6 +39,20 @@
     <widget class="QCheckBox" name="checkBox">
      <property name="text">
       <string>清除NoData</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>注意：该操作将直接修改原始数据！</string>
      </property>
     </widget>
    </item>

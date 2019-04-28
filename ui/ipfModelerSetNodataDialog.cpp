@@ -13,7 +13,7 @@ ipfModelerSetNodataDialog::~ipfModelerSetNodataDialog()
 QMap<QString, QString> ipfModelerSetNodataDialog::getParameter()
 {
 	QMap<QString, QString> map;
-	map["nodata"] = nodata;
+	map["nodata"] = QString::number(nodata);
 
 	if (isDel)
 		map["isDel"] = "YES";
@@ -25,24 +25,24 @@ QMap<QString, QString> ipfModelerSetNodataDialog::getParameter()
 
 void ipfModelerSetNodataDialog::setParameter(QMap<QString, QString> map)
 {
-	nodata = map["nodata"];
+	nodata = map["nodata"].toDouble();
 	if (map["isDel"] == "YES")
 		isDel = true;
 	else
 		isDel = false;
 
-	ui.lineEdit->setText(nodata);
+	ui.doubleSpinBox->setValue(nodata);
 	ui.checkBox->setChecked(isDel);
 }
 
 void ipfModelerSetNodataDialog::on_checkBox_clicked(bool checked)
 {
-	ui.lineEdit->setEnabled(!checked);
+	ui.doubleSpinBox->setEnabled(!checked);
 }
 
 void ipfModelerSetNodataDialog::on_pushButton_clicked()
 {
-	nodata = ui.lineEdit->text();
+	nodata = ui.doubleSpinBox->value();
 	if (ui.checkBox->isChecked())
 		isDel = true;
 	else

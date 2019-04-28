@@ -1,8 +1,8 @@
 #ifndef IPFMODELERPROCESSCHILDPROCESSRASTERRECTPOSITION_H
 #define IPFMODELERPROCESSCHILDPROCESSRASTERRECTPOSITION_H
 
-#include "ipfModelerProcessBase.h"
-class ipfModelerProcessChildProcessRasterRectPosition : public ipfModelerProcessBase
+#include "ipfModelerProcessOut.h"
+class ipfModelerProcessChildProcessRasterRectPosition : public ipfModelerProcessOut
 {
 public:
 	ipfModelerProcessChildProcessRasterRectPosition(QObject *parent, const QString modelerName);
@@ -14,6 +14,8 @@ public:
 	void setParameter();
 
 	void run();
+private:
+	QString adjustRange(const QString &fileName);
 };
 
 #endif // IPFMODELERPROCESSCHILDPROCESSRASTERRECTPOSITION_H

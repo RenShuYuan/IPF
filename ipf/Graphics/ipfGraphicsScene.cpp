@@ -33,6 +33,8 @@
 #include "ipf/Process/ipfModelerProcessChildWatersExtraction.h"
 #include "ipf/Process/ipfModelerProcessChildSetNodata.h"
 #include "ipf/Process/ipfModelerProcessChildDSMDEMDifferenceCheck.h"
+#include "ipf/Process/ipfModelerProcessChildDSMDEMDifferenceProcess.h"
+#include "ipf/Process/ipfModelerProcessChildRangeMoidfyValue.h"
 #include "ipf/Process/ipfFlowManage.h"
 #include "../../ui/ipfSelectModelerDialog.h"
 #include "head.h"
@@ -455,6 +457,10 @@ ipfModelerProcessBase* ipfGraphicsScene::createProcessBase(const QString & itemN
 		base = new ipfModelerProcessChildSetNodata(this, MODELER_SETNODATA);
 	else if (itemName == MODELER_DSMDEMDIFFECHECK)
 		base = new ipfModelerProcessChildDSMDEMDifferenceCheck(this, MODELER_DSMDEMDIFFECHECK);
+	else if (itemName == MODELER_DSMDEMDIFFEPROCESS)
+		base = new ipfModelerProcessChildDSMDEMDifferenceProcess(this, MODELER_DSMDEMDIFFEPROCESS);
+	else if (itemName == MODELER_RANGEMOIDFYVALUE)
+		base = new ipfModelerProcessChildRangeMoidfyValue(this, MODELER_RANGEMOIDFYVALUE);
 
 	return base;
 }

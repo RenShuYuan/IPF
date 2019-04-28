@@ -7,21 +7,35 @@
 
 class ipfProgress;
 
-// 用于vrt格式像元值计算的参数
+// 像元值位数保留
 extern int IPF_DECIMAL;
+
+// 像元值替换
 extern double IPF_VALUE_OLD_1;
 extern double IPF_VALUE_NEW_1;
 extern double IPF_VALUE_OLD_2;
 extern double IPF_VALUE_NEW_2;
+
+// 分离无效值
 extern double IPF_NODATA;
-extern QList<double> IPF_BANSNODATA;
 extern double IPF_BACKGROUND;
+
+// 无效值检查
+extern QList<double> IPF_BANSNODATA;
 extern QList<double> IPF_INVALIDVALUE;
 extern bool IPF_ISNEGATIVE;
 extern bool IPF_ISNODATA;
 
+// DSMDEM差值处理
 extern double IPF_DSM_NODATA;
 extern double IPF_DEM_NODATA;
+extern QString IPF_DSMDEM_TYPE;
+extern double IPF_THRESHOLD;
+extern bool IPF_FILLNODATA;
+
+// 范围赋值
+extern double IPF_RANGE_VALUE;
+extern double IPF_RANGE_NODATA;
 
 #define PI 3.14159265
 
@@ -89,12 +103,12 @@ public:
 	QString typeConvertNoScale(const QString& source, const QString& target, const QString& type);
 
 	// 使用坐标范围裁切栅格
-	QString proToClip_Translate(const QString& source, const QString& target, const QList<double> list);
+	QString proToClip_Translate(const QString& source, const QString& target, const QgsRectangle& rect);
 	QString proToClip_Translate_src(const QString& source, const QString& target, const QList<int> list);
 	QString proToClip_Warp(const QString& source, const QString& target, const QList<double> list);
 
 	// 使用矢量数据裁切栅格
-	QString AOIClip(const QString& source, const QString& target, const QString &vectorName, const bool touched = true);
+	QString AOIClip(const QString& source, const QString& target, const QString &vectorName);
 
 	// 创建快视图（降样）， b:需要降低多少倍
 	QString quickView(const QString& source, const QString& target, const int b);
@@ -112,16 +126,13 @@ public:
 	// 投影变换
 	QString transform(const QString& source, const QString& target, const QString& s_srs, const QString& t_srs, const QString &resampling_method);
 
-	// 将栅格范围坐标修改为分辨率的倍数，使用前需要先重采样为正确分辨率
-	QString rangeMultiple(const QString& source, const QString &target);
-
 	// 保留栅格值小数位数
 	QString pixelDecimal(const QString &source, const QString &target, const int decimal);
 
 	QString slopCalculation_S2(const QString &source, const QString &target);
 
 	// 处理DSM/DEM差值 type = DSM or DSM or DSMDEM
-	QString dsmdemDiffeProcess(const QString &dsm, const QString &dem, const QString &outRaster, const QString &type, const double threshold);
+	QString dsmdemDiffeProcess(const QString &dsm, const QString &dem, const QString &outRaster, const QString &type, const double threshold, const bool isFillNodata);
 
 	// 通过统一赋值分离有效值与无效值
 	QString extractRasterRange(const QString &source, const QString &target, const double background);
@@ -131,6 +142,9 @@ public:
 
 	// 修改栅格值
 	QString pixelModifyValue(const QString &source, const QString &target, const double valueOld_1, const double valueNew_1, const double valueOld_2, const double valueNew_2);
+
+	// 填充栅格值
+	QString pixelFillValue(const QString &source, const QString &target, const double nodata, const double value);
 
 	// 创建金字塔
 	QString buildOverviews(const QString &source);

@@ -100,8 +100,9 @@ void ImageProcessFactory::initTreeView()
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_TRANSFORM));
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_CLIP_VECTOR));
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_PIXELDECIMALS));
-	itemCoreAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_RECTPOSITION));
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_PIXEL_REPLACE));
+	//itemCoreAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_RANGEMOIDFYVALUE));
+	itemCoreAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_RECTPOSITION));
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_WATERS_EXTRACTION));
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_RASTERINFOPRINT));
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_BUILDOVERVIEWS));
@@ -110,8 +111,9 @@ void ImageProcessFactory::initTreeView()
 	QStandardItem* itemCunstomQQAlgorithm = new QStandardItem(QStringLiteral("全球测图数据处理"));
 	model->appendRow(itemCunstomQQAlgorithm);
 	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_FRACCLIP));
+	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_DSMDEMDIFFEPROCESS));
 	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_VEGETATION_EXTRACTION));
-	//itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_TFW));	全球项目已用不上
+	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_TFW));
 	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_EXCEL_METADATA));
 
 	QStandardItem* itemCunstomQQCheck = new QStandardItem(QStringLiteral("全球测图质量检查"));
@@ -125,9 +127,9 @@ void ImageProcessFactory::initTreeView()
 	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_DEMGROSSERRORCHECK)); 
 	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_DSMDEMDIFFECHECK));
 
-	QStandardItem* itemCunstomSTBC = new QStandardItem(QStringLiteral("科研测试功能"));
-	model->appendRow(itemCunstomSTBC);
-	itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_SLOPCALCULATION));
+	//QStandardItem* itemCunstomSTBC = new QStandardItem(QStringLiteral("科研测试功能"));
+	//model->appendRow(itemCunstomSTBC);
+	//itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_SLOPCALCULATION));
 	//itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_FRACEXTENTPROCESS));
 	//itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_EXTRACT_RASTER_RANGE));
 
