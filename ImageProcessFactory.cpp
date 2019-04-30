@@ -101,7 +101,7 @@ void ImageProcessFactory::initTreeView()
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_CLIP_VECTOR));
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_PIXELDECIMALS));
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_PIXEL_REPLACE));
-	//itemCoreAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_RANGEMOIDFYVALUE));
+	itemCoreAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_RANGEMOIDFYVALUE));
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_RECTPOSITION));
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_WATERS_EXTRACTION));
 	itemCoreAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_RASTERINFOPRINT));

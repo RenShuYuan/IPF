@@ -21,12 +21,6 @@ public:
 	void run();
 
 private:
-	bool splitShp(const QString &shpName, QStringList &shps);
-
-	// 获取shp文件中第一个要素的矩形范围, 并经过一定处理
-	QList<double> shpEnvelope(const QString &file, const double R);
-
-private:
 	ipfModelerWaterFlattenDialog * dialog;
 	QString vectorName;
 	QString outPath;

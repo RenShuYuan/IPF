@@ -430,68 +430,101 @@ bool ipfOGR::splitShp(const QString & shpName, QStringList & shps)
 
 }
 
-bool ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
+CPLErr ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
 {
 	QgsVectorLayer *layer = new QgsVectorLayer(shpFile, "vector");
 	if (!layer || !layer->isValid())
-		return false;
+		return CE_Failure;
 
+	QgsRectangle rectRtr = getXY();
 	QgsRectangle rectShp = layer->extent();
 	RELEASE(layer);
+
+	// 检查是否具有相交关系
+	if (!rectRtr.intersects(rectShp))
+		return CE_Warning;
 
 	double tmp = 0.0;
 	double R = getPixelSize();
 	double midR = R / 2;
 
 	// XMinimum
-	double JXMin = round(rectShp.xMinimum() / R) * R;
-	if (JXMin >= rectShp.xMinimum())
-		tmp = JXMin - R;
+	if (rectRtr.xMinimum() < rectShp.xMinimum())
+	{
+		double JXMin = round(rectShp.xMinimum() / R) * R;
+		if (JXMin >= rectShp.xMinimum())
+			tmp = JXMin - R;
+		else
+			tmp = JXMin;
+		tmp = tmp + midR;
+		if (tmp < JXMin)
+			rect.setXMinimum(tmp + midR);
+		else
+			rect.setXMinimum(tmp - midR);
+	}
 	else
-		tmp = JXMin;
-	tmp = tmp + midR;
-	if (tmp < JXMin)
-		rect.setXMinimum(tmp + midR);
-	else
-		rect.setXMinimum(tmp - midR);
+	{
+		rect.setXMinimum(rectRtr.xMinimum());
+	}
 
 	// XMaximum
-	double JXMax = round(rectShp.xMaximum() / R) * R;
-	if (JXMax >= rectShp.xMaximum())
-		tmp = JXMax - R;
+	if (rectRtr.xMaximum() > rectShp.xMaximum())
+	{
+		double JXMax = round(rectShp.xMaximum() / R) * R;
+		if (JXMax >= rectShp.xMaximum())
+			tmp = JXMax - R;
+		else
+			tmp = JXMax;
+		tmp = tmp + midR;
+		if (tmp < JXMax)
+			rect.setXMaximum(tmp + midR);
+		else
+			rect.setXMaximum(tmp - midR);
+	}
 	else
-		tmp = JXMax;
-	tmp = tmp + midR;
-	if (tmp < JXMax)
-		rect.setXMaximum(tmp + midR);
-	else
-		rect.setXMaximum(tmp - midR);
+	{
+		rect.setXMaximum(rectRtr.xMaximum());
+	}
 
 	// YMinimum
-	double JYMin = round(rectShp.yMinimum() / R) * R;
-	if (JYMin >= rectShp.yMinimum())
-		tmp = JYMin - R;
+	if (rectRtr.yMinimum() < rectShp.yMinimum())
+	{
+		double JYMin = round(rectShp.yMinimum() / R) * R;
+		if (JYMin >= rectShp.yMinimum())
+			tmp = JYMin - R;
+		else
+			tmp = JYMin;
+		tmp = tmp + midR;
+		if (tmp < JYMin)
+			rect.setYMinimum(tmp + midR);
+		else
+			rect.setYMinimum(tmp - midR);
+	} 
 	else
-		tmp = JYMin;
-	tmp = tmp + midR;
-	if (tmp < JYMin)
-		rect.setYMinimum(tmp + midR);
-	else
-		rect.setYMinimum(tmp - midR);
+	{
+		rect.setYMinimum(rectRtr.yMinimum());
+	}
 
 	// YMaximum
-	double JYMax = round(rectShp.yMaximum() / R) * R;
-	if (JYMax >= rectShp.yMaximum())
-		tmp = JYMax - R;
+	if (rectRtr.yMaximum() > rectShp.yMaximum())
+	{
+		double JYMax = round(rectShp.yMaximum() / R) * R;
+		if (JYMax >= rectShp.yMaximum())
+			tmp = JYMax - R;
+		else
+			tmp = JYMax;
+		tmp = tmp + midR;
+		if (tmp < JYMax)
+			rect.setYMaximum(tmp + midR);
+		else
+			rect.setYMaximum(tmp - midR);
+	} 
 	else
-		tmp = JYMax;
-	tmp = tmp + midR;
-	if (tmp < JYMax)
-		rect.setYMaximum(tmp + midR);
-	else
-		rect.setYMaximum(tmp - midR);
+	{
+		rect.setYMaximum(rectRtr.yMaximum());
+	}
 
-	return true;
+	return CE_None;
 }
 
 bool ipfOGR::rasterDelete(const QString &file)
@@ -508,7 +541,7 @@ bool ipfOGR::rasterDelete(const QString &file)
 		return false;
 }
 
-CPLErr ipfOGR::ComputeMinMax(IPF_COMPUTE_TYPE type)
+CPLErr ipfOGR::ComputeMinMax(IPF_COMPUTE_TYPE type, QgsPointXY &point)
 {
 	CPLErr err = CE_None;
 
@@ -547,6 +580,12 @@ CPLErr ipfOGR::ComputeMinMax(IPF_COMPUTE_TYPE type)
 			return CE_None;
 		else
 			return CE_Warning;
+	}
+	else if (type == IPF_NONE)
+	{
+		point.setX(adfMinMax[0]);
+		point.setY(adfMinMax[1]);
+		return CE_None;
 	}
 
 	return err;

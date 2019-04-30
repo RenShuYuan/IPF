@@ -107,6 +107,8 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 
 	foreach(QString var, filesIn())
 	{
+		gdal.pulsValueTatal();
+
 		QString rasterFileName = QFileInfo(var).fileName();
 		QString target = ipfFlowManage::instance()->getTempVrtFile(var);
 
@@ -118,7 +120,6 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 			if (!ogr.isOpen())
 			{
 				addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -2。"));
-				gdal.pulsValueTatal();
 				continue;
 			}
 
@@ -137,7 +138,6 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 				if (!err.isEmpty())
 				{
 					addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -1。"));
-					gdal.pulsValueTatal();
 					continue;
 				}
 				outList << rasterFileName + QStringLiteral(": 检查到栅格数据中存在无效值，并在输出栅格中被标记为1。");
@@ -171,7 +171,6 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 							if (!err.isEmpty())
 							{
 								addErrList(rasterFileName + QStringLiteral(": 输出错误矢量失败，已跳过。"));
-								gdal.pulsValueTatal();
 								continue;
 							}
 							else
@@ -185,7 +184,6 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 					if (!ipfOGR::createrShape(vectorFile, QgsWkbTypes::Polygon, QgsFields(), wkt))
 					{
 						addErrList(rasterFileName + QStringLiteral(": 创建错误矢量文件失败，已跳过。"));
-						gdal.pulsValueTatal();
 						continue;
 					}
 					// 创建矢量文件 ------<
@@ -202,7 +200,6 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 						if (!err.isEmpty())
 						{
 							addErrList(rasterFileName + QStringLiteral(": 栅格转矢量失败，已跳过。"));
-							gdal.pulsValueTatal();
 							continue;
 						}
 					}
@@ -211,21 +208,12 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 				}
 			}
 			else if (cerr == CE_None)
-			{
 				outList << rasterFileName + QStringLiteral(": 正确。");
-				gdal.pulsValueTatal();
-			}
 			else
-			{
 				addErrList(rasterFileName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -4。"));
-				gdal.pulsValueTatal();
-			}
 		}
 		else
-		{
 			addErrList(var + ": " + err);
-			gdal.pulsValueTatal();
-		}
 	}
 
 	QString outName = saveName + QStringLiteral("/无效值检查.txt");

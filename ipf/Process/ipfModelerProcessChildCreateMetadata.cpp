@@ -414,7 +414,7 @@ void ipfModelerProcessChildCreateMetadata::createDomMetaData(const QString & var
 	// 从样本创建新的元数据
 	QFileInfo info(var);
 	QString fileName = info.fileName();
-	QString baseName = info.baseName();
+	QString baseName = fileName.mid(0, 14);
 	fileName = fileName.mid(0, 11);
 	QString target = outPath + "\\" + baseName + ".xls";
 	if (!QFile::copy(sample, target))

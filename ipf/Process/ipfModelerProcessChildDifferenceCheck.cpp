@@ -63,6 +63,8 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 	, const QString & twoRaster
 	, QStringList & returnRasters)
 {
+	QString outErr;
+
 	// 获得栅格名称
 	QFileInfo oneInfo(oneRaster);
 	QString oneFileName = oneInfo.baseName();
@@ -84,7 +86,47 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 	{
 		RELEASE(oneLayer);
 		RELEASE(twoLayer);
-		return oneFileName + ":" + twoFileName + QStringLiteral("波段数量不一致。");
+		return oneFileName + ":" + twoFileName + QStringLiteral("，波段数量不一致。");
+	}
+
+	// 不同带的需要换带处理
+	QgsCoordinateReferenceSystem oneCrs = oneLayer->crs();
+	QgsCoordinateReferenceSystem twoCrs = twoLayer->crs();
+	if (oneCrs != twoCrs)
+	{
+		QgsCoordinateTransform ct(oneCrs, twoCrs);
+		if (ct.isValid())
+		{
+			ipfGdalProgressTools gdal;
+			QString one_srs = oneCrs.authid();
+			QString two_srs = twoCrs.authid();
+			QString target = ipfFlowManage::instance()->getTempVrtFile(twoRaster);
+			QString err = gdal.transform(twoRaster, target, two_srs, one_srs, "bilinear");
+			if (err.isEmpty())
+			{
+				RELEASE(twoLayer);
+				twoLayer = new QgsRasterLayer(target, twoFileName, QString("gdal"));
+				if (!twoLayer->isValid())
+				{
+					RELEASE(oneLayer);
+					RELEASE(twoLayer);
+					return twoRaster + ": 动态投影失败，已跳过。";
+				}
+				outErr = QStringLiteral("@换带接边@");
+			}
+			else
+			{
+				RELEASE(oneLayer);
+				RELEASE(twoLayer);
+				return twoRaster + ": " + err;
+			}
+		}
+		else
+		{
+			RELEASE(oneLayer);
+			RELEASE(twoLayer);
+			return oneFileName + ":" + twoFileName + QStringLiteral("，投影不一致，且无法建立转换关系，请核实。");
+		}
 	}
 
 	// 获取栅格相交的范围、行列数
@@ -107,7 +149,6 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 	QgsRectangle bbox(box.xMinimum(), box.yMinimum(), xxx, yyy);
 
 	// 分波段处理
-	QString outErr;
 	for (int i = 0; i < oneBandSize; ++i)
 	{
 		// 构建QgsRasterCalculatorEntry
@@ -166,38 +207,6 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 	RELEASE(twoLayer);
 
 	return outErr;
-}
-
-bool ipfModelerProcessChildDifferenceCheck::chackRasterVaule0(const QString & file)
-{
-	ipfOGR org(file);
-	if (!org.isOpen())
-		return false;
-
-	float *pDataBuffer=0;
-	if (!org.readRasterIO(&pDataBuffer))
-	{
-		org.close();
-		return false;
-	}
-		
-	double nodata = org.getNodataValue(1);
-	QList<int> list = org.getYXSize();
-	int count = list.at(0) * list.at(1);
-
-	org.close();
-
-	for (int i = 0; i <count; ++i)
-	{
-		if (pDataBuffer[i] != 0 && pDataBuffer[i] != nodata)
-		{
-			delete[] pDataBuffer; pDataBuffer = 0;
-			return false;
-		}
-	}
-
-	delete[] pDataBuffer; pDataBuffer = 0;
-	return true;
 }
 
 int ipfModelerProcessChildDifferenceCheck::getFilesIndex(const QStringList & lists, const QString & th)
@@ -276,7 +285,7 @@ void ipfModelerProcessChildDifferenceCheck::run()
 
 				// 计算与西边图幅的差值栅格
 				QString err = compareRastersDiff(var, files.at(index), returnRasters);
-				if (!err.isEmpty())
+				if (!err.isEmpty() && err != QStringLiteral("@换带接边@"))
 					addErrList(var + ": " + err);
 				else
 				{
@@ -290,25 +299,51 @@ void ipfModelerProcessChildDifferenceCheck::run()
 					for (int i=0; i<returnRasters.size(); ++i)
 					{
 						QFileInfo info(returnRasters.at(i));
-						ipfOGR org(returnRasters.at(i), true);
+						ipfOGR org(returnRasters.at(i));
 						if (!org.isOpen())
 						{
 							outList << info.baseName() + QStringLiteral(": 无法读取错误文件，请重新尝试。");
+							continue;
 						}
-						CPLErr err = org.ComputeMinMax(IPF_ZERO);
-						org.close();
-						if (err == CE_None)
+
+						if (err == QStringLiteral("@换带接边@"))
 						{
-							QFile::remove(returnRasters.at(i));
-							outList << info.baseName() + QStringLiteral(": 接边正确。");
-						}
-						else if (err == CE_Warning)
-						{
-							outList << info.baseName() + QStringLiteral(": 接边错误。");
+							QgsPointXY point;
+							CPLErr cErr = org.ComputeMinMax(IPF_NONE, point);
+							org.close();
+
+							if (cErr == CE_None)
+							{
+								if (abs(point.x()) > threshold || abs(point.y()) > threshold)
+								{
+									outList << info.baseName() + QStringLiteral(": 接边错误。");
+								}
+								else
+								{
+									QFile::remove(returnRasters.at(i));
+									outList << info.baseName() + QStringLiteral(": 接边正确。");
+								}
+							}
+							else
+							{
+								outList << info.baseName() + QStringLiteral(": 计算接边差值异常，该情况主要出现在接边区域均为nodata情况下，请核查。");
+								continue;
+							}
 						}
 						else
 						{
-							outList << info.baseName() + QStringLiteral(": 计算接边差值异常，该情况主要出现在接边区域均为nodata情况下，请核查。");
+							CPLErr cErr = org.ComputeMinMax(IPF_ZERO);
+							org.close();
+
+							if (cErr == CE_None)
+							{
+								QFile::remove(returnRasters.at(i));
+								outList << info.baseName() + QStringLiteral(": 接边正确。");
+							}
+							else if (cErr == CE_Warning)
+								outList << info.baseName() + QStringLiteral(": 接边错误。");
+							else
+								outList << info.baseName() + QStringLiteral(": 计算接边差值异常，该情况主要出现在接边区域均为nodata情况下，请核查。");
 						}
 					}
 				}

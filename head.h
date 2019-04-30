@@ -42,7 +42,8 @@ typedef enum
 	IPF_ZERO = 0,
 	IPF_EQUAL = 1,
 	IPF_PLUS = 2,
-	IPF_MINUS = 3
+	IPF_MINUS = 3,
+	IPF_NONE = 4
 } IPF_COMPUTE_TYPE;
 
 // 全球项目分幅产品分辨率 Global geographic information
@@ -52,7 +53,7 @@ typedef enum
 #define GGI_DSM			10.0
 
 // IPF
-static const QString NAME_DELIMITER(QStringLiteral("^&"));
+static const QString NAME_DELIMITER(QStringLiteral("@,@"));
 
 static const QString MODELER_IN(QStringLiteral("输入"));
 static const QString MODELER_OUT(QStringLiteral("输出"));

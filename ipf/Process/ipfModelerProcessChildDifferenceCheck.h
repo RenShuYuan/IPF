@@ -22,7 +22,6 @@ public:
 
 private:
 	QString compareRastersDiff(const QString &oneRaster, const QString &twoRaster, QStringList &returnRasters);
-	bool chackRasterVaule0(const QString &file);
 
 	// 在数据列表中查找对应图幅
 	int getFilesIndex(const QStringList &lists, const QString &th);
@@ -31,6 +30,7 @@ private:
 	ipfModelerPrintErrRasterDialog *dialog;
 
 	QString saveName;
+	double threshold;
 };
 
 #endif // ipfModelerProcessChildDifferenceCheck

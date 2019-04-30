@@ -16,7 +16,7 @@ ipfProjectionTransformation::ipfProjectionTransformation(
         const QgsCoordinateReferenceSystem& theDest) :
         QgsCoordinateTransform(theSource, theDest)
 {
-
+	
 }
 
 bool ipfProjectionTransformation::isValidGCS(const QString &authid)

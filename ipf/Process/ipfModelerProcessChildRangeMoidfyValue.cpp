@@ -1,5 +1,6 @@
 #include "ipfModelerProcessChildRangeMoidfyValue.h"
 #include "ipfFlowManage.h"
+#include "../../ui/ipfProgress.h"
 #include "../gdal/ipfgdalprogresstools.h"
 #include "../ui/ipfModelerRangeMoidfyValueDialog.h"
 #include "../ipfOgr.h"
@@ -70,8 +71,15 @@ void ipfModelerProcessChildRangeMoidfyValue::run()
 	}
 
 	ipfGdalProgressTools gdal;
+	ipfProgress proDialog;
+	proDialog.setRangeTotal(0, filesIn().size());
+	proDialog.setRangeChild(0, shpLists.size());
+	proDialog.show();
+
 	foreach(QString var, filesIn())
 	{
+		int proCount = 0;
+
 		ipfOGR ogr(var);
 		if (!ogr.isOpen())
 		{
@@ -84,13 +92,21 @@ void ipfModelerProcessChildRangeMoidfyValue::run()
 		QStringList rasterList;
 		foreach(QString shp, shpLists)
 		{
+			proDialog.setValue(++proCount);
+			if (proDialog.wasCanceled())
+				return;
+
 			// 计算裁切范围
 			QgsRectangle rect;
-			if (!ogr.shpEnvelope(vectorName, rect))
+			CPLErr gErr =  ogr.shpEnvelope(shp, rect);
+			if (gErr == CE_Failure)
 			{
-				addErrList(vectorName + QStringLiteral(": 计算矢量范围失败，已跳过。"));
+				addErrList(var + QStringLiteral(": 计算矢量范围失败，已跳过。"));
 				return;
 			}
+			else if (gErr == CE_Warning)
+				continue;
+
 			int iRowLu = 0;
 			int iColLu = 0;
 			int iRowRd = 0;
@@ -121,50 +137,46 @@ void ipfModelerProcessChildRangeMoidfyValue::run()
 				addErrList(var + ": " + err);
 				continue;
 			}
-			//rasterList << new_target;
+			rasterList << new_target;
+		}
 
-			// 修改栅格像元值
-			QString new_new_target = ipfFlowManage::instance()->getTempVrtFile(new_target);
-			err = gdal.pixelFillValue(new_target, new_new_target, nodata, value);
+		// 修改栅格像元值
+		QStringList fillList;
+		foreach (QString var, rasterList)
+		{
+			QString target = ipfFlowManage::instance()->getTempVrtFile(var);
+			QString err = gdal.pixelFillValue(var, target, nodata, value);
 			if (!err.isEmpty())
 			{
 				addErrList(var + ": " + err);
 				continue;
 			}
+			fillList << target;
+		}
 
+		QStringList mosaicList;
+		mosaicList << var;
+		foreach(QString var, fillList)
+		{
+			QString targetTo = ipfFlowManage::instance()->getTempFormatFile(var, ".img");
+			QString err = gdal.formatConvert(var, targetTo, gdal.enumFormatToString("img"), "NONE", "NO", "none");
+			if (!err.isEmpty())
+			{
+				addErrList(var + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -1。"));
+				continue;
+			}
+			mosaicList << targetTo;
+		}
+
+		if (!mosaicList.isEmpty())
+		{
 			// 镶嵌回大块
-			QString new_new_new_target = ipfFlowManage::instance()->getTempVrtFile(new_new_target);
-			err = gdal.mosaic_Buildvrt(QStringList() << var << new_new_target, new_new_new_target);
+			QString target = ipfFlowManage::instance()->getTempVrtFile(var);
+			QString err = gdal.mosaic_Buildvrt(mosaicList, target);
 			if (err.isEmpty())
-				appendOutFile(new_new_new_target);
+				appendOutFile(target);
 			else
 				addErrList(var + ": " + err);
 		}
-
-		//// 修改栅格像元值
-		//QStringList fillList;
-		//fillList << var;
-		//foreach (QString var, rasterList)
-		//{
-		//	QString target = ipfFlowManage::instance()->getTempVrtFile(var);
-		//	QString err = gdal.pixelFillValue(var, target, nodata, value);
-		//	if (!err.isEmpty())
-		//	{
-		//		addErrList(var + ": " + err);
-		//		continue;
-		//	}
-		//	fillList << target;
-		//}
-
-		//if (!fillList.isEmpty())
-		//{
-		//	// 镶嵌回大块
-		//	QString target = ipfFlowManage::instance()->getTempVrtFile(var);
-		//	QString err = gdal.mosaic_Buildvrt(fillList, target);
-		//	if (err.isEmpty())
-		//		appendOutFile(target);
-		//	else
-		//		addErrList(var + ": " + err);
-		//}
 	}
 }
