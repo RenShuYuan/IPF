@@ -9,6 +9,7 @@
 #include <gdal_vrt.h>
 #include <windows.h>
 #include <omp.h>
+#include <cmath>
 
 #include "QgsCoordinateReferenceSystem.h"
 
@@ -639,8 +640,18 @@ CPLErr pixelInvalidValue(void **papoSources, int nSources, void *pData, int nXSi
 
 			int x0 = 0;
 
+			// 检查无效数据、异常值
+			for (int i = 0; i < nSources; ++i)
+			{
+				if (::isnan(valueList[i]))
+				{
+					x0 = 1;
+					break;
+				}
+			}
+
 			// 检查负值
-			if (IPF_ISNEGATIVE)
+			if (IPF_ISNEGATIVE && !x0)
 			{
 				for (int i = 0; i < nSources; ++i)
 				{
@@ -666,7 +677,7 @@ CPLErr pixelInvalidValue(void **papoSources, int nSources, void *pData, int nXSi
 			}
 
 			// 检查无效枚举值
-			if (!x0)
+			if (!x0 && !IPF_INVALIDVALUE.isEmpty())
 			{
 				for (int i = 0; i < nSources; ++i)
 				{
@@ -683,8 +694,7 @@ CPLErr pixelInvalidValue(void **papoSources, int nSources, void *pData, int nXSi
 				((GByte *)pData) + nLineSpace * iLine + iCol * nPixelSpace,
 				eBufType, nPixelSpace, 1);
 
-			delete[] valueList;
-			valueList = 0;
+			RELEASE_ARRAY(valueList);
 		}
 	}
 
@@ -1866,12 +1876,13 @@ QString ipfGdalProgressTools::filterInvalidValue(const QString & source, const Q
 		IPF_INVALIDVALUE.append(str.toDouble());
 	}
 
+	GDALDataType type = ogr.getDataType_y();
 	QList<int> xySize = ogr.getYXSize();
 	int nXSize = xySize.at(1);
 	int nYSize = xySize.at(0);
 
 	// 创建新栅格
-	GDALDataset *poDataset_target = ogr.createNewRaster(target, 0, GDT_Byte);
+	GDALDataset *poDataset_target = ogr.createNewRaster(target, 0);
 
 	// 向vrt注册自定义算法
 	char** options = NULL;
@@ -1880,7 +1891,7 @@ QString ipfGdalProgressTools::filterInvalidValue(const QString & source, const Q
 	// 向vrt添加波段
 	options = CSLAddNameValue(options, "band", "1");
 	options = CSLAddNameValue(options, "PixelFunctionType", "pixelInvalidValue");
-	poDataset_target->AddBand(GDT_Byte, options); // 由于只用0和1区分，故只用8bit节省空间。
+	poDataset_target->AddBand(type, options); // 由于只用0和1区分，故只用8bit节省空间。
 	CSLDestroy(options);
 
 	// 创建新波段

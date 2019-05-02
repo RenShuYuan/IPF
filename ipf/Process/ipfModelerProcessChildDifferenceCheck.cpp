@@ -166,6 +166,7 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 		entries << oneEntry << twoEntry;
 
 		// ¹¹½¨QgsRasterCalculator
+		//QgsCoordinateTransformContext context;
 		QString outFile = saveName + "/" + oneEntry.ref + "@" + twoEntry.ref + ".tif";
 		QgsRasterCalculator rc(oneEntry.ref + " - " + twoEntry.ref, outFile
 			, ipfGdalProgressTools::enumFormatToString("tif")

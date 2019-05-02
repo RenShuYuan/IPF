@@ -76,11 +76,15 @@ void ipfModelerProcessChildClipVector::run()
 	}
 
 	QgsRectangle rect;
-	if (!ogr.shpEnvelope(vectorName, rect))
+	CPLErr gErr = ogr.shpEnvelope(vectorName, rect);
+	if (gErr == CE_Failure)
 	{
 		addErrList(soucre + QStringLiteral(": 计算矢量范围失败，已跳过。"));
 		return;
 	}
+	else if (gErr == CE_Warning)
+		return;
+
 	int iRowLu = 0;
 	int iColLu = 0;
 	int iRowRd = 0;
