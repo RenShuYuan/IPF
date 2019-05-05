@@ -1,5 +1,5 @@
 #include "ipfModelerProcessChildConsistency.h"
-#include "qgsrastercalculator.h"
+//#include "qgsrastercalculator.h"
 #include "../ipfFractalmanagement.h"
 #include "../gdal/ipfgdalprogresstools.h"
 #include "ipfFlowManage.h"

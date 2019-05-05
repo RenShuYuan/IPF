@@ -3,7 +3,7 @@
 
 #include "ipfModelerProcessOut.h"
 
-class ipfModelerPrintErrRasterDialog;
+class ipfModelerDiffeCheckDialog;
 
 class ipfModelerProcessChildDifferenceCheck : public ipfModelerProcessOut
 {
@@ -27,10 +27,10 @@ private:
 	int getFilesIndex(const QStringList &lists, const QString &th);
 
 private:
-	ipfModelerPrintErrRasterDialog *dialog;
+	ipfModelerDiffeCheckDialog *dialog;
 
 	QString saveName;
-	double threshold;
+	double valueMax;
 };
 
 #endif // ipfModelerProcessChildDifferenceCheck

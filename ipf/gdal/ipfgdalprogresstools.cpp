@@ -751,7 +751,7 @@ QString ipfGdalProgressTools::locationPixelInfo(const QString & source, const do
 {
 	QString strArgv = QString("%1 -geoloc %2 %3").arg(source).arg(x).arg(y);
 
-	ipfGdalProgressTools::errType err = eqiGDALlocationinfo(strArgv, iRow, iCol);
+	ipfGdalProgressTools::errType err = ipfGDALlocationinfo(strArgv, iRow, iCol);
 	QString str = enumErrTypeToString(err);
 	return str;
 }
@@ -760,7 +760,7 @@ QString ipfGdalProgressTools::locationPixelInfo(const QString & source, const QS
 {
 	QString strArgv = QString("%1 %2 %3 %4").arg(source).arg(srs).arg(x).arg(y);
 
-	ipfGdalProgressTools::errType err = eqiGDALlocationinfo(strArgv, iRow, iCol);
+	ipfGdalProgressTools::errType err = ipfGDALlocationinfo(strArgv, iRow, iCol);
 	QString str = enumErrTypeToString(err);
 	return str;
 }
@@ -784,7 +784,7 @@ QString ipfGdalProgressTools::formatConvert(const QString &source, const QString
 			strArgv = QString("-a_nodata %1 -of %2 %3 %4").arg(noData).arg(format).arg(source).arg(target);
 	}
 
-	ipfGdalProgressTools::errType err = eqiGDALTranslate(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALTranslate(strArgv);
 	QString str = enumErrTypeToString(err);
 	return str;
 }
@@ -793,7 +793,7 @@ QString ipfGdalProgressTools::typeConvert(const QString & source, const QString 
 {
 	QString strArgv = QString("-ot %1 -scale -of VRT %2 %3").arg(type).arg(source).arg(target);
 
-	ipfGdalProgressTools::errType err = eqiGDALTranslate(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALTranslate(strArgv);
 	QString str = enumErrTypeToString(err);
 	return str;
 }
@@ -802,7 +802,7 @@ QString ipfGdalProgressTools::typeConvertNoScale(const QString & source, const Q
 {
 	QString strArgv = QString("-ot %1 -of VRT %2 %3").arg(type).arg(source).arg(target);
 
-	ipfGdalProgressTools::errType err = eqiGDALTranslate(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALTranslate(strArgv);
 	QString str = enumErrTypeToString(err);
 	return str;
 }
@@ -814,7 +814,7 @@ QString ipfGdalProgressTools::proToClip_Translate(const QString & source, const 
 		.arg(rect.xMaximum()).arg(rect.yMinimum())
 		.arg(source).arg(target);
 
-	ipfGdalProgressTools::errType err = eqiGDALTranslate(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALTranslate(strArgv);
 	QString str = enumErrTypeToString(err);
 	return str;
 }
@@ -826,7 +826,7 @@ QString ipfGdalProgressTools::proToClip_Translate_src(const QString & source, co
 		.arg(list.at(2)).arg(list.at(3))
 		.arg(source).arg(target);
 
-	ipfGdalProgressTools::errType err = eqiGDALTranslate(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALTranslate(strArgv);
 	QString str = enumErrTypeToString(err);
 	return str;
 }
@@ -838,7 +838,7 @@ QString ipfGdalProgressTools::proToClip_Warp(const QString & source, const QStri
 		.arg(list.at(2), 0, 'f', 11).arg(list.at(1), 0, 'f', 11)
 		.arg(source).arg(target);
 
-	ipfGdalProgressTools::errType err = eqiGDALWarp(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALWarp(strArgv);
 	QString str = enumErrTypeToString(err);
 	return str;
 }
@@ -850,7 +850,7 @@ QString ipfGdalProgressTools::AOIClip(const QString & source, const QString & ta
 	strArgv = QString("gdalwarp -multi -co NUM_THREADS=ALL_CPUS -wo NUM_THREADS=ALL_CPUS -oo NUM_THREADS=ALL_CPUS -doo NUM_THREADS=ALL_CPUS -cutline %1 -of VRT %2 %3")
 		.arg(vectorName).arg(source).arg(target);
 
-	ipfGdalProgressTools::errType err = eqiGDALWarp(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALWarp(strArgv);
 	QString str = enumErrTypeToString(err);
 
 	return str;
@@ -866,7 +866,7 @@ QString ipfGdalProgressTools::quickView(const QString & source, const QString & 
 	QString strArgv = QString("-outsize %1 %2 %3 %4")
 							.arg(rStr).arg(rStr).arg(source).arg(target);
 
-	ipfGdalProgressTools::errType err = eqiGDALTranslate(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALTranslate(strArgv);
 	QString str = enumErrTypeToString(err);
 	return str;
 }
@@ -876,7 +876,7 @@ QString ipfGdalProgressTools::resample(const QString & source, const QString & t
 	QString strArgv = QString("gdalwarp -multi -co NUM_THREADS=ALL_CPUS -wo NUM_THREADS=ALL_CPUS -oo NUM_THREADS=ALL_CPUS -doo NUM_THREADS=ALL_CPUS -overwrite -r %1 -tr %2 %3 -of VRT %4 %5")
 		.arg(resampling_method).arg(res, 0, 'f', 15).arg(res, 0, 'f', 15).arg(source).arg(target);
 
-	ipfGdalProgressTools::errType err = eqiGDALWarp(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALWarp(strArgv);
 	QString str = enumErrTypeToString(err);
 	return str;
 }
@@ -889,7 +889,7 @@ QString ipfGdalProgressTools::mosaic_Warp(const QStringList & sourceList, const 
 
 	QString strArgv = QString("gdalwarp -multi -co NUM_THREADS=ALL_CPUS -wo NUM_THREADS=ALL_CPUS -oo NUM_THREADS=ALL_CPUS -doo NUM_THREADS=ALL_CPUS -overwrite -of VRT %1 %2").arg(source).arg(target);
 
-	ipfGdalProgressTools::errType err = eqiGDALWarp(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALWarp(strArgv);
 	QString str = enumErrTypeToString(err);
 
 	return str;
@@ -903,7 +903,7 @@ QString ipfGdalProgressTools::mosaic_Buildvrt(const QStringList & sourceList, co
 
 	QString strArgv = QString("gdalbuildvrt %1 %2").arg(target).arg(source);
 
-	ipfGdalProgressTools::errType err = eqiGDALbuildvrt(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALbuildvrt(strArgv);
 	QString str = enumErrTypeToString(err);
 
 	return str;
@@ -917,7 +917,7 @@ QString ipfGdalProgressTools::mergeBand(const QStringList & sourceList, const QS
 
 	QString strArgv = QString("gdalbuildvrt -separate %1 %2").arg(target).arg(source);
 
-	ipfGdalProgressTools::errType err = eqiGDALbuildvrt(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALbuildvrt(strArgv);
 	QString str = enumErrTypeToString(err);
 
 	return str;
@@ -925,17 +925,18 @@ QString ipfGdalProgressTools::mergeBand(const QStringList & sourceList, const QS
 
 QString ipfGdalProgressTools::transform(const QString & source, const QString & target
 	, const QString & s_srs, const QString & t_srs
-	, const QString &resampling_method)
+	, const QString &resampling_method
+	, const double nodata)
 {
-	QString strArgv = QString("gdalwarp -multi -co NUM_THREADS=ALL_CPUS -wo NUM_THREADS=ALL_CPUS -oo NUM_THREADS=ALL_CPUS -doo NUM_THREADS=ALL_CPUS -overwrite -r %1 -s_srs %2 -t_srs %3 -of VRT %4 %5")
-		.arg(resampling_method).arg(s_srs).arg(t_srs).arg(source).arg(target);
+	QString strArgv = QString("gdalwarp -multi -co NUM_THREADS=ALL_CPUS -wo NUM_THREADS=ALL_CPUS -oo NUM_THREADS=ALL_CPUS -doo NUM_THREADS=ALL_CPUS -srcnodata %1 -overwrite -r %2 -s_srs %3 -t_srs %4 -of VRT %5 %6")
+		.arg(nodata).arg(resampling_method).arg(s_srs).arg(t_srs).arg(source).arg(target);
 
-	ipfGdalProgressTools::errType err = eqiGDALWarp(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALWarp(strArgv);
 	QString str = enumErrTypeToString(err);
 	return str;
 }
 
-ipfGdalProgressTools::errType ipfGdalProgressTools::eqiGDALTranslate(const QString &str)
+ipfGdalProgressTools::errType ipfGdalProgressTools::ipfGDALTranslate(const QString &str)
 {
     QStringList list = str.split(' ', QString::SkipEmptyParts);
     int argc = list.size();
@@ -1099,7 +1100,7 @@ ipfGdalProgressTools::errType ipfGdalProgressTools::eqiGDALTranslate(const QStri
 	return eOK;
 }
 
-ipfGdalProgressTools::errType ipfGdalProgressTools::eqiGDALWarp(const QString & str)
+ipfGdalProgressTools::errType ipfGdalProgressTools::ipfGDALWarp(const QString & str)
 {
 	int nSrcCount = 0;
 	GDALDatasetH *pahSrcDS = NULL;
@@ -1275,7 +1276,7 @@ ipfGdalProgressTools::errType ipfGdalProgressTools::eqiGDALWarp(const QString & 
 	return eOK;
 }
 
-ipfGdalProgressTools::errType ipfGdalProgressTools::eqiGDALbuildvrt(const QString & str)
+ipfGdalProgressTools::errType ipfGdalProgressTools::ipfGDALbuildvrt(const QString & str)
 {
 	QStringList list = str.split(' ', QString::SkipEmptyParts);
 	int argc = list.size();
@@ -1357,7 +1358,7 @@ ipfGdalProgressTools::errType ipfGdalProgressTools::eqiGDALbuildvrt(const QStrin
 	return eOK;
 }
 
-ipfGdalProgressTools::errType ipfGdalProgressTools::eqiGDALlocationinfo(const QString &str, int &iRow, int &iCol)
+ipfGdalProgressTools::errType ipfGdalProgressTools::ipfGDALlocationinfo(const QString &str, int &iRow, int &iCol)
 {
 	double dfGeoX = 0.0;
 	double dfGeoY = 0.0;
@@ -1492,7 +1493,7 @@ ipfGdalProgressTools::errType ipfGdalProgressTools::eqiGDALlocationinfo(const QS
 	return eOK;
 }
 
-ipfGdalProgressTools::errType ipfGdalProgressTools::eqiGDALOgrToOgr(const QString & str)
+ipfGdalProgressTools::errType ipfGdalProgressTools::ipfGDALOgrToOgr(const QString & str)
 {
 	QStringList list = str.split('@', QString::SkipEmptyParts);
 	int argc = list.size();
@@ -1632,7 +1633,7 @@ ipfGdalProgressTools::errType ipfGdalProgressTools::eqiGDALOgrToOgr(const QStrin
 	return eOK;
 }
 
-ipfGdalProgressTools::errType ipfGdalProgressTools::eqiGDALrasterize(const QString & str)
+ipfGdalProgressTools::errType ipfGdalProgressTools::ipfGDALrasterize(const QString & str)
 {
 	QStringList list = str.split(' ', QString::SkipEmptyParts);
 	int argc = list.size();
@@ -2465,7 +2466,7 @@ QString ipfGdalProgressTools::mergeVector(const QString& outPut, const QString& 
 	QString strArgv = QString("org@%1@%2@-dialect@sqlite@-sql@\"select ST_union(Geometry), %3 from %4 GROUP BY %5\"")
 		.arg(outPut).arg(ogrLayer).arg(fieldName).arg(info.baseName()).arg(fieldName);
 
-	ipfGdalProgressTools::errType err = eqiGDALOgrToOgr(strArgv);
+	ipfGdalProgressTools::errType err = ipfGDALOgrToOgr(strArgv);
 	QString str = enumErrTypeToString(err);
 	return str;
 }

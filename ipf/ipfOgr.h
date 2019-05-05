@@ -3,6 +3,7 @@
 
 #include "head.h"
 #include "qgsfields.h"
+#include "qgswkbtypes.h"
 
 class ipfOGR
 {

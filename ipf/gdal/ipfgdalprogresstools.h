@@ -2,7 +2,8 @@
 #define IPFGDALPROGRESSTOOLS_H
 
 #include "head.h"
-#include "qgspointxy.h"
+//#include "qgspointxy.h"
+#include "qgspoint.h"
 #include <QProgressBar>
 
 class ipfProgress;
@@ -124,7 +125,7 @@ public:
 	QString mergeBand(const QStringList &sourceList, const QString& target);
 
 	// 投影变换
-	QString transform(const QString& source, const QString& target, const QString& s_srs, const QString& t_srs, const QString &resampling_method);
+	QString transform(const QString& source, const QString& target, const QString& s_srs, const QString& t_srs, const QString &resampling_method, const double nodata = 0);
 
 	// 保留栅格值小数位数
 	QString pixelDecimal(const QString &source, const QString &target, const int decimal);
@@ -181,7 +182,7 @@ private:
     *
     * @return
     */
-	errType eqiGDALTranslate(const QString &str);
+	errType ipfGDALTranslate(const QString &str);
 
 	/**
 	* \brief 调用GDALWarp函数处理数据
@@ -192,7 +193,7 @@ private:
 	*
 	* @return
 	*/
-	errType eqiGDALWarp(const QString &str);
+	errType ipfGDALWarp(const QString &str);
 
 	/**
 	* \brief 调用GDALbuildvrt函数处理数据
@@ -203,7 +204,7 @@ private:
 	*
 	* @return
 	*/
-	errType eqiGDALbuildvrt(const QString &str);
+	errType ipfGDALbuildvrt(const QString &str);
 
 	/**
 	* \brief 调用GDALlocationinfo函数计算像元坐标
@@ -214,7 +215,7 @@ private:
 	*
 	* @return
 	*/
-	errType eqiGDALlocationinfo(const QString &str, int &iRow, int &iCol);
+	errType ipfGDALlocationinfo(const QString &str, int &iRow, int &iCol);
 
 	/**
 	* \brief 调用GDALogr2ogr矢量处理函数
@@ -225,7 +226,7 @@ private:
 	*
 	* @return
 	*/
-	errType eqiGDALOgrToOgr(const QString &str);
+	errType ipfGDALOgrToOgr(const QString &str);
 
 	/**
 	* \brief 调用GDALrasterize处理函数
@@ -236,7 +237,7 @@ private:
 	*
 	* @return
 	*/
-	errType eqiGDALrasterize(const QString &str);
+	errType ipfGDALrasterize(const QString &str);
 
     /**
     * \brief 分割QString字符串

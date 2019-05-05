@@ -45,7 +45,6 @@ ImageProcessFactory::ImageProcessFactory(QWidget *parent)
 	qss.open(QFile::ReadOnly);
 	qApp->setStyleSheet(qss.readAll());
 
-	// init GDAL
 	//添加环境变量
 	QString str = QApplication::applicationDirPath() + QStringLiteral("/resources/data");
 	CPLSetConfigOption("GDAL_DATA", str.toStdString().c_str());

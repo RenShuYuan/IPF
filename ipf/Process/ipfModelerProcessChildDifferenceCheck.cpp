@@ -2,7 +2,7 @@
 #include "../ipfOgr.h"
 #include "../ipfFractalmanagement.h"
 #include "../gdal/ipfgdalprogresstools.h"
-#include "../ui/ipfModelerPrintErrRasterDialog.h"
+#include "../ui/ipfModelerDiffeCheckDialog.h"
 #include "qgsrastercalculator.h"
 #include "ipfFlowManage.h"
 
@@ -16,7 +16,7 @@ ipfModelerProcessChildDifferenceCheck::ipfModelerProcessChildDifferenceCheck(QOb
 	: ipfModelerProcessOut(parent, modelerName)
 {
 	setId(QUuid::createUuid().toString());
-	dialog = new ipfModelerPrintErrRasterDialog();
+	dialog = new ipfModelerDiffeCheckDialog();
 }
 
 ipfModelerProcessChildDifferenceCheck::~ipfModelerProcessChildDifferenceCheck()
@@ -42,6 +42,7 @@ void ipfModelerProcessChildDifferenceCheck::setParameter()
 	{
 		QMap<QString, QString> map = dialog->getParameter();
 		saveName = map["saveName"];
+		valueMax = map["valueMax"].toDouble();
 	}
 }
 
@@ -49,6 +50,7 @@ QMap<QString, QString> ipfModelerProcessChildDifferenceCheck::getParameter()
 {
 	QMap<QString, QString> map;
 	map["saveName"] = saveName;
+	map["valueMax"] = QString::number(valueMax);
 	return map;
 }
 
@@ -56,6 +58,7 @@ void ipfModelerProcessChildDifferenceCheck::setDialogParameter(QMap<QString, QSt
 {
 	dialog->setParameter(map);
 	saveName = map["saveName"];
+	valueMax = map["valueMax"].toDouble();
 }
 
 QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
@@ -65,6 +68,9 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 {
 	QString outErr;
 
+	int mNColumns = 0;
+	int mNRows = 0;
+
 	// 获得栅格名称
 	QFileInfo oneInfo(oneRaster);
 	QString oneFileName = oneInfo.baseName();
@@ -73,7 +79,7 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 
 	// 打开栅格
 	QgsRasterLayer* oneLayer = new QgsRasterLayer(oneRaster, oneFileName, "gdal");
-	QgsRasterLayer* twoLayer = new QgsRasterLayer(twoRaster, twoFileName, QString("gdal"));
+	QgsRasterLayer* twoLayer = new QgsRasterLayer(twoRaster, twoFileName, "gdal");
 	if (!oneLayer->isValid())
 		return oneFileName + QStringLiteral(": 栅格数据读取失败。");
 	if (!twoLayer->isValid())
@@ -89,9 +95,13 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 		return oneFileName + ":" + twoFileName + QStringLiteral("，波段数量不一致。");
 	}
 
-	// 不同带的需要换带处理
 	QgsCoordinateReferenceSystem oneCrs = oneLayer->crs();
 	QgsCoordinateReferenceSystem twoCrs = twoLayer->crs();
+	double nodata = twoLayer->dataProvider()->sourceNoDataValue(1);
+	if (::isnan(nodata))
+		nodata = 0;
+
+	// 不同带的需要换带处理
 	if (oneCrs != twoCrs)
 	{
 		QgsCoordinateTransform ct(oneCrs, twoCrs);
@@ -101,7 +111,7 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 			QString one_srs = oneCrs.authid();
 			QString two_srs = twoCrs.authid();
 			QString target = ipfFlowManage::instance()->getTempVrtFile(twoRaster);
-			QString err = gdal.transform(twoRaster, target, two_srs, one_srs, "bilinear");
+			QString err = gdal.transform(twoRaster, target, two_srs, one_srs, "bilinear", nodata);
 			if (err.isEmpty())
 			{
 				RELEASE(twoLayer);
@@ -138,8 +148,8 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 	QString strR = QString::number(pixel, 'f', 11);
 	pixel = strR.toDouble();
 
-	int mNColumns = (box.xMaximum()-box.xMinimum()) / pixel;
-	int mNRows = (box.yMaximum() - box.yMinimum()) / pixel;
+	mNColumns = (box.xMaximum() - box.xMinimum()) / pixel;
+	mNRows = (box.yMaximum() - box.yMinimum()) / pixel;
 
 	if (pixel < 0.1) mNColumns += 1;
 
@@ -166,7 +176,7 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 		entries << oneEntry << twoEntry;
 
 		// 构建QgsRasterCalculator
-		//QgsCoordinateTransformContext context;
+		QgsCoordinateTransformContext context;
 		QString outFile = saveName + "/" + oneEntry.ref + "@" + twoEntry.ref + ".tif";
 		QgsRasterCalculator rc(oneEntry.ref + " - " + twoEntry.ref, outFile
 			, ipfGdalProgressTools::enumFormatToString("tif")
@@ -180,6 +190,9 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 		connect(&feedback, &QgsFeedback::progressChanged, &p, &QProgressDialog::setValue);
 		connect(&p, &QProgressDialog::canceled, &feedback, &QgsFeedback::cancel);
 		QgsRasterCalculator::Result res = static_cast<QgsRasterCalculator::Result>(rc.processCalculation(&feedback));
+
+		RELEASE(oneLayer);
+		RELEASE(twoLayer);
 
 		switch (res)
 		{
@@ -203,9 +216,6 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 			break;
 		}
 	}
-
-	RELEASE(oneLayer);
-	RELEASE(twoLayer);
 
 	return outErr;
 }
@@ -315,7 +325,7 @@ void ipfModelerProcessChildDifferenceCheck::run()
 
 							if (cErr == CE_None)
 							{
-								if (abs(point.x()) > threshold || abs(point.y()) > threshold)
+								if (abs(point.x()) > valueMax || abs(point.y()) > valueMax)
 								{
 									outList << info.baseName() + QStringLiteral(": 接边错误。");
 								}
@@ -327,7 +337,8 @@ void ipfModelerProcessChildDifferenceCheck::run()
 							}
 							else
 							{
-								outList << info.baseName() + QStringLiteral(": 计算接边差值异常，该情况主要出现在接边区域均为nodata情况下，请核查。");
+								QFile::remove(returnRasters.at(i));
+								outList << info.baseName() + QStringLiteral(": 计算接边差值异常，该情况主要出现在重叠区域均为nodata情况下，请核查。");
 								continue;
 							}
 						}
@@ -344,7 +355,10 @@ void ipfModelerProcessChildDifferenceCheck::run()
 							else if (cErr == CE_Warning)
 								outList << info.baseName() + QStringLiteral(": 接边错误。");
 							else
+							{
+								QFile::remove(returnRasters.at(i));
 								outList << info.baseName() + QStringLiteral(": 计算接边差值异常，该情况主要出现在接边区域均为nodata情况下，请核查。");
+							}
 						}
 					}
 				}

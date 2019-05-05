@@ -264,6 +264,9 @@
     <ClCompile Include="ui\ipfModelerRangeMoidfyValueDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui\ipfModelerDiffeCheckDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="ImageProcessFactory.h">
@@ -377,6 +380,9 @@
     <QtMoc Include="ui\ipfModelerRangeMoidfyValueDialog.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="ui\ipfModelerDiffeCheckDialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="ImageProcessFactory.ui">
@@ -470,6 +476,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="ui\ipfModelerRangeMoidfyValueDialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="ui\ipfModelerDiffeCheckDialog.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>
