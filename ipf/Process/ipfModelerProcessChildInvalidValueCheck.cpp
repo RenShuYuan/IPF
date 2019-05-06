@@ -48,6 +48,10 @@ void ipfModelerProcessChildInvalidValueCheck::setParameter()
 			isShape = true;
 		else
 			isShape = false;
+		if (map["bands_noDiffe"] == "YES")
+			bands_noDiffe = true;
+		else
+			bands_noDiffe = false;
 	}
 }
 
@@ -70,6 +74,10 @@ QMap<QString, QString> ipfModelerProcessChildInvalidValueCheck::getParameter()
 		map["isShape"] = "YES";
 	else
 		map["isShape"] = "NO";
+	if (bands_noDiffe)
+		map["bands_noDiffe"] = "YES";
+	else
+		map["bands_noDiffe"] = "NO";
 
 	return map;
 }
@@ -92,6 +100,10 @@ void ipfModelerProcessChildInvalidValueCheck::setDialogParameter(QMap<QString, Q
 		isShape = true;
 	else
 		isShape = false;
+	if (map["bands_noDiffe"] == "YES")
+		bands_noDiffe = true;
+	else
+		bands_noDiffe = false;
 }
 
 void ipfModelerProcessChildInvalidValueCheck::run()
@@ -112,7 +124,7 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 		QString rasterFileName = QFileInfo(var).fileName();
 		QString target = ipfFlowManage::instance()->getTempVrtFile(var);
 
-		QString err = gdal.filterInvalidValue(var, target, invalidValue, isNegative, isNodata);
+		QString err = gdal.filterInvalidValue(var, target, invalidValue, isNegative, isNodata, bands_noDiffe);
 		if (err.isEmpty())
 		{
 			// 计算最大最小值

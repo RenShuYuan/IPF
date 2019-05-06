@@ -95,14 +95,12 @@ void ipfModelerProcessChildExtractRasterRange::run()
 		// 创建输出栅格
 		QString rasterFile = fileName + "\\" + baseName + "_v.img";
 		QString vectorFile = fileName + "\\" + baseName + ".shp";
-		GDALDataset* poDataset_target = ogr.createNewRaster(rasterFile, 1, GDT_Float32);
+		GDALDataset* poDataset_target = ogr.createNewRaster(rasterFile, "-9999", 1, GDT_Float32);
 		if (!poDataset_target)
 		{
 			addErrList(rasterFile + QStringLiteral(": 创建输出栅格数据失败，无法继续。"));
 			continue;
 		}
-		GDALRasterBand* datasetBand = poDataset_target->GetRasterBand(1);
-		datasetBand->SetNoDataValue(-9999);
 
 		// 分块参数
 		int nBlockSize = 512;
@@ -172,7 +170,7 @@ void ipfModelerProcessChildExtractRasterRange::run()
 				}
 
 				//写到结果图像
-				datasetBand->RasterIO(GF_Write, j, i, nXBK, nYBK, pDstData, nXBK, nYBK, GDT_Float64, 0, 0, 0);
+				//datasetBand->RasterIO(GF_Write, j, i, nXBK, nYBK, pDstData, nXBK, nYBK, GDT_Float64, 0, 0, 0);
 
 				proDialog.setValue(++proCount);
 				if (proDialog.wasCanceled())
@@ -252,9 +250,6 @@ void ipfModelerProcessChildExtractRasterRange::run()
 			addErrList(vectorFile + QStringLiteral(": 创建图层失败。"));
 			continue;
 		}
-
-		// 定义投影
-		//poDS->SetProjection(prj.toStdString().c_str());
 
 		// 新增字段
 		if (OGRERR_NONE != poLayer->CreateField(new OGRFieldDefn(fieldName.toStdString().c_str(), OFTInteger)))

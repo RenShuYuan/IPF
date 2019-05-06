@@ -262,6 +262,7 @@ void ipfFlowManage::appendItem(ipfModelerGraphicItem * item)
 		item->scene()->addItem(arrow);
 	}
 	items->append(item);
+	isCheck = false;
 
 	printBranch();
 }
@@ -420,6 +421,8 @@ void ipfFlowManage::insrtItem(ipfModelerGraphicItem* prvItem, ipfModelerGraphicI
 		// ²åÈëitem
 		items->insert(nextIndex, item);
 	}
+	isCheck = false;
+
 	printBranch();
 }
 

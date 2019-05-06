@@ -34,6 +34,10 @@ void ipfModelerProcessChildPixelMoidfyValue::setParameter()
 		newValue_1 = map["newValue_1"].toDouble();
 		oldValue_2 = map["oldValue_2"].toDouble();
 		newValue_2 = map["newValue_2"].toDouble();
+		if (map["bands_noDiffe"] == "YES")
+			bands_noDiffe = true;
+		else
+			bands_noDiffe = false;
 	}
 }
 
@@ -44,6 +48,10 @@ QMap<QString, QString> ipfModelerProcessChildPixelMoidfyValue::getParameter()
 	map["newValue_1"] = QString::number(newValue_1, 'f', 3);
 	map["oldValue_2"] = QString::number(oldValue_2, 'f', 3);
 	map["newValue_2"] = QString::number(newValue_2, 'f', 3);
+	if (bands_noDiffe)
+		map["bands_noDiffe"] = "YES";
+	else
+		map["bands_noDiffe"] = "NO";
 
 	return map;
 }
@@ -55,6 +63,10 @@ void ipfModelerProcessChildPixelMoidfyValue::setDialogParameter(QMap<QString, QS
 	newValue_1 = map["newValue_1"].toDouble();
 	oldValue_2 = map["oldValue_2"].toDouble();
 	newValue_2 = map["newValue_2"].toDouble();
+	if (map["bands_noDiffe"] == "YES")
+		bands_noDiffe = true;
+	else
+		bands_noDiffe = false;
 }
 
 void ipfModelerProcessChildPixelMoidfyValue::run()
@@ -69,7 +81,7 @@ void ipfModelerProcessChildPixelMoidfyValue::run()
 	foreach(QString var, filesIn())
 	{
 		QString target = ipfFlowManage::instance()->getTempVrtFile(var);
-		QString err = gdal.pixelModifyValue(var, target, oldValue_1, newValue_1, oldValue_2, newValue_2);
+		QString err = gdal.pixelModifyValue(var, target, oldValue_1, newValue_1, oldValue_2, newValue_2, bands_noDiffe);
 		if (err.isEmpty())
 			appendOutFile(target);
 		else

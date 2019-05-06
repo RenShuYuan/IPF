@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>324</width>
-    <height>180</height>
+    <height>200</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -61,6 +61,13 @@
       <widget class="QLineEdit" name="lineEdit_4"/>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="checkBox">
+     <property name="text">
+      <string>聚合</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="Line" name="line">

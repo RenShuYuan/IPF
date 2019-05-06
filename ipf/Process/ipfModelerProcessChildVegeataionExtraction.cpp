@@ -124,14 +124,13 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 		// 创建输出文件
 		QString rasterFile = ipfFlowManage::instance()->getTempFormatFile(var, ".img");
 		QString vectorFile = fileName + "\\" + baseName + ".shp";
-		GDALDataset* poDataset_target = ogr.createNewRaster(rasterFile, 1, GDT_Float32);
+		GDALDataset* poDataset_target = ogr.createNewRaster(rasterFile, "-9999", 1, GDT_Float32);
 		if (!poDataset_target)
 		{
 			addErrList(rasterFile + QStringLiteral(": 创建临时失败，无法继续。"));
 			continue;
 		}
 		GDALRasterBand* datasetBand = poDataset_target->GetRasterBand(1);
-		datasetBand->SetNoDataValue(-9999);
 
 		// 分块参数
 		int nBlockSize = 1024;

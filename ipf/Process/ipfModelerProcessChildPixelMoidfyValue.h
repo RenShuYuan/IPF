@@ -26,6 +26,7 @@ private:
 	double newValue_1;
 	double oldValue_2;
 	double newValue_2;
+	bool bands_noDiffe;
 };
 
 #endif // IPFMODELERPROCESSCHILDPIXELMOIDFYVALUE_H

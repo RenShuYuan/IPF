@@ -24,6 +24,7 @@ private:
 	QString newValue_1;
 	QString oldValue_2;
 	QString newValue_2;
+	bool bands_noDiffe;
 };
 
 #endif // IPFMODELERPROCESSCHILDPIXELMOIDFYVALUEDIALOG_H

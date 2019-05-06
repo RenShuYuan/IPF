@@ -26,6 +26,7 @@ private:
 	bool isNegative;
 	bool isNodata;
 	bool isShape;
+	bool bands_noDiffe;
 };
 
 #endif // IPFMODELERPROCESSCHILDINVALIDVALUECHECK_H

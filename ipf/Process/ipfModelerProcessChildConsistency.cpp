@@ -60,18 +60,16 @@ void ipfModelerProcessChildConsistency::run()
 
 		int nXSize = ogr.getYXSize().at(1);
 		int nYSize = ogr.getYXSize().at(0);
-		QString prj = ogr.getProjection();
 
 		// 创建输出栅格
 		QString rasterFile = "d:\\" + baseName + "_v.img";
-		GDALDataset* poDataset_target = ogr.createNewRaster(rasterFile, 1, GDT_Float32);
+		GDALDataset* poDataset_target = ogr.createNewRaster(rasterFile, "-9999", 1, GDT_Float32);
 		if (!poDataset_target)
 		{
 			addErrList(rasterFile + QStringLiteral(": 创建输出栅格数据失败，无法继续。"));
 			continue;
 		}
 		GDALRasterBand* datasetBand = poDataset_target->GetRasterBand(1);
-		datasetBand->SetNoDataValue(-9999);
 
 		long blockSize = nXSize * nYSize * nBands;
 		double *pSrcData = new double[blockSize];

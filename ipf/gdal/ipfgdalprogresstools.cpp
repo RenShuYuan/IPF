@@ -19,6 +19,7 @@ double IPF_VALUE_OLD_1 = 0.0;
 double IPF_VALUE_NEW_1 = 0.0;
 double IPF_VALUE_OLD_2 = 0.0;
 double IPF_VALUE_NEW_2 = 0.0;
+bool IPF_BANDS_NODIFFE = false;
 
 double IPF_NODATA = 0.0;
 QList<double> IPF_BANSNODATA;
@@ -26,6 +27,7 @@ double IPF_BACKGROUND = 0.0;
 QList<double> IPF_INVALIDVALUE;
 bool IPF_ISNEGATIVE = false;
 bool IPF_ISNODATA = false;
+bool IPF_BANDS_NODIFFE_CHECK = false;
 
 double IPF_DSM_NODATA = 0.0;
 double IPF_DEM_NODATA = 0.0;
@@ -553,7 +555,9 @@ CPLErr pixelModifyValueFunction(void **papoSources, int nSources, void *pData, i
 	double x0 = 0.0;
 
 	// ---- Init ----
-	if (nSources != 1) return CE_Failure;
+	if (nSources <= 0) return CE_Failure;
+
+	double *values = new double[nSources];
 
 	// ---- Set pixels ----
 	for (iLine = 0; iLine < nYSize; iLine++)
@@ -562,14 +566,51 @@ CPLErr pixelModifyValueFunction(void **papoSources, int nSources, void *pData, i
 		{
 			ii = iLine * nXSize + iCol;
 			/* 使用SRCVAL获取源栅格的像素 */
-			x0 = SRCVAL(papoSources[0], eSrcType, ii);
+			for (int i = 0; i < nSources; ++i)
+				values[i] = SRCVAL(papoSources[i], eSrcType, ii);
+
+			x0 = values[nSources - 1];
 			if (IPF_VALUE_OLD_1 != IPF_VALUE_NEW_1)
 			{
-				if (x0 == IPF_VALUE_OLD_1)
-					x0 = IPF_VALUE_NEW_1;
-				else if (IPF_VALUE_OLD_2 != IPF_VALUE_NEW_2)
+				if (!IPF_BANDS_NODIFFE)
+				{
+					if (x0 == IPF_VALUE_OLD_1)
+						x0 = IPF_VALUE_NEW_1;
+				}
+				else
+				{
+					bool isbl = true;
+					for (int i = 0; i < nSources-1; ++i)
+					{
+						if (values[i] != IPF_VALUE_OLD_1)
+						{
+							isbl = false;
+							break;
+						}
+					}
+					if (isbl)
+						x0 = IPF_VALUE_NEW_1;
+				}
+			}
+			else if (IPF_VALUE_OLD_2 != IPF_VALUE_NEW_2)
+			{
+				if (!IPF_BANDS_NODIFFE)
 				{
 					if (x0 == IPF_VALUE_OLD_2)
+						x0 = IPF_VALUE_NEW_2;
+				}
+				else
+				{
+					bool isbl = true;
+					for (int i = 0; i < nSources-1; ++i)
+					{
+						if (values[i] != IPF_VALUE_OLD_2)
+						{
+							isbl = false;
+							break;
+						}
+					}
+					if (isbl)
 						x0 = IPF_VALUE_NEW_2;
 				}
 			}
@@ -582,6 +623,7 @@ CPLErr pixelModifyValueFunction(void **papoSources, int nSources, void *pData, i
 	}
 
 	// ---- Return success ----
+	RELEASE_ARRAY(values);
 	return CE_None;
 }
 
@@ -634,9 +676,7 @@ CPLErr pixelInvalidValue(void **papoSources, int nSources, void *pData, int nXSi
 			double *valueList = new double[nSources];
 			int index = iLine * nXSize + iCol;
 			for (int i = 0; i < nSources; ++i)
-			{
 				valueList[i] = SRCVAL(papoSources[i], eSrcType, index);
-			}
 
 			int x0 = 0;
 
@@ -679,12 +719,33 @@ CPLErr pixelInvalidValue(void **papoSources, int nSources, void *pData, int nXSi
 			// 检查无效枚举值
 			if (!x0 && !IPF_INVALIDVALUE.isEmpty())
 			{
-				for (int i = 0; i < nSources; ++i)
+				if (!IPF_BANDS_NODIFFE_CHECK)
 				{
-					if (IPF_INVALIDVALUE.contains(valueList[i]))
+					for (int i = 0; i < nSources; ++i)
 					{
-						x0 = 1;
-						break;
+						if (IPF_INVALIDVALUE.contains(valueList[i]))
+						{
+							double hgf = valueList[i];
+							x0 = 1;
+							break;
+						}
+					}
+				}
+				else
+				{
+					if (IPF_INVALIDVALUE.contains(valueList[0]))
+					{
+						bool isbl = true;
+						for (int i = 0; i < nSources - 1; ++i)
+						{
+							if (valueList[i] != valueList[i + 1])
+							{
+								isbl = false;
+								break;
+							}
+						}
+						if (isbl)
+							x0 = 1;
 					}
 				}
 			}
@@ -1831,10 +1892,7 @@ QString ipfGdalProgressTools::extractRasterRange(const QString & source, const Q
 	int nYSize = xySize.at(0);
 
 	// 创建新栅格
-	GDALDataset *poDataset_target = ogr.createNewRaster(target, 0);
-	
-	// 设置NODATA
-	IPF_NODATA = ogr.getNodataValue(1);
+	GDALDataset *poDataset_target = ogr.createNewRaster(target, IPF_NODATA_NONE,0);
 
 	// 项vrt中注册算法
 	char** options = NULL;
@@ -1847,17 +1905,14 @@ QString ipfGdalProgressTools::extractRasterRange(const QString & source, const Q
 		ogr.getRasterBand(1),
 		0, 0, nXSize, nYSize,
 		0, 0, nXSize, nYSize,
-		"near", IPF_NODATA);
-
-	// 设置NODATA
-	poDataset_target->GetRasterBand(1)->SetNoDataValue(IPF_NODATA);
+		"near", ogr.getNodataValue(1));
 
 	GDALClose((GDALDatasetH)poDataset_target);
 	return enumErrTypeToString(eOK);
 }
 
 QString ipfGdalProgressTools::filterInvalidValue(const QString & source, const QString & target
-	, const QString invalidString, const bool isNegative, const bool isNodata)
+	, const QString invalidString, const bool isNegative, const bool isNodata, const bool bands_noDiffe)
 {
 	ipfOGR ogr(source);
 	if (!ogr.isOpen())
@@ -1866,6 +1921,7 @@ QString ipfGdalProgressTools::filterInvalidValue(const QString & source, const Q
 	// 初始化 pixelInvalidValue 所需参数
 	IPF_ISNEGATIVE = isNegative;
 	IPF_ISNODATA = isNodata;
+	IPF_BANDS_NODIFFE_CHECK = bands_noDiffe;
 	
 	// 分割无效值
 	QStringList valueList;
@@ -1883,7 +1939,7 @@ QString ipfGdalProgressTools::filterInvalidValue(const QString & source, const Q
 	int nYSize = xySize.at(0);
 
 	// 创建新栅格
-	GDALDataset *poDataset_target = ogr.createNewRaster(target, 0);
+	GDALDataset *poDataset_target = ogr.createNewRaster(target, IPF_NODATA_NONE, 0);
 
 	// 向vrt注册自定义算法
 	char** options = NULL;
@@ -1892,14 +1948,13 @@ QString ipfGdalProgressTools::filterInvalidValue(const QString & source, const Q
 	// 向vrt添加波段
 	options = CSLAddNameValue(options, "band", "1");
 	options = CSLAddNameValue(options, "PixelFunctionType", "pixelInvalidValue");
-	poDataset_target->AddBand(type, options); // 由于只用0和1区分，故只用8bit节省空间。
+	poDataset_target->AddBand(type, options);
 	CSLDestroy(options);
 
 	// 创建新波段
 	GDALRasterBand* new_band = poDataset_target->GetRasterBand(1);
 
-	int nBands = ogr.getBandSize();
-	for (int i = 1; i <= nBands; ++i)
+	for (int i = 1; i <= ogr.getBandSize(); ++i)
 	{
 		// 分别保存每个波段的NODATA值
 		IPF_BANSNODATA.append( ogr.getNodataValue(i) );
@@ -1910,9 +1965,6 @@ QString ipfGdalProgressTools::filterInvalidValue(const QString & source, const Q
 			0, 0, nXSize, nYSize,
 			NULL, 0);
 	}
-
-	// 设置NODATA为
-	poDataset_target->GetRasterBand(1)->SetNoDataValue(255);
 
 	GDALClose((GDALDatasetH)poDataset_target);
 	return enumErrTypeToString(eOK);
@@ -1934,10 +1986,7 @@ QString ipfGdalProgressTools::slopCalculation_S2(const QString & source, const Q
 	int nYSize = xySize.at(0);
 
 	// 创建新栅格
-	GDALDataset *poDataset_target = ogr.createNewRaster(target, 0);
-
-	// 设置NODATA
-	IPF_NODATA = ogr.getNodataValue(1);
+	GDALDataset *poDataset_target = ogr.createNewRaster(target, IPF_NODATA_NONE,0);
 
 	// 向vrt注册自定义算法
 	char** options = NULL;
@@ -1957,25 +2006,22 @@ QString ipfGdalProgressTools::slopCalculation_S2(const QString & source, const Q
 		ogr.getRasterBand(1),
 		0, 0, nXSize, nYSize,
 		0, 0, nXSize, nYSize,
-		NULL, 0);
+		NULL, ogr.getNodataValue(1));
 	VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band),
 		ogr.getRasterBand(2),
 		0, 0, nXSize, nYSize,
 		0, 0, nXSize, nYSize,
-		NULL, 0);
+		NULL, ogr.getNodataValue(2));
 	VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band),
 		ogr.getRasterBand(3),
 		0, 0, nXSize, nYSize,
 		0, 0, nXSize, nYSize,
-		NULL, 0);
+		NULL, ogr.getNodataValue(3));
 	VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band),
 		ogr.getRasterBand(4),
 		0, 0, nXSize, nYSize,
 		0, 0, nXSize, nYSize,
-		NULL, 0);
-
-	// 设置NODATA
-	poDataset_target->GetRasterBand(1)->SetNoDataValue(IPF_NODATA);
+		NULL, ogr.getNodataValue(4));
 
 	GDALClose((GDALDatasetH)poDataset_target);
 	return enumErrTypeToString(eOK);
@@ -2038,7 +2084,7 @@ QString ipfGdalProgressTools::dsmdemDiffeProcess(const QString & dsm, const QStr
 		return dem + QStringLiteral(": 计算DEM行列位置失败，请检查投影信息等是否定义正确。");
 
 	// 创建新栅格
-	GDALDataset *poDataset_target = ogr->createNewRaster(outRaster, 0);
+	GDALDataset *poDataset_target = ogr->createNewRaster(outRaster, IPF_NODATA_NONE,0);
 
 	// 设置NODATA
 	IPF_DSM_NODATA = ogr_dsm.getNodataValue(1);
@@ -2061,15 +2107,12 @@ QString ipfGdalProgressTools::dsmdemDiffeProcess(const QString & dsm, const QStr
 		band_1,
 		0, 0, nXSize_dsm, nYSize_dsm,
 		0, 0, nXSize_dsm, nYSize_dsm,
-		NULL, -9999);
+		NULL, band_1->GetNoDataValue());
 	VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band),
 		band_2,
 		iCol_dem, iRow_dem, nXSize_dem, nYSize_dem,
 		iCol_dsm, iRow_dsm, nXSize_dem, nYSize_dem,
-		NULL, -9999);
-
-	// 设置NODATA
-	poDataset_target->GetRasterBand(1)->SetNoDataValue(ogr->getNodataValue(1));
+		NULL, band_1->GetNoDataValue());
 
 	GDALClose((GDALDatasetH)poDataset_target);
 	return enumErrTypeToString(eOK);
@@ -2077,63 +2120,59 @@ QString ipfGdalProgressTools::dsmdemDiffeProcess(const QString & dsm, const QStr
 
 QString ipfGdalProgressTools::pixelModifyValue(const QString &source, const QString &target
 	, const double valueOld_1, const double valueNew_1
-	, const double valueOld_2, const double valueNew_2)
+	, const double valueOld_2, const double valueNew_2
+	, const bool bands_noDiffe)
 {
-	GDALDataset* poDataset_source = nullptr;
-	GDALDataset *poDataset_target = nullptr;
-	GDALDriver *poDriver = nullptr;
-
 	IPF_VALUE_OLD_1 = valueOld_1;
 	IPF_VALUE_NEW_1 = valueNew_1;
 	IPF_VALUE_OLD_2 = valueOld_2;
 	IPF_VALUE_NEW_2 = valueNew_2;
+	IPF_BANDS_NODIFFE = bands_noDiffe;
 
 	// 尝试打开数据源
-	poDataset_source = (GDALDataset*)GDALOpenEx(source.toStdString().c_str(), GDAL_OF_RASTER, NULL, NULL, NULL);
-
-	if (!poDataset_source)
+	ipfOGR ogr(source);
+	if (!ogr.isOpen())
 		return enumErrTypeToString(eSourceOpenErr);
 
-	GDALDataType type = poDataset_source->GetRasterBand(1)->GetRasterDataType();
+	int nBands = ogr.getBandSize();
+	GDALDataType type = ogr.getDataType_y();
 
-	double adfGeoTransform[6];
-	poDataset_source->GetGeoTransform(adfGeoTransform);
-	int nXSize = poDataset_source->GetRasterXSize();
-	int nYSize = poDataset_source->GetRasterYSize();
-	int nBands = poDataset_source->GetRasterCount();
+	QList<int> xySize = ogr.getYXSize();
+	int nXSize = xySize.at(1);
+	int nYSize = xySize.at(0);
 
-	QFileInfo info(target);
-	poDriver = GetGDALDriverManager()->GetDriverByName(enumFormatToString(info.suffix()).toStdString().c_str());
-	char **papszMetadata = poDriver->GetMetadata();
-	poDataset_target = poDriver->Create(target.toStdString().c_str(), nXSize, nYSize, 0, type, papszMetadata);
-	if (poDataset_target == NULL)
-		return enumErrTypeToString(eNotCreateDest);
-	poDataset_target->SetGeoTransform(adfGeoTransform);
-	poDataset_target->SetProjection(poDataset_source->GetProjectionRef());
+	// 创建新栅格
+	GDALDataset *poDataset_target = ogr.createNewRaster(target, IPF_NODATA_NONE, 0);
 
-	// 给vrt中每个波段注册算法
-	for (int i = 0; i < nBands; ++i)
+	for (int i = 1; i <= nBands; ++i)
 	{
+		// 向vrt注册自定义算法
 		char** options = NULL;
-		options = CSLAddNameValue(options, "band", QString::number(i+1).toStdString().c_str()); 
 		options = CSLAddNameValue(options, "subclass", "VRTDerivedRasterBand");
+
+		// 向vrt添加波段
+		options = CSLAddNameValue(options, "band", QString::number(nBands).toStdString().c_str());
 		options = CSLAddNameValue(options, "PixelFunctionType", "pixelModifyValueFunction");
 		poDataset_target->AddBand(type, options);
 		CSLDestroy(options);
-	}
 
-	// 添加波段
-	for (int i=0; i < nBands; ++i)
-	{
-		GDALRasterBand* new_band = poDataset_target->GetRasterBand(i + 1);
-		VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band), poDataset_source->GetRasterBand(i + 1),
+		// 添加波段
+		GDALRasterBand* new_band = poDataset_target->GetRasterBand(i);
+		for (int j = 1; j <= nBands; ++j)
+		{
+			VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band), ogr.getRasterBand(j),
+				0, 0, nXSize, nYSize,
+				0, 0, nXSize, nYSize,
+				NULL, ogr.getRasterBand(j)->GetNoDataValue());
+		}
+
+		VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band), ogr.getRasterBand(i),
 			0, 0, nXSize, nYSize,
 			0, 0, nXSize, nYSize,
-			"near", VRT_NODATA_UNSET);
+			NULL, ogr.getRasterBand(i)->GetNoDataValue());
 	}
 
 	GDALClose((GDALDatasetH)poDataset_target);
-	GDALClose((GDALDatasetH)poDataset_source);
 	return enumErrTypeToString(eOK);
 }
 
@@ -2155,7 +2194,7 @@ QString ipfGdalProgressTools::pixelFillValue(const QString & source, const QStri
 	int nYSize = xySize.at(0);
 	
 	// 创建新栅格
-	GDALDataset *poDataset_target = ogr.createNewRaster(target, 0);
+	GDALDataset *poDataset_target = ogr.createNewRaster(target, QString::number(IPF_RANGE_NODATA), 0);
 
 	// 给波段注册算法
 	char** options = NULL;
@@ -2172,8 +2211,6 @@ QString ipfGdalProgressTools::pixelFillValue(const QString & source, const QStri
 		0, 0, nXSize, nYSize,
 		"near", IPF_RANGE_NODATA);
 
-	// 设置NODATA为
-	poDataset_target->GetRasterBand(1)->SetNoDataValue(IPF_RANGE_NODATA);
 	GDALClose((GDALDatasetH)poDataset_target);
 	return enumErrTypeToString(eOK);
 }
@@ -2346,6 +2383,22 @@ end:
 		return eOther;
 }
 
+GDALDataset * ipfGdalProgressTools::createParametersRaster()
+{
+	GDALDataset *poDataset_target = nullptr;
+	GDALDriver *poDriver = nullptr;
+
+	QString new_raster = ipfFlowManage::instance()->getTempFormatFile("parametersRaster", ".tif");
+	poDriver = GetGDALDriverManager()->GetDriverByName("GTiff");
+	char **papszMetadata = poDriver->GetMetadata();
+
+	poDataset_target = poDriver->Create(new_raster.toStdString().c_str(), 10, 10, 1, GDALDataType::GDT_Float64, papszMetadata);
+	if (poDataset_target == NULL)
+		return nullptr;
+
+	return poDataset_target;
+}
+
 QString ipfGdalProgressTools::buildOverviews(const QString & source)
 {
 	// 尝试打开数据源
@@ -2489,12 +2542,11 @@ QString ipfGdalProgressTools::stdevp3x3Alg(const QString & source, const QString
 		return eSourceOpenErr;
 
 	// 创建新栅格
-	GDALDataset* poDataset_target = ogr.createNewRaster(target, 1, GDT_Float32);
+	GDALDataset* poDataset_target = ogr.createNewRaster(target, "-9999", 1, GDT_Float32);
 	if (!poDataset_target)
 		return eNotCreateDest;
 
 	GDALRasterBand* datasetBand = poDataset_target->GetRasterBand(1);
-	datasetBand->SetNoDataValue(-9999);
 	hDstBand = datasetBand;
 
 	ipfGdalProgressTools::errType err = GDALGeneric3x3Processing(hSrcBand, hDstBand, pfnAlg, pData, ALGTermProgress, proDialog);

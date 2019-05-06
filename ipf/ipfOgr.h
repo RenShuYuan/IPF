@@ -59,7 +59,7 @@ public:
 	QString getCompressionName();
 
 	// 创建一个新栅格
-	GDALDataset* createNewRaster(const QString &file, int nBands = -1, GDALDataType type = GDT_Unknown);
+	GDALDataset* createNewRaster(const QString &file, const QString nodata = IPF_NODATA_NONE, int nBands = -1, GDALDataType type = GDT_Unknown);
 
 	// 检查影像是否被压缩
 	bool isCompression();

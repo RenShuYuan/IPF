@@ -2,7 +2,6 @@
 #define IPFGDALPROGRESSTOOLS_H
 
 #include "head.h"
-//#include "qgspointxy.h"
 #include "qgspoint.h"
 #include <QProgressBar>
 
@@ -16,6 +15,7 @@ extern double IPF_VALUE_OLD_1;
 extern double IPF_VALUE_NEW_1;
 extern double IPF_VALUE_OLD_2;
 extern double IPF_VALUE_NEW_2;
+extern bool   IPF_BANDS_NODIFFE;
 
 // 分离无效值
 extern double IPF_NODATA;
@@ -26,6 +26,7 @@ extern QList<double> IPF_BANSNODATA;
 extern QList<double> IPF_INVALIDVALUE;
 extern bool IPF_ISNEGATIVE;
 extern bool IPF_ISNODATA;
+extern bool IPF_BANDS_NODIFFE_CHECK;
 
 // DSMDEM差值处理
 extern double IPF_DSM_NODATA;
@@ -139,10 +140,10 @@ public:
 	QString extractRasterRange(const QString &source, const QString &target, const double background);
 
 	// 过滤栅格指定无效值
-	QString filterInvalidValue(const QString &source, const QString &target, const QString invalidString, const bool isNegative, const bool isNodata);
+	QString filterInvalidValue(const QString &source, const QString &target, const QString invalidString, const bool isNegative, const bool isNodata, const bool bands_noDiffe);
 
 	// 修改栅格值
-	QString pixelModifyValue(const QString &source, const QString &target, const double valueOld_1, const double valueNew_1, const double valueOld_2, const double valueNew_2);
+	QString pixelModifyValue(const QString &source, const QString &target, const double valueOld_1, const double valueNew_1, const double valueOld_2, const double valueNew_2, const bool bands_noDiffe);
 
 	// 填充栅格值
 	QString pixelFillValue(const QString &source, const QString &target, const double nodata, const double value);
@@ -273,6 +274,7 @@ private:
 		GDALGeneric3x3ProcessingAlg pfnAlg, void* pData,
 		GDALProgressFunc pfnProgress, void * pProgressData);
 
+	GDALDataset* createParametersRaster();
 private:
 	ipfProgress * proDialog;
 	QStringList errList;

@@ -300,7 +300,7 @@ QString ipfOGR::getCompressionName()
 	return str;
 }
 
-GDALDataset* ipfOGR::createNewRaster(const QString &file, int nBands, GDALDataType type)
+GDALDataset* ipfOGR::createNewRaster(const QString &file, const QString nodata, int nBands, GDALDataType type)
 {
 	if (poDataset == NULL) return 0;
 
@@ -327,6 +327,14 @@ GDALDataset* ipfOGR::createNewRaster(const QString &file, int nBands, GDALDataTy
 		return nullptr;
 	poDataset_target->SetGeoTransform(adfGeoTransform);
 	poDataset_target->SetProjection(poDataset->GetProjectionRef());
+	
+	double mNodata = 0.0;
+	if (nodata == IPF_NODATA_NONE)
+		mNodata = getNodataValue(1);
+	else
+		mNodata = nodata.toDouble();
+	for (int i = 1; i<=nBands; ++i)
+		poDataset_target->GetRasterBand(i)->SetNoDataValue(mNodata);
 
 	return poDataset_target;
 }

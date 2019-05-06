@@ -29,6 +29,7 @@ private:
 	bool isNegative;
 	bool isNodata;
 	bool isShape;
+	bool bands_noDiffe;
 };
 
 #endif // IPFMODELERINVALIDVALUECHECKDIALOG_H

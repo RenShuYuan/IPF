@@ -29,6 +29,10 @@ QMap<QString, QString> ipfModelerInvalidValueCheckDialog::getParameter()
 		map["isShape"] = "YES";
 	else
 		map["isShape"] = "NO";
+	if (bands_noDiffe)
+		map["bands_noDiffe"] = "YES";
+	else
+		map["bands_noDiffe"] = "NO";
 
 	return map;
 }
@@ -50,12 +54,17 @@ void ipfModelerInvalidValueCheckDialog::setParameter(QMap<QString, QString> map)
 		isShape = true;
 	else
 		isShape = false;
+	if (map["bands_noDiffe"] == "YES")
+		bands_noDiffe = true;
+	else
+		bands_noDiffe = false;
 
 	ui.lineEdit->setText(invalidValue);
 	ui.lineEdit_2->setText(saveName);
 	ui.checkBox->setChecked(isNegative);
 	ui.checkBox_2->setChecked(isNodata);
 	ui.checkBox_3->setChecked(isShape);
+	ui.checkBox_4->setChecked(bands_noDiffe);
 }
 
 void ipfModelerInvalidValueCheckDialog::on_pushButton_2_clicked()
@@ -85,6 +94,10 @@ void ipfModelerInvalidValueCheckDialog::on_pushButton_clicked()
 		isShape = true;
 	else
 		isShape = false;
+	if (ui.checkBox_4->isChecked())
+		bands_noDiffe = true;
+	else
+		bands_noDiffe = false;
 
 	accept();
 }

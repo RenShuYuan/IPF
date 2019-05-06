@@ -53,6 +53,8 @@ typedef enum
 #define GGI_DSM			10.0
 
 // IPF
+static const QString IPF_NODATA_NONE("none");
+
 static const QString NAME_DELIMITER(QStringLiteral("@,@"));
 
 static const QString MODELER_IN(QStringLiteral("输入"));
