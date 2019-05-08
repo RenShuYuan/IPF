@@ -510,7 +510,6 @@ QList<double> ipfFractalManagement::external(QList<QgsPointXY>& four, const doub
 	double yMax = four.at(0).y();
 
 	QList<double> list;
-
 	for (int i = 0; i < four.size(); ++i)
 	{
 		QgsPointXY p = four.at(i);
@@ -519,6 +518,7 @@ QList<double> ipfFractalManagement::external(QList<QgsPointXY>& four, const doub
 		yMin = yMin > p.y() ? p.y() : yMin;
 		yMax = yMax < p.y() ? p.y() : yMax;
 	}
+
 
 	xMin = ((long)(xMin / R))*R - ext * R;
 	yMin = ((long)(yMin / R))*R - ext * R;

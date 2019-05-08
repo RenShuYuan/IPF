@@ -81,7 +81,7 @@ void ipfModelerProcessChildFracClip::run()
 	ogr.close();
 
 	// 检查分辨率正确否
-	if (R != 10.0 && R != 2.0 && R != 16.0)
+	if (R != GGI_DOM_2M && R != GGI_DOM_16M && R != GGI_DEM)
 	{
 		addErrList(soucre + QStringLiteral(": 栅格数据分辨率与全球项目设计不符，无法继续。"));
 		return;
@@ -89,7 +89,7 @@ void ipfModelerProcessChildFracClip::run()
 
 	// 定义比例尺
 	int blc = 50000;
-	if (R == 16.0)
+	if (R == GGI_DOM_16M)
 		blc = 250000;
 	ipfFractalManagement frac(blc);
 
@@ -112,11 +112,20 @@ void ipfModelerProcessChildFracClip::run()
 			continue;
 		}
 
+		// 保留至三位小数
+		for (int i = 0; i < four.size(); ++i)
+		{
+			QgsPointXY point = four.at(i);
+			double x = QString::number(point.x(), 'f', 3).toDouble();
+			double y = QString::number(point.y(), 'f', 3).toDouble();
+			four[i] = QgsPointXY(x, y);
+		}
+
 		// 计算外扩范围
 		int ext = 50;
-		if (R == 2.0)
+		if (R == GGI_DOM_2M)
 			ext = 200;
-		else if (R == 16.0)
+		else if (R == GGI_DOM_16M)
 			ext = 100;
 
 		QList<double> list = ipfFractalManagement::external(four, R, ext);

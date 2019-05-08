@@ -90,8 +90,15 @@ void ipfModelerProcessChildFracExtentCheck::run()
 		double R = ogr.getPixelSize();
 		ogr.close();
 
+		// 检查分辨率正确否
+		if (R != GGI_DOM_2M && R != GGI_DOM_16M && R != GGI_DEM)
+		{
+			outList << fileName + QStringLiteral(": 像元大小不正确，范围检查失败！！");
+			continue;
+		}
+
 		int blc = 50000;
-		if (R == 16.0)
+		if (R == GGI_DOM_16M)
 			blc = 250000;
 		ipfFractalManagement frac(blc);
 
@@ -112,18 +119,21 @@ void ipfModelerProcessChildFracExtentCheck::run()
 			continue;
 		}
 
-		int ext = 0;
-		if (R == 2.0) // 2米DOM
-			ext = 200;
-		else if (R == 16.0) // 16米DOM
-			ext = 100;
-		else if (R == 10.0) // DSM/DEM
-			ext = 50;
-		else
+		// 保留至三位小数
+		for (int i = 0; i < four.size(); ++i)
 		{
-			outList << fileName + QStringLiteral(": 像元大小不正确，范围检查失败！！");
-			continue;
+			QgsPointXY point = four.at(i);
+			double x = QString::number(point.x(), 'f', 3).toDouble();
+			double y = QString::number(point.y(), 'f', 3).toDouble();
+			four[i] = QgsPointXY(x, y);
 		}
+
+		// 计算外扩范围
+		int ext = 50;
+		if (R == GGI_DOM_2M)
+			ext = 200;
+		else if (R == GGI_DOM_16M)
+			ext = 100;
 
 		// 计算外扩坐标
 		QList<double> extList = ipfFractalManagement::external(four, R, ext);
@@ -146,8 +156,8 @@ void ipfModelerProcessChildFracExtentCheck::run()
 		{
 			QString("%1").arg(var);
 			outList << fileName
-				+ QStringLiteral(": 范围错误。\n\t图幅坐标：") + QString("%1, %2, %3, %4").arg(rect.xMinimum(), 0, 'f', 6).arg(rect.yMaximum(), 0, 'f', 6).arg(rect.xMaximum(), 0, 'f', 6).arg(rect.yMinimum(), 0, 'f', 6)
-				+ QStringLiteral("\n\t理论坐标：") + QString("%1, %2, %3, %4").arg(extList.at(0), 0, 'f', 6).arg(extList.at(1), 0, 'f', 6).arg(extList.at(2), 0, 'f', 6).arg(extList.at(3), 0, 'f', 6);
+				+ QStringLiteral(": 范围错误。\n\t图幅坐标：") + QString("%1, %2, %3, %4").arg(rect.xMinimum(), 0, 'f', 3).arg(rect.yMaximum(), 0, 'f', 3).arg(rect.xMaximum(), 0, 'f', 3).arg(rect.yMinimum(), 0, 'f', 3)
+				+ QStringLiteral("\n\t理论坐标：") + QString("%1, %2, %3, %4").arg(extList.at(0), 0, 'f', 3).arg(extList.at(1), 0, 'f', 3).arg(extList.at(2), 0, 'f', 3).arg(extList.at(3), 0, 'f', 3);
 		}
 	}
 
