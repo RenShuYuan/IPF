@@ -22,10 +22,8 @@ public:
 
 private:
 	ipfModelerPixelMoidfyValueDialog * dialog;
-	double oldValue_1;
-	double newValue_1;
-	double oldValue_2;
-	double newValue_2;
+	double oldValue;
+	double newValue;
 	bool bands_noDiffe;
 };
 

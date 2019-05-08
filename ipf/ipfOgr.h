@@ -61,6 +61,9 @@ public:
 	// 创建一个新栅格
 	GDALDataset* createNewRaster(const QString &file, const QString nodata = IPF_NODATA_NONE, int nBands = -1, GDALDataType type = GDT_Unknown);
 
+	// 创建一个参数栅格
+	GDALDataset* createParametersRaster(const QString &file);
+
 	// 检查影像是否被压缩
 	bool isCompression();
 
@@ -81,6 +84,8 @@ public:
 
 	// 使用统计值方法检查栅格数据是否为0
 	CPLErr ComputeMinMax(IPF_COMPUTE_TYPE type, QgsPointXY &point = QgsPointXY());
+
+	CPLErr writeBlock(int band, int nXBlockOff, int nYBlockOff, double * pImage);
 private:
     GDALDataset* poDataset;
 };

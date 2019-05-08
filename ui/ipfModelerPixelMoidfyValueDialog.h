@@ -20,10 +20,8 @@ private slots:
 
 private:
 	Ui::ipfModelerProcessChildPixelMoidfyValueDialog ui;
-	QString oldValue_1;
-	QString newValue_1;
-	QString oldValue_2;
-	QString newValue_2;
+	QString oldValue;
+	QString newValue;
 	bool bands_noDiffe;
 };
 

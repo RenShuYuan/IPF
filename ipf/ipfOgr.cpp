@@ -64,8 +64,6 @@ bool ipfOGR::isOpen()
 QgsRectangle ipfOGR::getXY()
 {
 	QgsRectangle rect;
-    if (poDataset==NULL)
-        return rect;
 
     //获得影像像素大小
     GDALRasterBand *poBand_1 = poDataset->GetRasterBand(1);
@@ -87,8 +85,6 @@ QgsRectangle ipfOGR::getXY()
 QList<double> ipfOGR::getXYcenter()
 {
 	QList<double> xyList;
-	if (poDataset == NULL)
-		return xyList;
 
 	//获得影像像素大小
 	GDALRasterBand *poBand_1 = poDataset->GetRasterBand(1);
@@ -110,8 +106,6 @@ QList<double> ipfOGR::getXYcenter()
 
 bool ipfOGR::setGeoXy(const double x, const double y)
 {
-	if (poDataset == NULL)
-		return false;
 	if (poDataset->GetAccess() != GA_Update)
 		return false;
 
@@ -169,17 +163,11 @@ QList<int> ipfOGR::getYXSize()
 
 const char* ipfOGR::getProjection()
 {
-    if (poDataset==NULL)
-        return "";
-
 	return poDataset->GetProjectionRef();
 }
 
 double ipfOGR::getPixelSize()
 {
-	if (poDataset == NULL)
-		return 0;
-
     double pro[6];
     poDataset->GetGeoTransform(pro);
 	double sizeX = fabs(pro[1]);
@@ -212,34 +200,30 @@ GDALDataType ipfOGR::getDataType_y()
 
 GDALRasterBand * ipfOGR::getRasterBand(const int nBand)
 {
-	if (poDataset == NULL) return 0;
 	return poDataset->GetRasterBand(nBand);
 }
 
 bool ipfOGR::readRasterIO(float ** pDataBuffer, const int bandNo)
 {
-	if (poDataset != NULL)
+	if (poDataset->GetRasterCount() > 0 && poDataset->GetRasterCount() <= bandNo)
 	{
-		if (poDataset->GetRasterCount() > 0 && poDataset->GetRasterCount() <= bandNo)
-		{
-			GDALRasterBand* pBand = poDataset->GetRasterBand(bandNo);
-			QList<int> xyList = getYXSize();
-			int xSize = xyList.at(1);
-			int ySize = xyList.at(0);
-			*pDataBuffer = new float[xSize*ySize];
-			int err = pBand->RasterIO(GF_Read, 0, 0, xSize, ySize, *pDataBuffer, xSize, ySize, GDT_Float32, 0, 0);
-			if (err == CE_None)
-				return true;
-			else
-				return false;
-		}
+		GDALRasterBand* pBand = poDataset->GetRasterBand(bandNo);
+		QList<int> xyList = getYXSize();
+		int xSize = xyList.at(1);
+		int ySize = xyList.at(0);
+		*pDataBuffer = new float[xSize*ySize];
+		int err = pBand->RasterIO(GF_Read, 0, 0, xSize, ySize, *pDataBuffer, xSize, ySize, GDT_Float32, 0, 0);
+		if (err == CE_None)
+			return true;
+		else
+			return false;
 	}
+
 	return false;
 }
 
 bool ipfOGR::readRasterIO(void * pDataBuffer, int qsX, int qsY, int xSize, int ySize, GDALDataType type)
 {
-	if (poDataset == NULL) return false;
 	if (poDataset->GetRasterCount() == 0) return false;
 
 	int nBands = poDataset->GetRasterCount();
@@ -256,7 +240,7 @@ bool ipfOGR::readRasterIO(void * pDataBuffer, int qsX, int qsY, int xSize, int y
 	int err = poDataset->RasterIO(GF_Read, qsX, qsY, xSize, ySize, pDataBuffer, xSize, ySize,
 		type, nBands, pBandMaps, nPixelSpace, nLineSpace, nBandSpace);
 
-	delete [] pBandMaps;
+	RELEASE_ARRAY(pBandMaps);
 
 	if (err == CE_None)
 		return true;
@@ -275,14 +259,12 @@ double ipfOGR::getNodataValue(const int iBand)
 
 int ipfOGR::getBandSize()
 {
-	if (poDataset == NULL) return 0;
 	return poDataset->GetRasterCount();
 }
 
 QString ipfOGR::getCompressionName()
 {
 	QString str;
-	if (poDataset == NULL) return 0;
 	char** info = poDataset->GetMetadata("Image_Structure");
 	if (info != NULL && *info != NULL)
 	{
@@ -302,8 +284,6 @@ QString ipfOGR::getCompressionName()
 
 GDALDataset* ipfOGR::createNewRaster(const QString &file, const QString nodata, int nBands, GDALDataType type)
 {
-	if (poDataset == NULL) return 0;
-
 	GDALDataset *poDataset_target = nullptr;
 	GDALDriver *poDriver = nullptr;
 
@@ -339,10 +319,33 @@ GDALDataset* ipfOGR::createNewRaster(const QString &file, const QString nodata, 
 	return poDataset_target;
 }
 
+GDALDataset * ipfOGR::createParametersRaster(const QString & file)
+{
+	GDALDataset *poDataset_target = nullptr;
+	GDALDriver *poDriver = nullptr;
+
+	double adfGeoTransform[6];
+	poDataset->GetGeoTransform(adfGeoTransform);
+	int nXSize = 1;
+	int nYSize = poDataset->GetRasterYSize();
+
+	QFileInfo info(file);
+	poDriver = GetGDALDriverManager()->GetDriverByName(ipfGdalProgressTools::enumFormatToString(info.suffix()).toStdString().c_str());
+	char **papszMetadata = poDriver->GetMetadata();
+
+	poDataset_target = poDriver->Create(file.toStdString().c_str(), nXSize, nYSize, 1, GDT_Byte, papszMetadata);
+	if (poDataset_target == NULL)
+		return nullptr;
+
+	poDataset_target->SetGeoTransform(adfGeoTransform);
+	poDataset_target->SetProjection(poDataset->GetProjectionRef());
+	poDataset_target->GetRasterBand(1)->SetNoDataValue(getNodataValue(1));
+
+	return poDataset_target;
+}
+
 bool ipfOGR::isCompression()
 {
-	if (poDataset == NULL) return false;
-
 	char** info = poDataset->GetMetadata("Image_Structure");
 	if (info != NULL && *info != NULL)
 	{
@@ -537,8 +540,6 @@ CPLErr ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
 
 bool ipfOGR::rasterDelete(const QString &file)
 {
-	if (poDataset == NULL) return false;
-
 	GDALDriver *pDriver = poDataset->GetDriver();
 	if (pDriver == NULL)
 		return false;
@@ -596,5 +597,16 @@ CPLErr ipfOGR::ComputeMinMax(IPF_COMPUTE_TYPE type, QgsPointXY &point)
 		return CE_None;
 	}
 
+	return err;
+}
+
+CPLErr ipfOGR::writeBlock(int band, int nXBlockOff, int nYBlockOff, double * pImage)
+{
+	if (poDataset->GetAccess() != GA_Update)
+		return CE_Warning;
+	if (band > getBandSize())
+		return CE_Warning;
+
+	CPLErr err = poDataset->GetRasterBand(band)->WriteBlock(nXBlockOff, nYBlockOff, pImage);
 	return err;
 }

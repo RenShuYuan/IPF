@@ -7,11 +7,6 @@ ipfModelerProcessChildPixelMoidfyValue::ipfModelerProcessChildPixelMoidfyValue(Q
 	: ipfModelerProcessBase(parent, modelerName)
 {
 	setId(QUuid::createUuid().toString());
-
-	oldValue_1 = 0.0;
-	newValue_1 = 0.0;
-	oldValue_2 = 0.0;
-	newValue_2 = 0.0;
 	dialog = new ipfModelerPixelMoidfyValueDialog();
 }
 
@@ -30,10 +25,8 @@ void ipfModelerProcessChildPixelMoidfyValue::setParameter()
 	if (dialog->exec())
 	{
 		QMap<QString, QString> map = dialog->getParameter();
-		oldValue_1 = map["oldValue_1"].toDouble();
-		newValue_1 = map["newValue_1"].toDouble();
-		oldValue_2 = map["oldValue_2"].toDouble();
-		newValue_2 = map["newValue_2"].toDouble();
+		oldValue = map["oldValue"].toDouble();
+		newValue = map["newValue"].toDouble();
 		if (map["bands_noDiffe"] == "YES")
 			bands_noDiffe = true;
 		else
@@ -44,10 +37,8 @@ void ipfModelerProcessChildPixelMoidfyValue::setParameter()
 QMap<QString, QString> ipfModelerProcessChildPixelMoidfyValue::getParameter()
 {
 	QMap<QString, QString> map;
-	map["oldValue_1"] = QString::number(oldValue_1, 'f', 3);
-	map["newValue_1"] = QString::number(newValue_1, 'f', 3);
-	map["oldValue_2"] = QString::number(oldValue_2, 'f', 3);
-	map["newValue_2"] = QString::number(newValue_2, 'f', 3);
+	map["oldValue"] = QString::number(oldValue);
+	map["newValue"] = QString::number(newValue);
 	if (bands_noDiffe)
 		map["bands_noDiffe"] = "YES";
 	else
@@ -59,10 +50,8 @@ QMap<QString, QString> ipfModelerProcessChildPixelMoidfyValue::getParameter()
 void ipfModelerProcessChildPixelMoidfyValue::setDialogParameter(QMap<QString, QString> map)
 {
 	dialog->setParameter(map);
-	oldValue_1 = map["oldValue_1"].toDouble();
-	newValue_1 = map["newValue_1"].toDouble();
-	oldValue_2 = map["oldValue_2"].toDouble();
-	newValue_2 = map["newValue_2"].toDouble();
+	oldValue = map["oldValue"].toDouble();
+	newValue = map["newValue"].toDouble();
 	if (map["bands_noDiffe"] == "YES")
 		bands_noDiffe = true;
 	else
@@ -81,7 +70,7 @@ void ipfModelerProcessChildPixelMoidfyValue::run()
 	foreach(QString var, filesIn())
 	{
 		QString target = ipfFlowManage::instance()->getTempVrtFile(var);
-		QString err = gdal.pixelModifyValue(var, target, oldValue_1, newValue_1, oldValue_2, newValue_2, bands_noDiffe);
+		QString err = gdal.pixelModifyValue(var, target, oldValue, newValue, bands_noDiffe);
 		if (err.isEmpty())
 			appendOutFile(target);
 		else

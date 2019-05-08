@@ -15,11 +15,14 @@
 
 int IPF_DECIMAL = 0;
 
-double IPF_VALUE_OLD_1 = 0.0;
-double IPF_VALUE_NEW_1 = 0.0;
-double IPF_VALUE_OLD_2 = 0.0;
-double IPF_VALUE_NEW_2 = 0.0;
-bool IPF_BANDS_NODIFFE = false;
+int INDEX_TEMPLATE_PARAMETERS = 0;
+QMap<int, vrtParameters> map_Parameters;
+
+//double IPF_VALUE_OLD_1 = 0.0;
+//double IPF_VALUE_NEW_1 = 0.0;
+//double IPF_VALUE_OLD_2 = 0.0;
+//double IPF_VALUE_NEW_2 = 0.0;
+//bool IPF_BANDS_NODIFFE = false;
 
 double IPF_NODATA = 0.0;
 QList<double> IPF_BANSNODATA;
@@ -551,13 +554,20 @@ CPLErr pixelDSMDEMDiffProcessFunction(void **papoSources, int nSources, void *pD
 CPLErr pixelModifyValueFunction(void **papoSources, int nSources, void *pData, int nXSize, int nYSize,
 	GDALDataType eSrcType, GDALDataType eBufType, int nPixelSpace, int nLineSpace)
 {
+	if (nSources < 3) return CE_Failure;
+
 	int ii = 0, iLine = 0, iCol = 0;
 	double x0 = 0.0;
 
-	// ---- Init ----
-	if (nSources <= 0) return CE_Failure;
-
-	double *values = new double[nSources];
+	int argBandIndex = nSources - 1;
+	double *values = new double[nSources - 1];
+	
+	// 提取参数
+	int tag = SRCVAL(papoSources[argBandIndex], eSrcType, 0);
+	vrtParameters arg = map_Parameters.value(tag);
+	double valueOld = arg.getPixelModifyValue().valueOld;
+	double valueNew = arg.getPixelModifyValue().valueNew;
+	bool noDiffe = arg.getPixelModifyValue().noDiffe;
 
 	// ---- Set pixels ----
 	for (iLine = 0; iLine < nYSize; iLine++)
@@ -565,54 +575,29 @@ CPLErr pixelModifyValueFunction(void **papoSources, int nSources, void *pData, i
 		for (iCol = 0; iCol < nXSize; iCol++)
 		{
 			ii = iLine * nXSize + iCol;
-			/* 使用SRCVAL获取源栅格的像素 */
-			for (int i = 0; i < nSources; ++i)
+
+			for (int i = 0; i < nSources-1; ++i)
 				values[i] = SRCVAL(papoSources[i], eSrcType, ii);
 
-			x0 = values[nSources - 1];
-			if (IPF_VALUE_OLD_1 != IPF_VALUE_NEW_1)
+			x0 = values[nSources - 2];
+			if (!noDiffe)
 			{
-				if (!IPF_BANDS_NODIFFE)
-				{
-					if (x0 == IPF_VALUE_OLD_1)
-						x0 = IPF_VALUE_NEW_1;
-				}
-				else
-				{
-					bool isbl = true;
-					for (int i = 0; i < nSources-1; ++i)
-					{
-						if (values[i] != IPF_VALUE_OLD_1)
-						{
-							isbl = false;
-							break;
-						}
-					}
-					if (isbl)
-						x0 = IPF_VALUE_NEW_1;
-				}
+				if (x0 == valueOld)
+					x0 = valueNew;
 			}
-			else if (IPF_VALUE_OLD_2 != IPF_VALUE_NEW_2)
+			else
 			{
-				if (!IPF_BANDS_NODIFFE)
+				bool isbl = true;
+				for (int i = 0; i < nSources - 2; ++i)
 				{
-					if (x0 == IPF_VALUE_OLD_2)
-						x0 = IPF_VALUE_NEW_2;
-				}
-				else
-				{
-					bool isbl = true;
-					for (int i = 0; i < nSources-1; ++i)
+					if (values[i] != valueOld)
 					{
-						if (values[i] != IPF_VALUE_OLD_2)
-						{
-							isbl = false;
-							break;
-						}
+						isbl = false;
+						break;
 					}
-					if (isbl)
-						x0 = IPF_VALUE_NEW_2;
 				}
+				if (isbl)
+					x0 = valueNew;
 			}
 
 			// write
@@ -2119,27 +2104,25 @@ QString ipfGdalProgressTools::dsmdemDiffeProcess(const QString & dsm, const QStr
 }
 
 QString ipfGdalProgressTools::pixelModifyValue(const QString &source, const QString &target
-	, const double valueOld_1, const double valueNew_1
-	, const double valueOld_2, const double valueNew_2
-	, const bool bands_noDiffe)
+	, const double valueOld, const double valueNew, const bool bands_noDiffe)
 {
-	IPF_VALUE_OLD_1 = valueOld_1;
-	IPF_VALUE_NEW_1 = valueNew_1;
-	IPF_VALUE_OLD_2 = valueOld_2;
-	IPF_VALUE_NEW_2 = valueNew_2;
-	IPF_BANDS_NODIFFE = bands_noDiffe;
-
 	// 尝试打开数据源
 	ipfOGR ogr(source);
 	if (!ogr.isOpen())
 		return enumErrTypeToString(eSourceOpenErr);
 
 	int nBands = ogr.getBandSize();
-	GDALDataType type = ogr.getDataType_y();
-
 	QList<int> xySize = ogr.getYXSize();
 	int nXSize = xySize.at(1);
 	int nYSize = xySize.at(0);
+
+	// 创建参数栅格
+	QString templateRaster_tmp = ipfFlowManage::instance()->getTempFormatFile("raster", ".tif");
+	GDALDataset *poDataset_arg = ogr.createParametersRaster(templateRaster_tmp);
+	if (!poDataset_arg)
+		return source + QStringLiteral(": 传递参数失败，已跳过。");
+	poDataset_arg->GetRasterBand(1)->Fill(INDEX_TEMPLATE_PARAMETERS);
+	map_Parameters[INDEX_TEMPLATE_PARAMETERS++] = vrtParameters(valueOld, valueNew, bands_noDiffe);
 
 	// 创建新栅格
 	GDALDataset *poDataset_target = ogr.createNewRaster(target, IPF_NODATA_NONE, 0);
@@ -2153,7 +2136,7 @@ QString ipfGdalProgressTools::pixelModifyValue(const QString &source, const QStr
 		// 向vrt添加波段
 		options = CSLAddNameValue(options, "band", QString::number(nBands).toStdString().c_str());
 		options = CSLAddNameValue(options, "PixelFunctionType", "pixelModifyValueFunction");
-		poDataset_target->AddBand(type, options);
+		poDataset_target->AddBand(ogr.getDataType_y(), options);
 		CSLDestroy(options);
 
 		// 添加波段
@@ -2170,9 +2153,15 @@ QString ipfGdalProgressTools::pixelModifyValue(const QString &source, const QStr
 			0, 0, nXSize, nYSize,
 			0, 0, nXSize, nYSize,
 			NULL, ogr.getRasterBand(i)->GetNoDataValue());
+
+		VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band), poDataset_arg->GetRasterBand(1),
+			0, 0, nXSize, nYSize,
+			0, 0, nXSize, nYSize,
+			NULL, NULL);
 	}
 
 	GDALClose((GDALDatasetH)poDataset_target);
+	GDALClose((GDALDatasetH)poDataset_arg);
 	return enumErrTypeToString(eOK);
 }
 
@@ -2381,22 +2370,6 @@ end:
 		return eOK;
 	else
 		return eOther;
-}
-
-GDALDataset * ipfGdalProgressTools::createParametersRaster()
-{
-	GDALDataset *poDataset_target = nullptr;
-	GDALDriver *poDriver = nullptr;
-
-	QString new_raster = ipfFlowManage::instance()->getTempFormatFile("parametersRaster", ".tif");
-	poDriver = GetGDALDriverManager()->GetDriverByName("GTiff");
-	char **papszMetadata = poDriver->GetMetadata();
-
-	poDataset_target = poDriver->Create(new_raster.toStdString().c_str(), 10, 10, 1, GDALDataType::GDT_Float64, papszMetadata);
-	if (poDataset_target == NULL)
-		return nullptr;
-
-	return poDataset_target;
 }
 
 QString ipfGdalProgressTools::buildOverviews(const QString & source)
@@ -2667,4 +2640,24 @@ void ipfGdalProgressTools::setProgressTitle(const QString & label)
 void ipfGdalProgressTools::setProgressSize(const int max)
 {
 	proDialog->setRangeTotal(0, max);
+}
+
+vrtParameters::vrtParameters()
+{
+}
+
+vrtParameters::vrtParameters(const double valueOld, const double valueNew, const bool noDiffe)
+{
+	setPixelModifyValue(valueOld, valueNew, noDiffe);
+}
+
+vrtParameters::~vrtParameters()
+{
+}
+
+void vrtParameters::setPixelModifyValue(const double valueOld, const double valueNew, const bool noDiffe)
+{
+	sPixelModifyValue.valueOld = valueOld;
+	sPixelModifyValue.valueNew = valueNew;
+	sPixelModifyValue.noDiffe = noDiffe;
 }

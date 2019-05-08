@@ -6,16 +6,13 @@
 #include <QProgressBar>
 
 class ipfProgress;
+class vrtParameters;
+
+extern int INDEX_TEMPLATE_PARAMETERS;
+extern QMap<int, vrtParameters> map_Parameters;
 
 // 像元值位数保留
 extern int IPF_DECIMAL;
-
-// 像元值替换
-extern double IPF_VALUE_OLD_1;
-extern double IPF_VALUE_NEW_1;
-extern double IPF_VALUE_OLD_2;
-extern double IPF_VALUE_NEW_2;
-extern bool   IPF_BANDS_NODIFFE;
 
 // 分离无效值
 extern double IPF_NODATA;
@@ -41,9 +38,26 @@ extern double IPF_RANGE_NODATA;
 
 #define PI 3.14159265
 
-struct cs {
-	ipfProgress * pdialog;
-	QProgressBar *pProcess;
+struct PixelModifyValue
+{
+	double valueOld = 0.0;
+	double valueNew = 0.0;
+	bool noDiffe = false;
+};
+
+class vrtParameters
+{
+
+public:
+	vrtParameters();
+	vrtParameters(const double valueOld, const double valueNew, const bool noDiffe);
+	~vrtParameters();
+
+	void setPixelModifyValue(const double valueOld, const double valueNew, const bool noDiffe);
+	PixelModifyValue getPixelModifyValue() { return sPixelModifyValue; };
+
+private:
+	struct PixelModifyValue sPixelModifyValue;
 };
 
 class ipfGdalProgressTools
@@ -143,7 +157,7 @@ public:
 	QString filterInvalidValue(const QString &source, const QString &target, const QString invalidString, const bool isNegative, const bool isNodata, const bool bands_noDiffe);
 
 	// 修改栅格值
-	QString pixelModifyValue(const QString &source, const QString &target, const double valueOld_1, const double valueNew_1, const double valueOld_2, const double valueNew_2, const bool bands_noDiffe);
+	QString pixelModifyValue(const QString &source, const QString &target, const double valueOld, const double valueNew, const bool bands_noDiffe);
 
 	// 填充栅格值
 	QString pixelFillValue(const QString &source, const QString &target, const double nodata, const double value);
@@ -273,8 +287,6 @@ private:
 	errType GDALGeneric3x3Processing(GDALRasterBandH hSrcBand, GDALRasterBandH hDstBand,
 		GDALGeneric3x3ProcessingAlg pfnAlg, void* pData,
 		GDALProgressFunc pfnProgress, void * pProgressData);
-
-	GDALDataset* createParametersRaster();
 private:
 	ipfProgress * proDialog;
 	QStringList errList;

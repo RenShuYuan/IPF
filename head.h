@@ -54,9 +54,13 @@ typedef enum
 
 // IPF
 static const QString IPF_NODATA_NONE("none");
-
 static const QString NAME_DELIMITER(QStringLiteral("@,@"));
 
+// 参数模板中各参数位置
+/*像元值位数保留*/
+static const int P_DECIMAL = 0;
+
+// IPF模块名称
 static const QString MODELER_IN(QStringLiteral("输入"));
 static const QString MODELER_OUT(QStringLiteral("输出"));
 
