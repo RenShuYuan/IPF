@@ -9,8 +9,11 @@ ipfModelerProcessChildRangeMoidfyValue::ipfModelerProcessChildRangeMoidfyValue(Q
 	: ipfModelerProcessBase(parent, modelerName)
 {
 	setId(QUuid::createUuid().toString());
-
 	dialog = new ipfModelerRangeMoidfyValueDialog();
+	if (modelerName == MODELER_RANGEMOIDFYVALUE)
+		dialog->setValueEnable(false);
+	else
+		dialog->setValueEnable(true);
 }
 
 ipfModelerProcessChildRangeMoidfyValue::~ipfModelerProcessChildRangeMoidfyValue()
@@ -88,7 +91,10 @@ void ipfModelerProcessChildRangeMoidfyValue::run()
 			continue;
 		}
 
-		// 填充值
+		// 填充值海域特定值
+		if (name() == MODELER_SEAMOIDFYVALUE)
+			value = -8888;
+
 		QString target_target = ipfFlowManage::instance()->getTempVrtFile(var);
 		err = gdal.pixelFillValue(target, target_target, nodata, value);
 		if (!err.isEmpty())

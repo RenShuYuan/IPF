@@ -459,8 +459,8 @@ ipfModelerProcessBase* ipfGraphicsScene::createProcessBase(const QString & itemN
 		base = new ipfModelerProcessChildDSMDEMDifferenceCheck(this, MODELER_DSMDEMDIFFECHECK);
 	else if (itemName == MODELER_DSMDEMDIFFEPROCESS)
 		base = new ipfModelerProcessChildDSMDEMDifferenceProcess(this, MODELER_DSMDEMDIFFEPROCESS);
-	else if (itemName == MODELER_RANGEMOIDFYVALUE)
-		base = new ipfModelerProcessChildRangeMoidfyValue(this, MODELER_RANGEMOIDFYVALUE);
+	else if (itemName == MODELER_RANGEMOIDFYVALUE || itemName == MODELER_SEAMOIDFYVALUE)
+		base = new ipfModelerProcessChildRangeMoidfyValue(this, itemName);
 
 	return base;
 }

@@ -191,9 +191,6 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 		connect(&p, &QProgressDialog::canceled, &feedback, &QgsFeedback::cancel);
 		QgsRasterCalculator::Result res = static_cast<QgsRasterCalculator::Result>(rc.processCalculation(&feedback));
 
-		RELEASE(oneLayer);
-		RELEASE(twoLayer);
-
 		switch (res)
 		{
 		case QgsRasterCalculator::Success:
@@ -217,6 +214,8 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 		}
 	}
 
+	RELEASE(oneLayer);
+	RELEASE(twoLayer);
 	return outErr;
 }
 

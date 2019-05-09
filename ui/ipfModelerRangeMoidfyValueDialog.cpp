@@ -29,6 +29,12 @@ void ipfModelerRangeMoidfyValueDialog::setParameter(QMap<QString, QString> map)
 	ui.sb_index->setValue(value);
 }
 
+void ipfModelerRangeMoidfyValueDialog::setValueEnable(const bool enable)
+{
+	ui.sb_index->setHidden(enable);
+	ui.label_2->setHidden(enable);
+}
+
 void ipfModelerRangeMoidfyValueDialog::on_pushButton_2_clicked()
 {
 	QString path = mSettings.value("/rasterPath", "/home").toString();

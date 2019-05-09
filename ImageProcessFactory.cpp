@@ -110,6 +110,7 @@ void ImageProcessFactory::initTreeView()
 	QStandardItem* itemCunstomQQAlgorithm = new QStandardItem(QStringLiteral("全球测图数据处理"));
 	model->appendRow(itemCunstomQQAlgorithm);
 	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_FRACCLIP));
+	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_SEAMOIDFYVALUE));
 	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_sf, MODELER_DSMDEMDIFFEPROCESS));
 	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_VEGETATION_EXTRACTION));
 	itemCunstomQQAlgorithm->appendRow(new QStandardItem(icon_Output, MODELER_TFW));

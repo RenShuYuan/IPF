@@ -16,6 +16,8 @@ public:
 	QMap<QString, QString> getParameter();
 	void setParameter(QMap<QString, QString> map);
 
+	void setValueEnable(const bool enable);
+
 private slots:
 	void on_pushButton_clicked();
 	void on_pushButton_2_clicked();
