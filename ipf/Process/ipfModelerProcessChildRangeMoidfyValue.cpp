@@ -71,6 +71,7 @@ void ipfModelerProcessChildRangeMoidfyValue::run()
 	foreach(QString var, filesIn())
 	{
 		gdal.pulsValueTatal();
+		QString format = var.right(3);
 
 		ipfOGR ogr(var);
 		if (!ogr.isOpen())
@@ -80,7 +81,6 @@ void ipfModelerProcessChildRangeMoidfyValue::run()
 		}
 		double nodata = ogr.getNodataValue(1);
 		ogr.close();
-		QString format = var.right(3);
 
 		// 使用矢量文件裁切栅格
 		QString target = ipfFlowManage::instance()->getTempVrtFile(var);

@@ -538,6 +538,101 @@ CPLErr ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
 	return CE_None;
 }
 
+CPLErr ipfOGR::shpEnvelope(const QgsGeometry & geometry, QgsRectangle & rect)
+{
+	if (geometry.isEmpty())
+		return CE_Warning;
+
+	QgsRectangle rectRtr = getXY();
+	QgsRectangle rectShp = geometry.boundingBox();
+
+	// 检查是否具有相交关系
+	if (!rectRtr.intersects(rectShp))
+		return CE_Warning;
+
+	double tmp = 0.0;
+	double R = getPixelSize();
+	double midR = R / 2;
+
+	// XMinimum
+	if (rectRtr.xMinimum() < rectShp.xMinimum())
+	{
+		double JXMin = round(rectShp.xMinimum() / R) * R;
+		if (JXMin >= rectShp.xMinimum())
+			tmp = JXMin - R;
+		else
+			tmp = JXMin;
+		tmp = tmp + midR;
+		if (tmp < JXMin)
+			rect.setXMinimum(tmp + midR);
+		else
+			rect.setXMinimum(tmp - midR);
+	}
+	else
+	{
+		rect.setXMinimum(rectRtr.xMinimum());
+	}
+
+	// XMaximum
+	if (rectRtr.xMaximum() > rectShp.xMaximum())
+	{
+		double JXMax = round(rectShp.xMaximum() / R) * R;
+		if (JXMax >= rectShp.xMaximum())
+			tmp = JXMax - R;
+		else
+			tmp = JXMax;
+		tmp = tmp + midR;
+		if (tmp < JXMax)
+			rect.setXMaximum(tmp + midR);
+		else
+			rect.setXMaximum(tmp - midR);
+	}
+	else
+	{
+		rect.setXMaximum(rectRtr.xMaximum());
+	}
+
+	// YMinimum
+	if (rectRtr.yMinimum() < rectShp.yMinimum())
+	{
+		double JYMin = round(rectShp.yMinimum() / R) * R;
+		if (JYMin >= rectShp.yMinimum())
+			tmp = JYMin - R;
+		else
+			tmp = JYMin;
+		tmp = tmp + midR;
+		if (tmp < JYMin)
+			rect.setYMinimum(tmp + midR);
+		else
+			rect.setYMinimum(tmp - midR);
+	}
+	else
+	{
+		rect.setYMinimum(rectRtr.yMinimum());
+	}
+
+	// YMaximum
+	if (rectRtr.yMaximum() > rectShp.yMaximum())
+	{
+		double JYMax = round(rectShp.yMaximum() / R) * R;
+		if (JYMax >= rectShp.yMaximum())
+			tmp = JYMax - R;
+		else
+			tmp = JYMax;
+		tmp = tmp + midR;
+		if (tmp < JYMax)
+			rect.setYMaximum(tmp + midR);
+		else
+			rect.setYMaximum(tmp - midR);
+	}
+	else
+	{
+		rect.setYMaximum(rectRtr.yMaximum());
+	}
+
+	return CE_None;
+}
+
 bool ipfOGR::rasterDelete(const QString &file)
 {
 	GDALDriver *pDriver = poDataset->GetDriver();
