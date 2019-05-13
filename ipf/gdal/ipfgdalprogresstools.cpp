@@ -18,12 +18,6 @@ int IPF_DECIMAL = 0;
 int INDEX_TEMPLATE_PARAMETERS = 0;
 QMap<int, vrtParameters> map_Parameters;
 
-//double IPF_VALUE_OLD_1 = 0.0;
-//double IPF_VALUE_NEW_1 = 0.0;
-//double IPF_VALUE_OLD_2 = 0.0;
-//double IPF_VALUE_NEW_2 = 0.0;
-//bool IPF_BANDS_NODIFFE = false;
-
 double IPF_NODATA = 0.0;
 QList<double> IPF_BANSNODATA;
 double IPF_BACKGROUND = 0.0;
@@ -867,10 +861,11 @@ QString ipfGdalProgressTools::proToClip_Translate(const QString & source, const 
 
 QString ipfGdalProgressTools::proToClip_Translate_src(const QString & source, const QString & target, const QList<int> list)
 {
-	QString strArgv = QString("-srcwin %1 %2 %3 %4 -of VRT %5 %6")
+	QString format = enumFormatToString(target.right(3));
+	QString strArgv = QString("-srcwin %1 %2 %3 %4 -of %5 %6 %7")
 		.arg(list.at(0)).arg(list.at(1))
 		.arg(list.at(2)).arg(list.at(3))
-		.arg(source).arg(target);
+		.arg(format).arg(source).arg(target);
 
 	ipfGdalProgressTools::errType err = ipfGDALTranslate(strArgv);
 	QString str = enumErrTypeToString(err);
@@ -894,6 +889,21 @@ QString ipfGdalProgressTools::AOIClip(const QString & source, const QString & ta
 	QString strArgv;
 
 	strArgv = QString("gdalwarp -multi -co NUM_THREADS=ALL_CPUS -wo NUM_THREADS=ALL_CPUS -oo NUM_THREADS=ALL_CPUS -doo NUM_THREADS=ALL_CPUS -cutline %1 -of VRT %2 %3")
+		.arg(vectorName).arg(source).arg(target);
+
+	ipfGdalProgressTools::errType err = ipfGDALWarp(strArgv);
+	QString str = enumErrTypeToString(err);
+
+	return str;
+}
+
+QString ipfGdalProgressTools::AOIClip(const QString & source, const QString & target, const QString & vectorName, const QgsRectangle & rang)
+{
+	QString strArgv;
+
+	strArgv = QString("gdalwarp -multi -te %1 %2 %3 %4 -cutline %5 -of VRT %6 %7")
+		.arg(rang.xMinimum()).arg(rang.yMinimum())
+		.arg(rang.xMaximum()).arg(rang.yMaximum())
 		.arg(vectorName).arg(source).arg(target);
 
 	ipfGdalProgressTools::errType err = ipfGDALWarp(strArgv);

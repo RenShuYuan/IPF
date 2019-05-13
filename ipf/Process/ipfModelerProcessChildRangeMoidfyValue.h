@@ -24,6 +24,7 @@ private:
 
 	QString vectorName;
 	double value;
+	bool isOutChange;
 };
 
 #endif // IPFMODELERPROCESSCHILDRANGEMOIDFYVALUE_H

@@ -125,6 +125,7 @@ public:
 
 	// 使用矢量数据裁切栅格
 	QString AOIClip(const QString& source, const QString& target, const QString &vectorName);
+	QString AOIClip(const QString& source, const QString& target, const QString &vectorName, const QgsRectangle &rang);
 
 	// 创建快视图（降样）， b:需要降低多少倍
 	QString quickView(const QString& source, const QString& target, const int b);

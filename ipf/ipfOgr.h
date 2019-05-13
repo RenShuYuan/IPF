@@ -78,7 +78,7 @@ public:
 
 	// 计算矢量裁切后的四至范围
 	CPLErr shpEnvelope(const QString & shpFile, QgsRectangle &rect);
-	CPLErr shpEnvelope(const QgsGeometry & geometry, QgsRectangle &rect);
+	//CPLErr shpEnvelope(const QgsGeometry & geometry, QgsRectangle &rect);
 
 	// 删除栅格数据
 	bool rasterDelete(const QString &file);

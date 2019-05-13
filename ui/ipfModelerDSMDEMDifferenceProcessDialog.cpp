@@ -49,11 +49,7 @@ void ipfModelerDSMDEMDifferenceProcessDialog::on_pushButton_clicked()
 {
 	type = ui.comboBox->currentText();
 	threshold = ui.sb_threshold->value();
-
-	if (ui.checkBox->isChecked())
-		isFillNodata = true;
-	else
-		isFillNodata = false;
+	isFillNodata = ui.checkBox->isChecked();
 
 	accept();
 }

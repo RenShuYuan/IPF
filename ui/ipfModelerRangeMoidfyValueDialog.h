@@ -28,6 +28,7 @@ private:
 
 	QString vectorName;
 	double value;
+	bool isOutChange;
 };
 
 #endif // IPFMODELERRANGEMOIDFYVALUEDIALOG_H

@@ -444,15 +444,19 @@ bool ipfOGR::splitShp(const QString & shpName, QStringList & shps)
 CPLErr ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
 {
 	QgsVectorLayer *layer = new QgsVectorLayer(shpFile, "vector");
-	if (!layer || !layer->isValid())
+	if (!layer || !layer->isValid() || layer->featureCount() < 1)
 		return CE_Failure;
+	QgsFeature f = layer->getFeature(0);
+	QgsGeometry geo = f.geometry();
 
 	QgsRectangle rectRtr = getXY();
 	QgsRectangle rectShp = layer->extent();
 	RELEASE(layer);
 
 	// 检查是否具有相交关系
-	if (!rectRtr.intersects(rectShp))
+	//if (!rectRtr.intersects(rectShp))
+		//return CE_Warning;
+	if (!geo.intersects(rectRtr))
 		return CE_Warning;
 
 	double tmp = 0.0;
@@ -537,7 +541,7 @@ CPLErr ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
 
 	return CE_None;
 }
-
+/*
 CPLErr ipfOGR::shpEnvelope(const QgsGeometry & geometry, QgsRectangle & rect)
 {
 	if (geometry.isEmpty())
@@ -632,7 +636,7 @@ CPLErr ipfOGR::shpEnvelope(const QgsGeometry & geometry, QgsRectangle & rect)
 
 	return CE_None;
 }
-
+*/
 bool ipfOGR::rasterDelete(const QString &file)
 {
 	GDALDriver *pDriver = poDataset->GetDriver();

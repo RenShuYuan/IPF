@@ -16,6 +16,10 @@ QMap<QString, QString> ipfModelerRangeMoidfyValueDialog::getParameter()
 	QMap<QString, QString> map;
 	map["vectorName"] = vectorName;
 	map["value"] = QString::number(value);
+	if (isOutChange)
+		map["isOutChange"] = "YES";
+	else
+		map["isOutChange"] = "NO";
 
 	return map;
 }
@@ -24,9 +28,14 @@ void ipfModelerRangeMoidfyValueDialog::setParameter(QMap<QString, QString> map)
 {
 	vectorName = map["vectorName"];
 	value = map["value"].toDouble();
+	if (map["isOutChange"] == "YES")
+		isOutChange = true;
+	else
+		isOutChange = false;
 
 	ui.lineEdit->setText(vectorName);
 	ui.sb_index->setValue(value);
+	ui.checkBox->setChecked(isOutChange);
 }
 
 void ipfModelerRangeMoidfyValueDialog::setValueEnable(const bool enable)
@@ -49,6 +58,7 @@ void ipfModelerRangeMoidfyValueDialog::on_pushButton_clicked()
 {
 	vectorName = ui.lineEdit->text();
 	value = ui.sb_index->value();
+	isOutChange = ui.checkBox->isChecked();
 
 	accept();
 }

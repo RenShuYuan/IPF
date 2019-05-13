@@ -85,15 +85,12 @@ void ipfModelerProcessChildClipVector::run()
 	else if (gErr == CE_Warning)
 		return;
 
-	int iRowLu = 0;
-	int iColLu = 0;
-	int iRowRd = 0;
-	int iColRd = 0;
 	QList<int> srcList;
+	int iRowLu = 0, iColLu = 0, iRowRd = 0, iColRd = 0;
 	if (!ogr.Projection2ImageRowCol(rect.xMinimum(), rect.yMaximum(), iColLu, iRowLu)
 		|| !ogr.Projection2ImageRowCol(rect.xMaximum(), rect.yMinimum(), iColRd, iRowRd))
 	{
-		addErrList(soucre + QStringLiteral(": 匹配像元行列失败，无法继续。"));
+		addErrList(soucre + QStringLiteral(": 匹配像元位置失败，无法继续。"));
 		return;
 	}
 	srcList << iColLu << iRowLu << iColRd - iColLu << iRowRd - iRowLu;
