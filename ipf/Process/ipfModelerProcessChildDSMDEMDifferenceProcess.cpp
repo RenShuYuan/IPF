@@ -102,7 +102,7 @@ void ipfModelerProcessChildDSMDEMDifferenceProcess::run()
 
 	//进度条
 	int prCount = 0;
-	QProgressDialog dialog(QStringLiteral("匹配DEM数据..."), QStringLiteral("取消"), 0, filesDSM.size(), nullptr);
+	QProgressDialog dialog(QStringLiteral("匹配DEM数据..."), QStringLiteral("取消"), 0, 0, nullptr);
 	dialog.setWindowTitle(QStringLiteral("匹配DEM数据"));
 	dialog.setWindowModality(Qt::WindowModal);
 	dialog.show();

@@ -1,11 +1,11 @@
 #include "ipfModelerProcessChildZCheck.h"
 #include "../gdal/ipfgdalprogresstools.h"
 #include "../../ui/ipfModelerZCheckDialog.h"
+#include "../../ui/ipfProgress.h"
 #include "../ipfOgr.h"
 
 #include <QFile>
 #include <QFileInfo>
-#include <QProgressDialog>
 
 ipfModelerProcessChildZCheck::ipfModelerProcessChildZCheck(QObject *parent, const QString modelerName)
 	: ipfModelerProcessOut(parent, modelerName)
@@ -81,17 +81,14 @@ void ipfModelerProcessChildZCheck::run()
 	}
 	file.close();
 
-	//进度条
-	QProgressDialog dialog(QStringLiteral("高程精度检查..."), QStringLiteral("取消"), 0, jcList.size(), nullptr);
-	dialog.setWindowTitle(QStringLiteral("高程精度检查"));
-	dialog.setWindowModality(Qt::WindowModal);
-	dialog.show();
+	ipfProgress proDialog;
+	proDialog.setRangeTotal(0, filesIn().size());
+	proDialog.setRangeChild(0, jcList.size());
+	proDialog.show();
 
 	ipfGdalProgressTools gdal;
 	foreach(QString var, filesIn())
 	{
-		int prCount = 0;
-
 		// 打开栅格
 		ipfOGR ogr(var);
 		if (!ogr.isOpen())
@@ -120,11 +117,9 @@ void ipfModelerProcessChildZCheck::run()
 
 		for( int i=0; i<jcList.size(); ++i)
 		{
-			if (prCount < jcList.size())
-			{
-				dialog.setValue(++prCount);
-				QApplication::processEvents();
-			}
+			proDialog.setValue(i+1);
+			if (proDialog.wasCanceled())
+				return;
 
 			int iCol = 0;
 			int iRow = 0;
@@ -144,6 +139,7 @@ void ipfModelerProcessChildZCheck::run()
 				if (value != nodata)
 				{
 					double dd = dProjZ - value;
+
 					outLines << errs.at(0) + ' ' + errs.at(1) + ' ' + errs.at(2) + ' ' + errs.at(3)
 						+ ' ' + QString::number(value, 'f', 3) + ' ' + QString::number(dd, 'f', 3);
 					count += dd * dd;

@@ -5,6 +5,8 @@
 #include "../gdal/ipfgdalprogresstools.h"
 #include "../ipfOgr.h"
 
+#include <QProgressDialog>
+
 ipfModelerProcessChildInvalidValueCheck::ipfModelerProcessChildInvalidValueCheck(QObject *parent, const QString modelerName)
 	: ipfModelerProcessOut(parent, modelerName)
 {
@@ -112,14 +114,19 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 	clearErrList();
 
 	QStringList outList;
-
 	ipfGdalProgressTools gdal;
-	gdal.setProgressSize(filesIn().size());
-	gdal.showProgressDialog();
+	
+	//进度条
+	int prCount = 0;
+	QProgressDialog dialog(QStringLiteral("数据处理..."), QStringLiteral("取消"), 0, filesIn().size(), nullptr);
+	dialog.setWindowTitle(QStringLiteral("数据处理"));
+	dialog.setWindowModality(Qt::WindowModal);
+	dialog.show();
 
 	foreach(QString var, filesIn())
 	{
-		gdal.pulsValueTatal();
+		dialog.setValue(++prCount);
+		QApplication::processEvents();
 
 		QString rasterFileName = QFileInfo(var).fileName();
 		QString target = ipfFlowManage::instance()->getTempVrtFile(var);

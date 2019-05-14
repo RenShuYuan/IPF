@@ -76,7 +76,6 @@ void ipfModelerProcessChildDSMDEMDifferenceCheck::run()
 	}
 
 	//进度条
-	int prCount = 0;
 	QProgressDialog dialog(QStringLiteral("匹配DEM数据..."), QStringLiteral("取消"), 0, filesDSM.size(), nullptr);
 	dialog.setWindowTitle(QStringLiteral("匹配DEM数据"));
 	dialog.setWindowModality(Qt::WindowModal);
@@ -85,6 +84,11 @@ void ipfModelerProcessChildDSMDEMDifferenceCheck::run()
 	QStringList outList;
 	for (int i = 0; i < filesDSM.size(); ++i)
 	{
+		dialog.setValue(i+1);
+		QApplication::processEvents();
+		if (dialog.wasCanceled())
+			return;
+
 		QString dsm = filesDSM.at(i);
 		QString dem = QFileInfo(dsm).baseName();
 		QString fileName = dem;
@@ -132,11 +136,6 @@ void ipfModelerProcessChildDSMDEMDifferenceCheck::run()
 			else
 				outList << fileName + QStringLiteral(": 差值计算失败。");
 		}
-
-		dialog.setValue(++prCount);
-		QApplication::processEvents();
-		if (dialog.wasCanceled())
-			return;
 	}
 
 	QString savefileName = saveName + QStringLiteral("/DSMDEM差值检查.txt");

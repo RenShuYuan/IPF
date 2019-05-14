@@ -142,7 +142,7 @@ bool ipfOGR::Projection2ImageRowCol(double dProjX, double dProjY, int & iCol, in
 		+ adfInvGeoTransform[4] * dProjX
 		+ adfInvGeoTransform[5] * dProjY);
 
-	if (iCol < 0 || iRow < 0 || iCol >= poDataset->GetRasterXSize() || iRow >= poDataset->GetRasterYSize())
+	if (iCol < 0 || iRow < 0 || iCol > poDataset->GetRasterXSize() || iRow > poDataset->GetRasterYSize())
 		return false;
 	return true;
 }

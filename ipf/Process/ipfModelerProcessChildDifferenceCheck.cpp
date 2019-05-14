@@ -3,6 +3,7 @@
 #include "../ipfFractalmanagement.h"
 #include "../gdal/ipfgdalprogresstools.h"
 #include "../ui/ipfModelerDiffeCheckDialog.h"
+#include "../../ui/ipfProgress.h"
 #include "qgsrastercalculator.h"
 #include "ipfFlowManage.h"
 
@@ -257,12 +258,10 @@ void ipfModelerProcessChildDifferenceCheck::run()
 			files << var;
 	}
 
-	//进度条
-	int prCount = 0;
-	QProgressDialog dialog(QStringLiteral("匹配接边图幅..."), QStringLiteral("取消"), 0, files.size(), nullptr);
-	dialog.setWindowTitle(QStringLiteral("匹配接边图幅"));
-	dialog.setWindowModality(Qt::WindowModal);
-	dialog.show();
+	ipfProgress proDialog;
+	proDialog.setRangeTotal(0, files.size());
+	proDialog.setRangeChild(0, 4);
+	proDialog.show();
 
 	QStringList outList;
 	for (int i = 0; i < files.size(); ++i)
@@ -287,6 +286,10 @@ void ipfModelerProcessChildDifferenceCheck::run()
 
 		for (int i = 0; i < jbList.size(); ++i)
 		{
+			proDialog.setValue(i + 1);
+			if (proDialog.wasCanceled())
+				return;
+
 			QString file = jbList.at(i);
 			int index = getFilesIndex(files, file);
 			if (index != -1)
@@ -363,11 +366,6 @@ void ipfModelerProcessChildDifferenceCheck::run()
 				}
 			}
 		}
-
-		dialog.setValue(++prCount);
-		QApplication::processEvents();
-		if (dialog.wasCanceled())
-			return;
 	}
 
 	QString savefileName = saveName + QStringLiteral("/接边检查.txt");

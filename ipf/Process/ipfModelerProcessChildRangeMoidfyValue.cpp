@@ -138,7 +138,7 @@ void ipfModelerProcessChildRangeMoidfyValue::run()
 			if (!ogr.Projection2ImageRowCol(rect.xMinimum(), rect.yMaximum(), iColLu, iRowLu)
 				|| !ogr.Projection2ImageRowCol(rect.xMaximum(), rect.yMinimum(), iColRd, iRowRd))
 			{
-				addErrList(var + QStringLiteral(": 匹配像元位置失败，无法继续。"));
+				addErrList(var + QStringLiteral(": 匹配像元位置失败或超出范围，无法继续。"));
 				continue;
 			}
 			srcList << iColLu << iRowLu << iColRd - iColLu << iRowRd - iRowLu;

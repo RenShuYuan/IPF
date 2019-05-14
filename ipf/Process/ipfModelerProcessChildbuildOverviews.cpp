@@ -38,14 +38,5 @@ void ipfModelerProcessChildbuildOverviews::run()
 		QString err = gdal.buildOverviews(var);
 		if (!err.isEmpty())
 			addErrList(var + ": " + err);
-		//else
-		//{
-		//	// ÐÞ¸Ä½ð×ÖËþºó×º
-		//	QFile file(var.mid(0, var.size()-3)+"aux");
-		//	if (file.exists())
-		//	{
-		//		file.rename(var.mid(0, var.size() - 3) + "rrd");
-		//	}
-		//}
 	}
 }
