@@ -28,7 +28,8 @@ public:
 	bool Projection2ImageRowCol(double dProjX, double dProjY, int &iCol, int &iRow);
 
 	// 返回坐标对应的像元值
-	bool getPixelValue(int &iCol, int &iRow, double &value);
+	bool getPixelValue(const int & band, const int &iCol, const int &iRow, double &value);
+	bool getPixelValue(const int & band, const double &xGeo, const double &yGeo, double &value);
 
 	//返回影像行列数
 	QList<int> getYXSize();
@@ -88,7 +89,13 @@ public:
 
 	CPLErr writeBlock(int band, int nXBlockOff, int nYBlockOff, double * pImage);
 private:
+	bool initGeoTransform();
+
+private:
     GDALDataset* poDataset;
+
+	bool isInit;
+	double adfGeoTransform[6], adfInvGeoTransform[6];
 };
 
 #endif // IPFOGR_H

@@ -25,5 +25,6 @@ private slots:
 private:
 	Ui::ipfProgress ui;
 	bool isKeep;
+	bool isPuls;
 	int tatalCount;
 };

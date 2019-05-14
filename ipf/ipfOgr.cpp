@@ -18,11 +18,15 @@ ipfOGR::ipfOGR() : poDataset(nullptr)
 
 ipfOGR::ipfOGR(const QString &fileName, bool isUpdata)
 	: poDataset(nullptr)
+	, isInit(false)
 {
     if (isUpdata)
 		poDataset = (GDALDataset*)GDALOpenEx(fileName.toStdString().c_str(), GDAL_OF_RASTER | GDAL_OF_UPDATE, NULL, NULL, NULL);
 	else
 		poDataset = (GDALDataset*)GDALOpenEx(fileName.toStdString().c_str(), GDAL_OF_RASTER, NULL, NULL, NULL);
+
+	if (poDataset)
+		isInit = initGeoTransform();
 }
 
 ipfOGR::~ipfOGR()
@@ -38,8 +42,11 @@ bool ipfOGR::open(const QString &fileName)
 {
     //已只读方式打开影像文件
 	poDataset = (GDALDataset*)GDALOpenEx(fileName.toStdString().c_str(), GDAL_OF_RASTER, NULL, NULL, NULL);
-    if (poDataset)
-        return true;
+	if (poDataset)
+	{
+		isInit = initGeoTransform();
+		return true;
+	}        
     else
         return false;
 }
@@ -64,20 +71,18 @@ bool ipfOGR::isOpen()
 QgsRectangle ipfOGR::getXY()
 {
 	QgsRectangle rect;
+	if (!isInit)
+		return rect;
 
     //获得影像像素大小
-    GDALRasterBand *poBand_1 = poDataset->GetRasterBand(1);
-    int xSize = poBand_1->GetXSize();
-    int ySize = poBand_1->GetYSize();
-
-    double pro[6];
-    poDataset->GetGeoTransform(pro);
+    int xSize = poDataset->GetRasterXSize();
+    int ySize = poDataset->GetRasterYSize();
 
 	// xMin << yMax << xMax << yMin;
-	rect.setXMinimum(pro[0]);
-	rect.setYMaximum(pro[3]);
-	rect.setXMaximum(pro[0] + pro[1] * xSize);
-	rect.setYMinimum(pro[3] + pro[5] * ySize);
+	rect.setXMinimum(adfGeoTransform[0]);
+	rect.setYMaximum(adfGeoTransform[3]);
+	rect.setXMaximum(adfGeoTransform[0] + adfGeoTransform[1] * xSize);
+	rect.setYMinimum(adfGeoTransform[3] + adfGeoTransform[5] * ySize);
 
     return rect;
 }
@@ -85,28 +90,27 @@ QgsRectangle ipfOGR::getXY()
 QList<double> ipfOGR::getXYcenter()
 {
 	QList<double> xyList;
+	if (!isInit)
+		return xyList;
 
 	//获得影像像素大小
-	GDALRasterBand *poBand_1 = poDataset->GetRasterBand(1);
-	int xSize = poBand_1->GetXSize();
-	int ySize = poBand_1->GetYSize();
+	int xSize = poDataset->GetRasterXSize();
+	int ySize = poDataset->GetRasterYSize();
 
-	double pro[6];
-	poDataset->GetGeoTransform(pro);
-	double midPixelSize = pro[1] / 2;
+	double midPixelSize = adfGeoTransform[1] / 2;
 
 	xyList
-		<< pro[0] + midPixelSize
-		<< pro[3] - midPixelSize
-		<< pro[0] + pro[1] * xSize - midPixelSize
-		<< pro[3] + pro[5] * ySize + midPixelSize;
+		<< adfGeoTransform[0] + midPixelSize
+		<< adfGeoTransform[3] - midPixelSize
+		<< adfGeoTransform[0] + adfGeoTransform[1] * xSize - midPixelSize
+		<< adfGeoTransform[3] + adfGeoTransform[5] * ySize + midPixelSize;
 
 	return xyList;
 }
 
 bool ipfOGR::setGeoXy(const double x, const double y)
 {
-	if (poDataset->GetAccess() != GA_Update)
+	if (poDataset->GetAccess() != GA_Update || !isInit)
 		return false;
 
 	double pro[6];
@@ -114,43 +118,59 @@ bool ipfOGR::setGeoXy(const double x, const double y)
 
 	pro[0] = x;
 	pro[3] = y;
-	poDataset->SetGeoTransform(pro);
-	return true;
+	if (poDataset->SetGeoTransform(pro) == CE_None)
+	{
+		adfGeoTransform[0] = pro[0];
+		adfGeoTransform[3] = pro[3];
+		return true;
+	}
+	else
+		return false;
 }
 
 bool ipfOGR::Projection2ImageRowCol(double dProjX, double dProjY, int & iCol, int & iRow)
 {
-	double adfGeoTransform[6];
-	poDataset->GetGeoTransform(adfGeoTransform);
-	try
-	{
-		double dTemp = adfGeoTransform[1] * adfGeoTransform[5] - adfGeoTransform[2] * adfGeoTransform[4];
-		double dCol = 0.0, dRow = 0.0;
-		dCol = (adfGeoTransform[5] * (dProjX - adfGeoTransform[0]) -
-			adfGeoTransform[2] * (dProjY - adfGeoTransform[3])) / dTemp + 0.5;
-		dRow = (adfGeoTransform[1] * (dProjY - adfGeoTransform[3]) -
-			adfGeoTransform[4] * (dProjX - adfGeoTransform[0])) / dTemp + 0.5;
-
-		iCol = static_cast<int>(dCol);
-		iRow = static_cast<int>(dRow);
-		return true;
-	}
-	catch (...)
-	{
+	if (!isInit)
 		return false;
-	}
+
+	iCol = (int)floor(
+		adfInvGeoTransform[0]
+		+ adfInvGeoTransform[1] * dProjX
+		+ adfInvGeoTransform[2] * dProjY);
+	iRow = (int)floor(
+		adfInvGeoTransform[3]
+		+ adfInvGeoTransform[4] * dProjX
+		+ adfInvGeoTransform[5] * dProjY);
+
+	if (iCol < 0 || iRow < 0 || iCol >= poDataset->GetRasterXSize() || iRow >= poDataset->GetRasterYSize())
+		return false;
+	return true;
 }
 
-bool ipfOGR::getPixelValue(int &iCol, int &iRow, double & value)
+bool ipfOGR::getPixelValue(const int & band, const int &iCol, const int &iRow, double &value)
 {
-	GDALRasterBand *poBand = poDataset->GetRasterBand(1);
-	double buffer[1] = {0};
-	if (GDALRasterIO(poBand, GF_Read, iCol, iRow, 1, 1, buffer, 1, 1, GDT_CFloat64, 0, 0) == CE_None)
+	if (poDataset->GetRasterCount() < band)
+		return false;
+
+	double tmp[1];
+	GDALRasterBand *poBand = poDataset->GetRasterBand(band);
+	if (GDALRasterIO(poBand, GF_Read, iCol, iRow, 1, 1, &tmp, 1, 1, GDT_CFloat64, 0, 0) == CE_None)
 	{
-		value = buffer[0];
+		value = tmp[0];
 		return true;
 	}
 	return false;
+}
+
+bool ipfOGR::getPixelValue(const int & band, const double & xGeo, const double & yGeo, double & value)
+{
+	int iCol = 0, iRow = 0;
+	if (!Projection2ImageRowCol(xGeo, yGeo, iCol, iRow))
+		return false;
+
+	if (!getPixelValue(band, iCol, iRow, value))
+		return false;
+	return true;
 }
 
 QList<int> ipfOGR::getYXSize()
@@ -168,15 +188,14 @@ const char* ipfOGR::getProjection()
 
 double ipfOGR::getPixelSize()
 {
-    double pro[6];
-    poDataset->GetGeoTransform(pro);
-	double sizeX = fabs(pro[1]);
-    return sizeX;
+	if (!isInit)
+		return 0;
+    return fabs(adfGeoTransform[1]);
 }
 
 int ipfOGR::getDataType()
 {
-    if (poDataset->GetRasterCount() == 0)
+    if (poDataset->GetRasterCount() < 1)
         return 0;
     GDALRasterBand *poBand_1 = poDataset->GetRasterBand(1);
     GDALDataType datatype= poBand_1->GetRasterDataType();
@@ -191,7 +210,7 @@ int ipfOGR::getDataType()
 
 GDALDataType ipfOGR::getDataType_y()
 {
-	if (poDataset->GetRasterCount() == 0)
+	if (poDataset->GetRasterCount() < 1)
 		return ::GDT_Unknown;
 	GDALRasterBand *poBand_1 = poDataset->GetRasterBand(1);
 	GDALDataType datatype = poBand_1->GetRasterDataType();
@@ -208,9 +227,8 @@ bool ipfOGR::readRasterIO(float ** pDataBuffer, const int bandNo)
 	if (poDataset->GetRasterCount() > 0 && poDataset->GetRasterCount() <= bandNo)
 	{
 		GDALRasterBand* pBand = poDataset->GetRasterBand(bandNo);
-		QList<int> xyList = getYXSize();
-		int xSize = xyList.at(1);
-		int ySize = xyList.at(0);
+		int xSize = poDataset->GetRasterXSize();
+		int ySize = poDataset->GetRasterYSize();
 		*pDataBuffer = new float[xSize*ySize];
 		int err = pBand->RasterIO(GF_Read, 0, 0, xSize, ySize, *pDataBuffer, xSize, ySize, GDT_Float32, 0, 0);
 		if (err == CE_None)
@@ -218,13 +236,13 @@ bool ipfOGR::readRasterIO(float ** pDataBuffer, const int bandNo)
 		else
 			return false;
 	}
-
 	return false;
 }
 
 bool ipfOGR::readRasterIO(void * pDataBuffer, int qsX, int qsY, int xSize, int ySize, GDALDataType type)
 {
-	if (poDataset->GetRasterCount() == 0) return false;
+	if (poDataset->GetRasterCount() < 1)
+		return false;
 
 	int nBands = poDataset->GetRasterCount();
 
@@ -284,11 +302,12 @@ QString ipfOGR::getCompressionName()
 
 GDALDataset* ipfOGR::createNewRaster(const QString &file, const QString nodata, int nBands, GDALDataType type)
 {
+	if (!isInit)
+		return nullptr;
+
 	GDALDataset *poDataset_target = nullptr;
 	GDALDriver *poDriver = nullptr;
 
-	double adfGeoTransform[6];
-	poDataset->GetGeoTransform(adfGeoTransform);
 	int nXSize = poDataset->GetRasterXSize();
 	int nYSize = poDataset->GetRasterYSize();
 
@@ -321,11 +340,12 @@ GDALDataset* ipfOGR::createNewRaster(const QString &file, const QString nodata, 
 
 GDALDataset * ipfOGR::createParametersRaster(const QString & file)
 {
+	if (!isInit)
+		return nullptr;
+
 	GDALDataset *poDataset_target = nullptr;
 	GDALDriver *poDriver = nullptr;
 
-	double adfGeoTransform[6];
-	poDataset->GetGeoTransform(adfGeoTransform);
 	int nXSize = 1;
 	int nYSize = poDataset->GetRasterYSize();
 
@@ -454,8 +474,6 @@ CPLErr ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
 	RELEASE(layer);
 
 	// 检查是否具有相交关系
-	//if (!rectRtr.intersects(rectShp))
-		//return CE_Warning;
 	if (!geo.intersects(rectRtr))
 		return CE_Warning;
 
@@ -708,4 +726,13 @@ CPLErr ipfOGR::writeBlock(int band, int nXBlockOff, int nYBlockOff, double * pIm
 
 	CPLErr err = poDataset->GetRasterBand(band)->WriteBlock(nXBlockOff, nYBlockOff, pImage);
 	return err;
+}
+
+bool ipfOGR::initGeoTransform()
+{
+	if (poDataset->GetGeoTransform(adfGeoTransform) == CE_None
+		&& GDALInvGeoTransform(adfGeoTransform, adfInvGeoTransform))
+		return true;
+	else
+		return false;
 }

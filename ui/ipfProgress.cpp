@@ -5,6 +5,7 @@ ipfProgress::ipfProgress(QWidget *parent)
 {
 	ui.setupUi(this);
 	isKeep = false;
+	isPuls = false;
 	tatalCount = 0;
 }
 
@@ -26,12 +27,18 @@ void ipfProgress::setValue(int value)
 	QApplication::processEvents();
 	if (value == ui.progressBarChild->maximum())
 		pulsValueTatal();
+	else
+		isPuls = true;
 }
 
 void ipfProgress::pulsValueTatal()
 {
-	ui.progressBar->setValue(++tatalCount);
-	QApplication::processEvents();
+	if (isPuls)
+	{
+		isPuls = false;
+		ui.progressBar->setValue(++tatalCount);
+		QApplication::processEvents();
+	}
 }
 
 void ipfProgress::setRangeChild(int minimum, int maximum)

@@ -118,11 +118,13 @@ void ipfModelerProcessChildZCheck::run()
 		double count = 0.0;
 		double maxValue = 0.0;
 
-		// 这句使用OpenMP来加速
-#pragma omp parallel for
 		for( int i=0; i<jcList.size(); ++i)
 		{
-			++prCount;
+			if (prCount < jcList.size())
+			{
+				dialog.setValue(++prCount);
+				QApplication::processEvents();
+			}
 
 			int iCol = 0;
 			int iRow = 0;
@@ -136,48 +138,22 @@ void ipfModelerProcessChildZCheck::run()
 			if (!rect.contains(QgsPointXY(dProjX, dProjY)))
 				continue;
 
-			QString err = gdal.locationPixelInfo(var, dProjX, dProjY, iRow, iCol);
-			if (!err.isEmpty())
+			if (ogr.getPixelValue(1, dProjX, dProjY, value))
 			{
-				if (err != gdal.enumErrTypeToString(ipfGdalProgressTools::eRowColErr))
+				// 忽略NODATA
+				if (value != nodata)
 				{
-#pragma omp critical
-					{
-						addErrList(errs.at(0) + QStringLiteral(": ") + err);
-					}
+					double dd = dProjZ - value;
+					outLines << errs.at(0) + ' ' + errs.at(1) + ' ' + errs.at(2) + ' ' + errs.at(3)
+						+ ' ' + QString::number(value, 'f', 3) + ' ' + QString::number(dd, 'f', 3);
+					count += dd * dd;
+					if (fabs(dd) > fabs(maxValue))
+						maxValue = dd;
 				}
 			}
 			else
 			{
-#pragma omp critical
-				{
-					if (ogr.getPixelValue(iCol, iRow, value))
-					{
-						// 忽略NODATA
-						if (value != nodata)
-						{
-							double dd = dProjZ - value;
-
-							outLines << errs.at(0) + ' ' + errs.at(1) + ' ' + errs.at(2) + ' ' + errs.at(3)
-								+ ' ' + QString::number(value, 'f', 3) + ' ' + QString::number(dd, 'f', 3);
-							count += dd * dd;
-							if (fabs(dd) > fabs(maxValue))
-								maxValue = dd;
-						}
-					}
-					else
-					{
-						addErrList(errs.at(0) + QStringLiteral(": 获取像元值失败。"));
-					}
-				}
-			}
-#pragma omp critical
-			{
-				if (prCount < jcList.size())
-				{
-					dialog.setValue(prCount);
-					QApplication::processEvents();
-				}
+				addErrList(errs.at(0) + QStringLiteral(": 查询像元值失败。"));
 			}
 		}
 
