@@ -1,6 +1,5 @@
 #include "ipfModelerZCheckDialog.h"
 
-#include <QFileDialog>
 #include <QDir>
 
 ipfModelerZCheckDialog::ipfModelerZCheckDialog(QWidget *parent)

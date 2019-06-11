@@ -19,6 +19,7 @@ ipfOGR::ipfOGR() : poDataset(nullptr)
 ipfOGR::ipfOGR(const QString &fileName, bool isUpdata)
 	: poDataset(nullptr)
 	, isInit(false)
+	, name(fileName)
 {
     if (isUpdata)
 		poDataset = (GDALDataset*)GDALOpenEx(fileName.toStdString().c_str(), GDAL_OF_RASTER | GDAL_OF_UPDATE, NULL, NULL, NULL);
@@ -41,6 +42,7 @@ ipfOGR::~ipfOGR()
 bool ipfOGR::open(const QString &fileName)
 {
     //已只读方式打开影像文件
+	name = fileName;
 	poDataset = (GDALDataset*)GDALOpenEx(fileName.toStdString().c_str(), GDAL_OF_RASTER, NULL, NULL, NULL);
 	if (poDataset)
 	{
@@ -414,8 +416,14 @@ bool ipfOGR::createrShape(const QString & layerName, QgsWkbTypes::Type geometryT
 	QgsCoordinateReferenceSystem mCrs;
 	mCrs.createFromWkt(wkt);
 
+	QString driverName;
+	if (layerName.right(4) == "gpkg")
+		driverName = "GPKG";
+	else if (layerName.right(3) == "shp")
+		driverName = "ESRI Shapefile";
+
 	QgsVectorFileWriter::WriterError error;
-	QgsVectorFileWriter newShape(layerName, "system", fields, geometryType, mCrs, "ESRI Shapefile");
+	QgsVectorFileWriter newShape(layerName, "system", fields, geometryType, mCrs, driverName);
 	error = newShape.hasError();
 	if (error == QgsVectorFileWriter::NoError)
 		return true;
@@ -461,6 +469,41 @@ bool ipfOGR::splitShp(const QString & shpName, QStringList & shps)
 
 }
 
+bool ipfOGR::splitRaster(const int & nBlockSize, QStringList & clipRasers)
+{
+	int nXSize = getYXSize().at(1);
+	int nYSize = getYXSize().at(0);
+
+	for (int i = 0; i < nYSize; i += nBlockSize)
+	{
+		for (int j = 0; j < nXSize; j += nBlockSize)
+		{
+			// 保存分块实际大小
+			int nXBK = nBlockSize;
+			int nYBK = nBlockSize;
+
+			//如果最下面和最右边的块不够，剩下多少读取多少
+			if (i + nBlockSize > nYSize)
+				nYBK = nYSize - i;
+			if (j + nBlockSize > nXSize)
+				nXBK = nXSize - j;
+
+			QList<int> srcList;
+			srcList << j << i << nXBK << nYBK;
+
+			ipfGdalProgressTools gdal;
+			QString targetChild = ipfFlowManage::instance()->getTempVrtFile(name);
+			QString err = gdal.proToClip_Translate_src(name, targetChild, srcList);
+			if (!err.isEmpty())
+				return false;
+			else
+				clipRasers << targetChild;
+		}
+	}
+
+	return true;
+}
+
 CPLErr ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
 {
 	QgsVectorLayer *layer = new QgsVectorLayer(shpFile, "vector");
@@ -477,11 +520,33 @@ CPLErr ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
 	if (!geo.intersects(rectRtr))
 		return CE_Warning;
 
+	rect = geo.boundingBox();
+	double midR = getPixelSize() / 2;
+
+	// XMinimum
+	if (rectRtr.xMinimum() > rectShp.xMinimum())
+		rect.setXMinimum(rectRtr.xMinimum() + midR);
+
+	// XMaximum
+	if (rectRtr.xMaximum() < rectShp.xMaximum())
+		rect.setXMaximum(rectRtr.xMaximum() - midR);
+
+	// YMinimum
+	if (rectRtr.yMinimum() > rectShp.yMinimum())
+		rect.setYMinimum(rectRtr.yMinimum() + midR);
+
+	// YMaximum
+	if (rectRtr.yMaximum() < rectShp.yMaximum())
+		rect.setYMaximum(rectRtr.yMaximum() - midR);
+
+	return CE_None;
+
+	/*
 	double tmp = 0.0;
 	double R = getPixelSize();
 	double midR = R / 2;
 
-	// XMinimum
+	 //XMinimum
 	if (rectRtr.xMinimum() < rectShp.xMinimum())
 	{
 		double JXMin = round(rectShp.xMinimum() / R) * R;
@@ -500,7 +565,7 @@ CPLErr ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
 		rect.setXMinimum(rectRtr.xMinimum());
 	}
 
-	// XMaximum
+	 //XMaximum
 	if (rectRtr.xMaximum() > rectShp.xMaximum())
 	{
 		double JXMax = round(rectShp.xMaximum() / R) * R;
@@ -519,7 +584,7 @@ CPLErr ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
 		rect.setXMaximum(rectRtr.xMaximum());
 	}
 
-	// YMinimum
+	 //YMinimum
 	if (rectRtr.yMinimum() < rectShp.yMinimum())
 	{
 		double JYMin = round(rectShp.yMinimum() / R) * R;
@@ -538,7 +603,7 @@ CPLErr ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
 		rect.setYMinimum(rectRtr.yMinimum());
 	}
 
-	// YMaximum
+	 //YMaximum
 	if (rectRtr.yMaximum() > rectShp.yMaximum())
 	{
 		double JYMax = round(rectShp.yMaximum() / R) * R;
@@ -556,105 +621,9 @@ CPLErr ipfOGR::shpEnvelope(const QString & shpFile, QgsRectangle & rect)
 	{
 		rect.setYMaximum(rectRtr.yMaximum());
 	}
-
-	return CE_None;
+	*/
 }
-/*
-CPLErr ipfOGR::shpEnvelope(const QgsGeometry & geometry, QgsRectangle & rect)
-{
-	if (geometry.isEmpty())
-		return CE_Warning;
 
-	QgsRectangle rectRtr = getXY();
-	QgsRectangle rectShp = geometry.boundingBox();
-
-	// 检查是否具有相交关系
-	if (!rectRtr.intersects(rectShp))
-		return CE_Warning;
-
-	double tmp = 0.0;
-	double R = getPixelSize();
-	double midR = R / 2;
-
-	// XMinimum
-	if (rectRtr.xMinimum() < rectShp.xMinimum())
-	{
-		double JXMin = round(rectShp.xMinimum() / R) * R;
-		if (JXMin >= rectShp.xMinimum())
-			tmp = JXMin - R;
-		else
-			tmp = JXMin;
-		tmp = tmp + midR;
-		if (tmp < JXMin)
-			rect.setXMinimum(tmp + midR);
-		else
-			rect.setXMinimum(tmp - midR);
-	}
-	else
-	{
-		rect.setXMinimum(rectRtr.xMinimum());
-	}
-
-	// XMaximum
-	if (rectRtr.xMaximum() > rectShp.xMaximum())
-	{
-		double JXMax = round(rectShp.xMaximum() / R) * R;
-		if (JXMax >= rectShp.xMaximum())
-			tmp = JXMax - R;
-		else
-			tmp = JXMax;
-		tmp = tmp + midR;
-		if (tmp < JXMax)
-			rect.setXMaximum(tmp + midR);
-		else
-			rect.setXMaximum(tmp - midR);
-	}
-	else
-	{
-		rect.setXMaximum(rectRtr.xMaximum());
-	}
-
-	// YMinimum
-	if (rectRtr.yMinimum() < rectShp.yMinimum())
-	{
-		double JYMin = round(rectShp.yMinimum() / R) * R;
-		if (JYMin >= rectShp.yMinimum())
-			tmp = JYMin - R;
-		else
-			tmp = JYMin;
-		tmp = tmp + midR;
-		if (tmp < JYMin)
-			rect.setYMinimum(tmp + midR);
-		else
-			rect.setYMinimum(tmp - midR);
-	}
-	else
-	{
-		rect.setYMinimum(rectRtr.yMinimum());
-	}
-
-	// YMaximum
-	if (rectRtr.yMaximum() > rectShp.yMaximum())
-	{
-		double JYMax = round(rectShp.yMaximum() / R) * R;
-		if (JYMax >= rectShp.yMaximum())
-			tmp = JYMax - R;
-		else
-			tmp = JYMax;
-		tmp = tmp + midR;
-		if (tmp < JYMax)
-			rect.setYMaximum(tmp + midR);
-		else
-			rect.setYMaximum(tmp - midR);
-	}
-	else
-	{
-		rect.setYMaximum(rectRtr.yMaximum());
-	}
-
-	return CE_None;
-}
-*/
 bool ipfOGR::rasterDelete(const QString &file)
 {
 	GDALDriver *pDriver = poDataset->GetDriver();
@@ -714,17 +683,6 @@ CPLErr ipfOGR::ComputeMinMax(IPF_COMPUTE_TYPE type, QgsPointXY &point)
 		return CE_None;
 	}
 
-	return err;
-}
-
-CPLErr ipfOGR::writeBlock(int band, int nXBlockOff, int nYBlockOff, double * pImage)
-{
-	if (poDataset->GetAccess() != GA_Update)
-		return CE_Warning;
-	if (band > getBandSize())
-		return CE_Warning;
-
-	CPLErr err = poDataset->GetRasterBand(band)->WriteBlock(nXBlockOff, nYBlockOff, pImage);
 	return err;
 }
 

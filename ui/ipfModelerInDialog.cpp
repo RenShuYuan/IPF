@@ -1,6 +1,5 @@
 #include "ipfModelerInDialog.h"
 #include <QStandardItemModel>
-#include <QFileDialog>
 #include <QFileInfo>
 #include <QCloseEvent>
 #include <QDir>

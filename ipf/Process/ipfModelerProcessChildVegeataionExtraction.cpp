@@ -244,52 +244,29 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 		}
 		// 提取满足NDVI因子要求的栅格数据 -----<
 
-		// 分割栅格，提升栅格转矢量的效率 ----->
+		// 分隔栅格，提升栅格转矢量的效率
 		QStringList clipRasers;
-		for (int i = 0; i < nYSize; i += nBlockSize)
+		ipfOGR ogr_clip(rasterFile);
+		if (!ogr_clip.isOpen())
 		{
-			for (int j = 0; j < nXSize; j += nBlockSize)
-			{
-				// 保存分块实际大小
-				int nXBK = nBlockSize;
-				int nYBK = nBlockSize;
-
-				//如果最下面和最右边的块不够，剩下多少读取多少
-				if (i + nBlockSize > nYSize)
-					nYBK = nYSize - i;
-				if (j + nBlockSize > nXSize)
-					nXBK = nXSize - j;
-
-				QList<int> srcList;
-				srcList << j << i << nXBK << nYBK;
-
-				ipfGdalProgressTools gdal;
-				QString target = ipfFlowManage::instance()->getTempVrtFile(var);
-				QString err = gdal.proToClip_Translate_src(rasterFile, target, srcList);
-				if (!err.isEmpty())
-				{
-					addErrList(baseName + QStringLiteral(": 数据分块失败，已跳过。"));
-
-					// 删除临时栅格数据
-					QFile::remove(rasterFile);
-
-					continue;
-				}
-				else
-					clipRasers << target;
-			}
+			addErrList(baseName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -2。"));
+			QFile::remove(rasterFile);
+			continue;
 		}
-		// 分隔栅格，提升栅格转矢量的效率 -----<
+		if (!ogr_clip.splitRaster(1024, clipRasers))
+		{
+			addErrList(baseName + QStringLiteral(": 转换矢量失败，已跳过。"));
+			QFile::remove(rasterFile);
+			continue;
+		}
 
 		// 创建矢量图层 ----->
 		if (!ipfOGR::createrShape(vectorFile, QgsWkbTypes::Polygon, QgsFields(), prj))
 		{
 			addErrList(vectorFile + QStringLiteral(": 创建矢量文件失败，已跳过。"));
-			// 删除临时栅格数据
 			QFile::remove(rasterFile);
 			continue;
 		}
-		// 创建矢量文件 ------<
 
 		// 栅格转矢量 ----->
 		ipfGdalProgressTools gdal_v;
@@ -303,10 +280,7 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 			if (!err.isEmpty())
 			{
 				addErrList(QStringLiteral("植被提取: ") + err);
-
-				// 删除临时栅格数据
 				QFile::remove(rasterFile);
-
 				continue;
 			}	
 		}

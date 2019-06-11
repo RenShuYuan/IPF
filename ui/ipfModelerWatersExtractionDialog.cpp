@@ -1,7 +1,5 @@
 #include "ipfModelerWatersExtractionDialog.h"
 
-#include <QFileDialog>
-
 ipfModelerWatersExtractionDialog::ipfModelerWatersExtractionDialog(QWidget *parent)
 	: QDialog(parent)
 {

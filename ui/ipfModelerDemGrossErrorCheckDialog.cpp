@@ -1,6 +1,4 @@
 #include "ipfModelerDemGrossErrorCheckDialog.h"
-
-#include <QFileDialog>
 #include <QDir>
 
 ipfModelerDemGrossErrorCheckDialog::ipfModelerDemGrossErrorCheckDialog(QWidget *parent)

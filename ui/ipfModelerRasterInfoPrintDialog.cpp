@@ -1,6 +1,5 @@
 #include "ipfModelerRasterInfoPrintDialog.h"
 
-#include <QFileDialog>
 #include <QDir>
 
 ipfModelerRasterInfoPrintDialog::ipfModelerRasterInfoPrintDialog(QWidget *parent)

@@ -1,6 +1,4 @@
 #include "ipfModelerWaterFlattenDialog.h"
-
-#include <QFileDialog>
 #include <QDir>
 
 ipfModelerWaterFlattenDialog::ipfModelerWaterFlattenDialog(QWidget *parent)

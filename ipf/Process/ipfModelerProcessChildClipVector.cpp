@@ -93,8 +93,7 @@ void ipfModelerProcessChildClipVector::run()
 		addErrList(soucre + QStringLiteral(": 匹配像元位置失败，无法继续。"));
 		return;
 	}
-	srcList << iColLu << iRowLu << iColRd - iColLu << iRowRd - iRowLu;
-	ogr.close();
+	srcList << iColLu << iRowLu << iColRd - iColLu + 1 << iRowRd - iRowLu + 1;
 
 	ipfGdalProgressTools gdal;
 	gdal.setProgressSize(filesIn().size());

@@ -77,22 +77,23 @@ public:
 	// 分割矢量面，保存到临时文件中
 	static bool splitShp(const QString & shpName, QStringList & shps);
 
+	// 分割栅格，保存到临时文件中
+	bool splitRaster(const int & nBlockSize, QStringList & clipRasers);
+
 	// 计算矢量裁切后的四至范围
 	CPLErr shpEnvelope(const QString & shpFile, QgsRectangle &rect);
-	//CPLErr shpEnvelope(const QgsGeometry & geometry, QgsRectangle &rect);
 
 	// 删除栅格数据
 	bool rasterDelete(const QString &file);
 
 	// 使用统计值方法检查栅格数据是否为0
 	CPLErr ComputeMinMax(IPF_COMPUTE_TYPE type, QgsPointXY &point = QgsPointXY());
-
-	CPLErr writeBlock(int band, int nXBlockOff, int nYBlockOff, double * pImage);
 private:
 	bool initGeoTransform();
 
 private:
     GDALDataset* poDataset;
+	QString name;
 
 	bool isInit;
 	double adfGeoTransform[6], adfInvGeoTransform[6];

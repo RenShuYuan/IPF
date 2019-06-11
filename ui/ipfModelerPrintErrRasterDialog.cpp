@@ -1,5 +1,4 @@
 #include "ipfModelerPrintErrRasterDialog.h"
-#include <QFileDialog>
 
 ipfModelerPrintErrRasterDialog::ipfModelerPrintErrRasterDialog(QWidget *parent)
 	: QDialog(parent)

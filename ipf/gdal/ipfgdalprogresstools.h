@@ -36,7 +36,11 @@ extern bool IPF_FILLNODATA;
 extern double IPF_RANGE_VALUE;
 extern double IPF_RANGE_NODATA;
 
-#define PI 3.14159265
+extern QStringList csssseeeww;
+
+// 数字高程模型跳点检测与处理
+extern double IPF_SPIKE_THRESHOLD;
+extern double IPF_SPIKE_NODATA;
 
 struct PixelModifyValue
 {
@@ -60,6 +64,17 @@ private:
 	struct PixelModifyValue sPixelModifyValue;
 };
 
+/**
+* @brief 3x3模板数据结构体
+* @根据不同的需求应重新设计
+*/
+typedef struct
+{
+	/*! 3x3模板算子 */
+	double dTemplate[9];
+} AlgData3x3;
+
+
 class ipfGdalProgressTools
 {
 public:
@@ -82,16 +97,6 @@ public:
 		eUserTerminated,		// 运行已被用户终止
 		eOther,					// 其他未知错误
 	};
-
-	/**
-	* @brief 3x3模板数据结构体
-	* @根据不同的需求应重新设计
-	*/
-	typedef struct
-	{
-		/*! 3x3模板算子 */
-		;
-	} AlgData3x3;
 
     ipfGdalProgressTools();
     ~ipfGdalProgressTools();
@@ -137,6 +142,9 @@ public:
 	QString mosaic_Warp(const QStringList &sourceList, const QString& target);
 	QString mosaic_Buildvrt(const QStringList &sourceList, const QString& target);
 
+	// 清除颜色解释
+	QString clearColorInterp(const QString& source, const QString& target, const int bands);
+
 	// 合成波段
 	QString mergeBand(const QStringList &sourceList, const QString& target);
 
@@ -163,20 +171,20 @@ public:
 	// 填充栅格值
 	QString pixelFillValue(const QString &source, const QString &target, const double nodata, const double value);
 
+	// 检测数字高程模型跳点
+	QString spikePointCheck(const QString &source, const QString &target, const double threshold, const double nodata);
+
 	// 创建金字塔
 	QString buildOverviews(const QString &source);
 
 	// 栅格转矢量
 	QString rasterToVector(const QString &rasterFile, const QString &vectorFile, const int index);
 
-	// 分隔矢量
-	QString splitShp(const QString &shpName, QStringList &shps);
-
 	// 融合矢量
 	QString mergeVector(const QString& outPut, const QString& ogrLayer, const QString& fieldName);
 
 	// 使用3x3滑动窗口计算栅格的标准差
-	QString stdevp3x3Alg(const QString &source, const QString &target, const int iband = 1);
+	QString stdevp3x3Alg(const QString &source, const QString &target, const double &threshold);
 
 	static QString enumErrTypeToString(const ipfGdalProgressTools::errType err);
 	static QString enumTypeToString(const int value);

@@ -1,7 +1,5 @@
 #include "ipfModelerVegeataionExtractionDialog.h"
 
-#include <QFileDialog>
-
 ipfModelerVegeataionExtractionDialog::ipfModelerVegeataionExtractionDialog(QWidget *parent)
 	: QDialog(parent)
 {

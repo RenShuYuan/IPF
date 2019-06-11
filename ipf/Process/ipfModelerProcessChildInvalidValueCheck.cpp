@@ -1,7 +1,6 @@
 #include "ipfModelerProcessChildInvalidValueCheck.h"
 #include "../../ui/ipfModelerInvalidValueCheckDialog.h"
 #include "ipfFlowManage.h"
-#include "../../ui/ipfProgress.h"
 #include "../gdal/ipfgdalprogresstools.h"
 #include "../ipfOgr.h"
 
@@ -143,14 +142,11 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 			}
 
 			CPLErr cerr = ogr.ComputeMinMax(IPF_ZERO);
-			int nXSize = ogr.getYXSize().at(1);
-			int nYSize = ogr.getYXSize().at(0);
 			QString wkt = ogr.getProjection();
-			ogr.close();
 
 			if (cerr == CE_Warning)
 			{
-				// 输出为img文件
+				// 输出文件
 				QString format = "tif";
 				QString targetTo = saveName + "\\" + removeDelimiter(target) + '.' + format;
 				QString err = gdal.formatConvert(target, targetTo, gdal.enumFormatToString(format), "NONE", "NO", "0");
@@ -164,39 +160,13 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 				// 是否输出矢量
 				if (isShape)
 				{
-					// 分割栅格，提升栅格转矢量的效率 ----->
-					int nBlockSize = 1024;
+					// 分割栅格，提升栅格转矢量的效率
 					QStringList clipRasers;
-					for (int i = 0; i < nYSize; i += nBlockSize)
+					if (!ogr.splitRaster(1024, clipRasers))
 					{
-						for (int j = 0; j < nXSize; j += nBlockSize)
-						{
-							// 保存分块实际大小
-							int nXBK = nBlockSize;
-							int nYBK = nBlockSize;
-
-							//如果最下面和最右边的块不够，剩下多少读取多少
-							if (i + nBlockSize > nYSize)
-								nYBK = nYSize - i;
-							if (j + nBlockSize > nXSize)
-								nXBK = nXSize - j;
-
-							QList<int> srcList;
-							srcList << j << i << nXBK << nYBK;
-
-							ipfGdalProgressTools gdal;
-							QString targetChild = ipfFlowManage::instance()->getTempVrtFile(var);
-							QString err = gdal.proToClip_Translate_src(targetTo, targetChild, srcList);
-							if (!err.isEmpty())
-							{
-								addErrList(rasterFileName + QStringLiteral(": 输出错误矢量失败，已跳过。"));
-								continue;
-							}
-							else
-								clipRasers << targetChild;
-						}
+						addErrList(rasterFileName + QStringLiteral(": 输出错误矢量失败，已跳过。"));
+						continue;
 					}
-					// 分隔栅格，提升栅格转矢量的效率 -----<
 
 					// 创建矢量图层 ----->
 					QString vectorFile = targetTo.mid(0, targetTo.size()-3) + "shp";
@@ -205,7 +175,6 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 						addErrList(rasterFileName + QStringLiteral(": 创建错误矢量文件失败，已跳过。"));
 						continue;
 					}
-					// 创建矢量文件 ------<
 
 					// 栅格转矢量 ----->
 					ipfGdalProgressTools gdal_v;
@@ -218,11 +187,10 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 						QString err = gdal_v.rasterToVector(clipRaster, vectorFile, 0);
 						if (!err.isEmpty())
 						{
-							addErrList(rasterFileName + QStringLiteral(": 栅格转矢量失败，已跳过。"));
+							addErrList(rasterFileName + ": " + err);
 							continue;
 						}
 					}
-					gdal_v.hideProgressDialog();
 					// 栅格转矢量 -----<
 				}
 			}

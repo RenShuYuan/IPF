@@ -1,5 +1,4 @@
 #include "ipfModelerDiffeCheckDialog.h"
-#include <QFileDialog>
 
 ipfModelerDiffeCheckDialog::ipfModelerDiffeCheckDialog(QWidget *parent)
 	: QDialog(parent)

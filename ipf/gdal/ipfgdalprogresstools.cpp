@@ -2,6 +2,7 @@
 #include <QFile>
 #include <QDir>
 #include "ipfGdalProgressTools.h"
+#include "ipfSpatialGeometryAlgorithm.h"
 #include "../Process/ipfFlowManage.h"
 #include "../ipfOgr.h"
 #include "ipfProgress.h"
@@ -34,6 +35,11 @@ bool IPF_FILLNODATA = true;
 
 double IPF_RANGE_VALUE = 0.0;
 double IPF_RANGE_NODATA = 0.0;
+
+double IPF_SPIKE_THRESHOLD = 0.0;
+double IPF_SPIKE_NODATA = 0.0;
+
+QStringList csssseeeww;
 
 //ipfGdalProgressTools *ipfGdalProgressTools::smInstance = nullptr;
 
@@ -112,7 +118,7 @@ void CheckDestDataSourceNameConsistency(const char* pszDestFilename,
 
 static GDALTranslateOptionsForBinary *GDALTranslateOptionsForBinaryNew(void)
 {
-    return (GDALTranslateOptionsForBinary*) CPLCalloc(  1, sizeof(GDALTranslateOptionsForBinary) );
+	return static_cast<GDALTranslateOptionsForBinary *>(CPLCalloc(1, sizeof(GDALTranslateOptionsForBinary)));
 }
 
 /************************************************************************/
@@ -121,14 +127,14 @@ static GDALTranslateOptionsForBinary *GDALTranslateOptionsForBinaryNew(void)
 
 static void GDALTranslateOptionsForBinaryFree( GDALTranslateOptionsForBinary* psOptionsForBinary )
 {
-    if( psOptionsForBinary )
-    {
-        CPLFree(psOptionsForBinary->pszSource);
-        CPLFree(psOptionsForBinary->pszDest);
-        CSLDestroy(psOptionsForBinary->papszOpenOptions);
-        CPLFree(psOptionsForBinary->pszFormat);
-        CPLFree(psOptionsForBinary);
-    }
+	if (psOptionsForBinary == nullptr)
+		return;
+
+	CPLFree(psOptionsForBinary->pszSource);
+	CPLFree(psOptionsForBinary->pszDest);
+	CSLDestroy(psOptionsForBinary->papszOpenOptions);
+	CPLFree(psOptionsForBinary->pszFormat);
+	CPLFree(psOptionsForBinary);
 }
 
 /************************************************************************/
@@ -270,36 +276,66 @@ int ALGTermProgress(double dfComplete, const char *pszMessage, void *pProgressAr
 
 float stdevpAlg(float* pafWindow, float fDstNoDataValue, void* pData)
 {
-	float arvge = 0.0;
-	float devsq = 0.0;
-	float stdevp = 0.0;
+	double arvge = 0.0;
+	double stdevp = 0.0;
 
-	//AlgData3x3* psData = (AlgData3x3*)pData;
+	AlgData3x3* psData = (AlgData3x3*)pData;
 	
-	// 3x3
-	//for (int i=0; i<9; ++i)
-	//	arvge += pafWindow[i];
-	//arvge = arvge / 9;
-
 	//for (int i = 0; i < 9; ++i)
-	//	devsq += pow(pafWindow[i] - arvge, 2);
+	//	arvge += pow((pafWindow[4] - pafWindow[i]), 2);
+	//	
+	//arvge = arvge / 8;
+	//stdevp = abs(sqrt(arvge));
+	double piexl = 0.5;
+	QgsPoint p0(piexl - piexl, piexl + piexl, pafWindow[0]);
+	QgsPoint p1(piexl, piexl + piexl, pafWindow[1]);
+	QgsPoint p2(piexl + piexl, piexl + piexl, pafWindow[2]);
+	QgsPoint p3(piexl = piexl, piexl, pafWindow[3]);
+	QgsPoint p4(piexl, piexl, pafWindow[4]);
+	QgsPoint p5(piexl + piexl, piexl, pafWindow[5]);
+	QgsPoint p6(piexl = piexl, piexl = piexl, pafWindow[6]);
+	QgsPoint p7(piexl, piexl - piexl, pafWindow[7]);
+	QgsPoint p8(piexl + piexl, piexl - piexl, pafWindow[8]);
 
-	//stdevp = sqrt(devsq / 9);
-	
-	// 横向扫描
-	//arvge = pafWindow[1] + pafWindow[4] + pafWindow[7];
-	//arvge = arvge / 3;
+	double angle1 = ipfSpatialGeometryAlgorithm::triangleVertexAngle(p4, p3, p5);
+	double angle2 = ipfSpatialGeometryAlgorithm::triangleVertexAngle(p4, p1, p7);
+	double angle3 = ipfSpatialGeometryAlgorithm::triangleVertexAngle(p4, p2, p6);
+	double angle4 = ipfSpatialGeometryAlgorithm::triangleVertexAngle(p4, p0, p8);
 
-	//for (int i = 0; i < 3; ++i)
-	//	devsq += pow(pafWindow[i] - arvge, 2);
+	double max = 0.0, min = 0.0;
+	for (int i = 0; i < 9; ++i)
+	{
+		if (i == 4) continue;
+		max = pafWindow[i] > max ? pafWindow[i] : max;
+		min = pafWindow[i] < min ? pafWindow[i] : min;
+	}
+	if (pafWindow[4] >= min && pafWindow[4] <= max)
+	{
+		double cz1 = angle1 - angle2;
+		double cz2 = angle2 - angle3;
+		double cz3 = angle3 - angle4;
+		double cz4 = angle4 - angle1;
 
-	//stdevp = sqrt(devsq / 3);
+		arvge = (pow(cz1, 2) + pow(cz2, 2) + pow(cz3, 2) + pow(cz4, 2)) / 4;
+		stdevp = sqrt(arvge);
 
-	// 获得相邻八个像元的R值
-
-	// 对R值进行加权平均
-
-	// 使用加权平均后的R值结合NIR计算NDVI
+		if (stdevp > 179.8)
+			stdevp = 1;
+		else
+			stdevp = 0;
+	}
+	else
+	{
+		//stdevp = angle1 > stdevp ? angle1 : stdevp;
+		//stdevp = angle2 > stdevp ? angle2 : stdevp;
+		//stdevp = angle3 > stdevp ? angle3 : stdevp;
+		//stdevp = angle4 > stdevp ? angle4 : stdevp;
+		//stdevp = 180 - stdevp;
+		//if (stdevp > 175)
+		//	stdevp = 1;
+		//else
+			stdevp = 0;
+	}
 
 	return stdevp;
 }
@@ -641,7 +677,7 @@ CPLErr pixelFillValueFunction(void **papoSources, int nSources, void *pData, int
 }
 
 // 过滤无效值
-CPLErr pixelInvalidValue(void **papoSources, int nSources, void *pData, int nXSize, int nYSize,
+CPLErr pixelInvalidValueFunction(void **papoSources, int nSources, void *pData, int nXSize, int nYSize,
 	GDALDataType eSrcType, GDALDataType eBufType, int nPixelSpace, int nLineSpace)
 {
 	int iLine = 0, iCol = 0;
@@ -741,6 +777,69 @@ CPLErr pixelInvalidValue(void **papoSources, int nSources, void *pData, int nXSi
 	// ---- Return success ----
 	return CE_None;
 }
+/*
+CPLErr pixelSpikePointFunction(void **papoSources, int nSources, void *pData, int nXSize, int nYSize,
+	GDALDataType eSrcType, GDALDataType eBufType, int nPixelSpace, int nLineSpace)
+{
+	int ii = 0, iLine = 0, iCol = 0;
+	int index[9];
+	double matrix[9];
+	double x0 = 0.0;
+
+	if (nSources != 1) return CE_Failure;
+
+	// ---- Set pixels ----
+	for (iLine = 0; iLine < nYSize; iLine++) // 遍历行
+	{
+		for (iCol = 0; iCol < nXSize; iCol++) // 遍历列
+		{
+			// 判断像元是否在栅格边缘
+			if (iLine == 0 || iLine == nYSize - 1
+				|| iCol == 0 || iCol == nXSize - 1)
+			{
+				continue;
+			}
+			else
+			{
+				index[0] = (iLine - 1) * nXSize + (iCol - 1);
+				index[1] = (iLine - 1) * nXSize + iCol;
+				index[2] = (iLine - 1) * nXSize + (iCol + 1);
+				index[3] = iLine * nXSize + (iCol - 1);
+				index[4] = iLine * nXSize + iCol;
+				index[5] = iLine * nXSize + (iCol + 1);
+				index[6] = (iLine + 1) * nXSize + (iCol - 1);
+				index[7] = (iLine + 1) * nXSize + iCol;
+				index[8] = (iLine + 1) * nXSize + (iCol + 1);
+			}
+
+			// 获得red波段值
+			red = SRCVAL(papoSources[index_red], eSrcType, index[4]);
+
+			// 获得 3x3 的NIR波段值
+			matrix[0] = SRCVAL(papoSources[index_nir], eSrcType, index[0]);
+			matrix[1] = SRCVAL(papoSources[index_nir], eSrcType, index[1]);
+			matrix[2] = SRCVAL(papoSources[index_nir], eSrcType, index[2]);
+			matrix[3] = SRCVAL(papoSources[index_nir], eSrcType, index[3]);
+			matrix[4] = SRCVAL(papoSources[index_nir], eSrcType, index[4]);
+			matrix[5] = SRCVAL(papoSources[index_nir], eSrcType, index[5]);
+			matrix[6] = SRCVAL(papoSources[index_nir], eSrcType, index[6]);
+			matrix[7] = SRCVAL(papoSources[index_nir], eSrcType, index[7]);
+			matrix[8] = SRCVAL(papoSources[index_nir], eSrcType, index[8]);
+
+			// NIR加权平均计算
+			double weight = (1 - 0.2) / 8;
+			nir = (matrix[0] * weight + matrix[1] * weight + matrix[2] * weight
+				+ matrix[3] * weight + matrix[4] * 0.2 + matrix[5] * weight
+				+ matrix[6] * weight + matrix[7] * weight + matrix[8] * weight) / 1;
+
+			// write
+			GDALCopyWords(&x0, GDT_Float64, 0,
+				((GByte *)pData) + nLineSpace * iLine + iCol * nPixelSpace,
+				eBufType, nPixelSpace, 1);
+		}
+	}
+}
+*/
 
 /*
 *	vrt算法 ----------------<
@@ -760,8 +859,9 @@ ipfGdalProgressTools::ipfGdalProgressTools()
 	GDALAddDerivedBandPixelFunc("pixelModifyValueFunction", pixelModifyValueFunction);
 	GDALAddDerivedBandPixelFunc("pixelModifyUnBackGroundFunction", pixelModifyUnBackGroundFunction); 
 	GDALAddDerivedBandPixelFunc("pixelDSMDEMDiffProcessFunction", pixelDSMDEMDiffProcessFunction);
-	GDALAddDerivedBandPixelFunc("pixelInvalidValue", pixelInvalidValue); 
+	GDALAddDerivedBandPixelFunc("pixelInvalidValue", pixelInvalidValueFunction);
 	GDALAddDerivedBandPixelFunc("pixelFillValueFunction", pixelFillValueFunction);
+	//GDALAddDerivedBandPixelFunc("pixelSpikePointFunction", pixelSpikePointFunction);
 	GDALAddDerivedBandPixelFunc("pixelSlopFunction_S2", pixelSlopFunction_S2);
 }
 
@@ -919,7 +1019,7 @@ QString ipfGdalProgressTools::quickView(const QString & source, const QString & 
 		resolution = resolution * 0.5;
 	QString rStr = QString("%1%").arg(QString::number(resolution));
 	
-	QString strArgv = QString("-outsize %1 %2 %3 %4")
+	QString strArgv = QString("-outsize %1 %2 -r cubic %3 %4")
 							.arg(rStr).arg(rStr).arg(source).arg(target);
 
 	ipfGdalProgressTools::errType err = ipfGDALTranslate(strArgv);
@@ -962,6 +1062,20 @@ QString ipfGdalProgressTools::mosaic_Buildvrt(const QStringList & sourceList, co
 	ipfGdalProgressTools::errType err = ipfGDALbuildvrt(strArgv);
 	QString str = enumErrTypeToString(err);
 
+	return str;
+}
+
+QString ipfGdalProgressTools::clearColorInterp(const QString & source, const QString & target, const int bands)
+{
+	QString colorInterp = "undefined";
+	for (int i = 1; i < bands; ++i)
+		colorInterp += ",undefined";
+
+	QString strArgv = QString("-colorinterp %1 %2 %3")
+		.arg(colorInterp).arg(source).arg(target);
+
+	ipfGdalProgressTools::errType err = ipfGDALTranslate(strArgv);
+	QString str = enumErrTypeToString(err);
 	return str;
 }
 
@@ -1033,8 +1147,6 @@ ipfGdalProgressTools::errType ipfGdalProgressTools::ipfGDALTranslate(const QStri
 
     GDALTranslateOptionsForBinary* psOptionsForBinary = GDALTranslateOptionsForBinaryNew();
     GDALTranslateOptions *psOptions = GDALTranslateOptionsNew(argv, psOptionsForBinary);
-
-    // 释放字符串列表
     CSLDestroy(argv);
 
     if (psOptions == NULL)
@@ -1942,7 +2054,7 @@ QString ipfGdalProgressTools::filterInvalidValue(const QString & source, const Q
 
 	// 向vrt添加波段
 	options = CSLAddNameValue(options, "band", "1");
-	options = CSLAddNameValue(options, "PixelFunctionType", "pixelInvalidValue");
+	options = CSLAddNameValue(options, "PixelFunctionType", "pixelInvalidValueFunction");
 	poDataset_target->AddBand(type, options);
 	CSLDestroy(options);
 
@@ -2184,8 +2296,7 @@ QString ipfGdalProgressTools::pixelFillValue(const QString & source, const QStri
 	if (!ogr.isOpen())
 		return enumErrTypeToString(eSourceOpenErr);
 
-	int nBands = ogr.getBandSize();
-	if (nBands != 1)
+	if (ogr.getBandSize() != 1)
 		return QStringLiteral("该功能主要针对高程模型，目前暂时只支持单波段数据");
 
 	QList<int> xySize = ogr.getYXSize();
@@ -2209,6 +2320,48 @@ QString ipfGdalProgressTools::pixelFillValue(const QString & source, const QStri
 		0, 0, nXSize, nYSize,
 		0, 0, nXSize, nYSize,
 		"near", IPF_RANGE_NODATA);
+
+	GDALClose((GDALDatasetH)poDataset_target);
+	return enumErrTypeToString(eOK);
+}
+
+QString ipfGdalProgressTools::spikePointCheck(const QString & source, const QString & target, const double threshold, const double nodata)
+{
+	ipfOGR ogr(source);
+	if (!ogr.isOpen())
+		return enumErrTypeToString(eSourceOpenErr);
+
+	if (ogr.getBandSize() != 1)
+		return QStringLiteral("该功能主要针对高程模型，目前暂时只支持单波段数据");
+
+	// 初始化所需参数
+	IPF_SPIKE_THRESHOLD = threshold;
+	IPF_SPIKE_NODATA = nodata;
+
+	GDALDataType type = ogr.getDataType_y();
+	QList<int> xySize = ogr.getYXSize();
+	int nXSize = xySize.at(1);
+	int nYSize = xySize.at(0);
+
+	// 创建新栅格
+	GDALDataset *poDataset_target = ogr.createNewRaster(target, IPF_NODATA_NONE, 0);
+
+	// 向vrt注册自定义算法
+	char** options = NULL;
+	options = CSLAddNameValue(options, "subclass", "VRTDerivedRasterBand");
+
+	// 向vrt添加波段
+	options = CSLAddNameValue(options, "band", "1");
+	options = CSLAddNameValue(options, "PixelFunctionType", "pixelSpikePointFunction");
+	poDataset_target->AddBand(type, options);
+	CSLDestroy(options);
+
+	// 添加波段
+	GDALRasterBand* new_band = poDataset_target->GetRasterBand(1);
+	VRTAddSimpleSource(static_cast<VRTSourcedRasterBandH>(new_band), ogr.getRasterBand(1),
+		0, 0, nXSize, nYSize,
+		0, 0, nXSize, nYSize,
+		NULL, IPF_SPIKE_NODATA);
 
 	GDALClose((GDALDatasetH)poDataset_target);
 	return enumErrTypeToString(eOK);
@@ -2246,6 +2399,8 @@ ipfGdalProgressTools::errType ipfGdalProgressTools::GDALGeneric3x3Processing(
 	float *pafOutputBuf;     /* 输出图像一行数据存储空间 */
 	int i, j;
 
+	double* cz = (double*)pData;
+
 	int bSrcHasNoData, bDstHasNoData;
 	float fSrcNoDataValue = 0.0, fDstNoDataValue = 0.0;
 
@@ -2258,6 +2413,8 @@ ipfGdalProgressTools::errType ipfGdalProgressTools::GDALGeneric3x3Processing(
 	//初始化进度条计数器
 	if (!pfnProgress(0.0, NULL, pProgressData))
 		return eUserTerminated;
+
+	showProgressDialog();
 
 	//分配内存空间
 	pafOutputBuf = (float *)CPLMalloc(sizeof(float)*nXSize);
@@ -2347,6 +2504,8 @@ ipfGdalProgressTools::errType ipfGdalProgressTools::GDALGeneric3x3Processing(
 			{
 				// 一个合格的3*3窗口
 				pafOutputBuf[j] = pfnAlg(afWin, fDstNoDataValue, pData);
+				if (pafOutputBuf[j] < *cz)
+					pafOutputBuf[j] = fDstNoDataValue;
 			}
 		}
 
@@ -2376,6 +2535,14 @@ end:
 	CPLFree(pafOutputBuf);
 	CPLFree(pafThreeLineWin);
 
+	//QFile file("d:/outz.txt");
+	//if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
+	//	return eNotCreateDest;
+	//QTextStream out(&file);
+	//foreach(QString str, csssseeeww)
+	//	out << str << endl;
+	//file.close();
+
 	if (eErr == CE_None)
 		return eOK;
 	else
@@ -2385,22 +2552,22 @@ end:
 QString ipfGdalProgressTools::buildOverviews(const QString & source)
 {
 	// 尝试打开数据源
-	GDALDatasetH hDataset;
-	hDataset = GDALOpenEx(source.toStdString().c_str(), GDAL_OF_RASTER, NULL, NULL, NULL);
-	if (!hDataset)
+	GDALDataset *poDataset;
+	poDataset = (GDALDataset*)GDALOpenEx(source.toStdString().c_str(), GDAL_OF_RASTER, NULL, NULL, NULL);
+	if (!poDataset)
 		return enumErrTypeToString(eSourceOpenErr);
 
-	int iWidth = GDALGetRasterXSize(hDataset);
-	int iHeigh = GDALGetRasterYSize(hDataset);
+	int iWidth = poDataset->GetRasterXSize();
+	int iHeigh = poDataset->GetRasterYSize();
 
 	int iPixelNum = iWidth * iHeigh;    //图像中的总像元个数  
 	int iTopNum = 4096;                 //顶层金字塔大小，64*64  
 	int iCurNum = iPixelNum / 4;
 
 	int anLevels[1024] = { 0 };
-	int nLevelCount = 0;                //金字塔级数  
+	int nLevelCount = 0;				//金字塔级数  
 
-	do    //计算金字塔级数，从第二级到顶层  
+	do									 //计算金字塔级数，从第二级到顶层  
 	{
 		anLevels[nLevelCount] = static_cast<int>(pow(2.0, nLevelCount + 2));
 		nLevelCount++;
@@ -2408,91 +2575,40 @@ QString ipfGdalProgressTools::buildOverviews(const QString & source)
 	} while (iCurNum > iTopNum);
 
 	if (nLevelCount > 0 &&
-		GDALBuildOverviews(hDataset, "nearest", nLevelCount, anLevels,
-			0, NULL, ALGTermProgress, proDialog) != CE_None)
+		poDataset->BuildOverviews("nearest", nLevelCount, anLevels, 0, NULL, ALGTermProgress, proDialog) != CE_None)
 	{
-		GDALClose(hDataset);
+		GDALClose((GDALDatasetH)poDataset);
 		return source + QStringLiteral(": 创建金字塔失败。");
 	}
 
-	GDALClose(hDataset);
+	GDALClose((GDALDatasetH)poDataset);
 	return enumErrTypeToString(eOK);
 }
 
 QString ipfGdalProgressTools::rasterToVector(const QString &rasterFile, const QString &vectorFile, const int index)
 {
-	// 打开栅格数据源
-	GDALDatasetH hDataset;
-	hDataset = GDALOpenEx(rasterFile.toStdString().c_str(), GDAL_OF_RASTER, NULL, NULL, NULL);
-	if (!hDataset)
+	GDALDataset* poDataset = (GDALDataset*)GDALOpenEx(rasterFile.toStdString().c_str(), GDAL_OF_RASTER, NULL, NULL, NULL);
+	if (!poDataset)
 		return enumErrTypeToString(eSourceOpenErr);
 
-	// 打开矢量数据源
-	GDALDataset *poDS;
-	poDS = (GDALDataset*)GDALOpenEx(vectorFile.toStdString().c_str(), GDAL_OF_VECTOR | GDAL_OF_UPDATE, NULL, NULL, NULL);
-	if (poDS == NULL)
-		return vectorFile + QStringLiteral(": 读取矢量文件失败，无法继续。");
+	GDALDataset *poDS = (GDALDataset*)GDALOpenEx(vectorFile.toStdString().c_str(), GDAL_OF_VECTOR | GDAL_OF_UPDATE, NULL, NULL, NULL);
+	if (!poDS)
+		return QStringLiteral("读取矢量文件失败，无法继续。");
 
 	OGRLayer *poLayer = poDS->GetLayer(0);
 	if (!poLayer)
-		return vectorFile + QStringLiteral(": 失败，无法获取矢量图层。");
+		return QStringLiteral("失败，无法获取矢量图层。");
 
-	GDALRasterBandH hBand = GDALGetRasterBand(hDataset, 1);
-	GDALRasterBand* mask = ((GDALRasterBand*)hBand)->GetMaskBand();
-	CPLErr err = GDALPolygonize(GDALGetRasterBand(hDataset, 1), mask, (OGRLayerH)poLayer, index, NULL, ALGTermProgress, proDialog);
-	GDALClose(hDataset);
+	GDALRasterBand* band = poDataset->GetRasterBand(1);
+	GDALRasterBand* mask = band->GetMaskBand();
+	CPLErr err = GDALPolygonize(band, mask, (OGRLayerH)poLayer, index, NULL, ALGTermProgress, proDialog);
+
+	GDALClose((GDALDatasetH)poDataset);
 	GDALClose(poDS);
 
 	if (err != CE_None)
-		return enumErrTypeToString(eOther);
+		return QStringLiteral("转换矢量数据失败。");
 
-	return enumErrTypeToString(eOK);
-}
-
-QString ipfGdalProgressTools::splitShp(const QString & vectorName, QStringList & shps)
-{
-	GDALDataset *poDS;
-	poDS = (GDALDataset*)GDALOpenEx(vectorName.toStdString().c_str(), GDAL_OF_VECTOR, NULL, NULL, NULL);
-	if (poDS == NULL)
-		return vectorName + QStringLiteral(": 读取矢量文件失败，无法继续。");
-
-	OGRLayer *poLayer = poDS->GetLayer(0);
-	if (!poLayer)
-		return vectorName + QStringLiteral(": 失败，无法获取矢量图层。");
-
-
-	OGRFeature * poFeature;
-	while ((poFeature = poLayer->GetNextFeature()) != NULL)
-	{
-		// 加载shp驱动
-		const char *pszDriverName = "ESRI Shapefile";
-		GDALDriver *poDriver;
-		poDriver = GetGDALDriverManager()->GetDriverByName(pszDriverName);
-		if (poDriver == NULL)
-			return vectorName + QStringLiteral(": 加载驱动失败。");
-
-
-		// 创建矢量文件
-		GDALDataset *poDS;
-		QString new_shp = ipfFlowManage::instance()->getTempFormatFile(vectorName, ".shp");
-		poDS = poDriver->Create(new_shp.toStdString().c_str(), 0, 0, 0, GDT_Unknown, NULL);
-		if (poDS == NULL)
-			return vectorName + QStringLiteral(": 创建临时矢量文件失败。");
-
-		// 创建矢量图层
-		OGRLayer *poLayer;
-		poLayer = poDS->CreateLayer("out", NULL, wkbPolygon, NULL);
-		if (poLayer == NULL)
-			return vectorName + QStringLiteral(": 创建图层失败。");
-
-		// 添加要素
-		poLayer->CreateFeature(poFeature);
-		OGRFeature::DestroyFeature(poFeature);
-		GDALClose(poDS);
-
-		shps << new_shp;
-	}
-	GDALClose(poDS);
 	return enumErrTypeToString(eOK);
 }
 
@@ -2507,11 +2623,11 @@ QString ipfGdalProgressTools::mergeVector(const QString& outPut, const QString& 
 	return str;
 }
 
-QString ipfGdalProgressTools::stdevp3x3Alg(const QString & source, const QString & target, const int iband)
+QString ipfGdalProgressTools::stdevp3x3Alg(const QString & source, const QString & target, const double &threshold)
 {
 	GDALRasterBandH hSrcBand;
 	GDALRasterBandH hDstBand;
-	void* pData = NULL;
+	void* pData = (void*)&threshold;
 	GDALGeneric3x3ProcessingAlg pfnAlg = stdevpAlg;
 
 	// 读取源数据波段
@@ -2520,7 +2636,7 @@ QString ipfGdalProgressTools::stdevp3x3Alg(const QString & source, const QString
 		return eSourceOpenErr;
 
 	if (ogr.getBandSize() > 0)
-		hSrcBand = ogr.getRasterBand(iband);
+		hSrcBand = ogr.getRasterBand(1);
 	else
 		return eSourceOpenErr;
 
@@ -2639,7 +2755,7 @@ void ipfGdalProgressTools::hideProgressDialog()
 
 void ipfGdalProgressTools::pulsValueTatal()
 {
-	proDialog->pulsValueTatal();
+	proDialog->userPulsValueTatal();
 }
 
 void ipfGdalProgressTools::setProgressTitle(const QString & label)

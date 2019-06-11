@@ -1,7 +1,5 @@
 #include "ipfModelerCreateMetadataDialog.h"
 
-#include <QFileDialog>
-
 ipfModelerCreateMetadataDialog::ipfModelerCreateMetadataDialog(QWidget *parent)
 	: QDialog(parent)
 {

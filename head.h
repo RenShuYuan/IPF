@@ -12,7 +12,9 @@
 #include <QStringList>
 #include <QMap>
 #include <QMessageBox>
+#include <QFileDialog>
 #include <QUUid>
+#include <QTime>
 
 // GDAL
 #include "cpl_string.h"
@@ -26,6 +28,7 @@
 
 // QGis
 #include "qgsrectangle.h"
+#include "qgspoint.h"
 
 // OpenGL
 #define GL_RED                            0x1903
@@ -45,6 +48,8 @@ typedef enum
 	IPF_MINUS = 3,
 	IPF_NONE = 4
 } IPF_COMPUTE_TYPE;
+
+#define PI 3.14159265
 
 // 全球项目分幅产品分辨率 Global geographic information
 #define GGI_DOM_2M		2.0
@@ -92,6 +97,7 @@ static const QString MODELER_DSMDEMDIFFECHECK(QStringLiteral("DSM-DEM差值检�
 static const QString MODELER_DSMDEMDIFFEPROCESS(QStringLiteral("DSM-DEM差值处理"));
 static const QString MODELER_RANGEMOIDFYVALUE(QStringLiteral("范围赋值"));
 static const QString MODELER_SEAMOIDFYVALUE(QStringLiteral("海域赋值"));
+static const QString MODELER_SPIKEPOINTCHECK(QStringLiteral("高程模型跳点检测"));
 
 static const QString MODELER_SLOPCALCULATION(QStringLiteral("标准偏差-测试"));
 static const QString MODELER_FRACEXTENTPROCESS(QStringLiteral("测试专用"));

@@ -1,6 +1,4 @@
 #include "ipfModelerOutDialog.h"
-#include <QFileDialog>
-#include <QSettings>
 #include <QDir>
 
 ipfModelerOutDialog::ipfModelerOutDialog(QWidget *parent)

@@ -6,10 +6,8 @@
 #include "ipfModelerProcessOut.h"
 #include "head.h"
 
-#include <QUuid>
 #include <QGraphicsScene>
 #include <QDomDocument>
-#include <QFileDialog>
 
 ipfFlowManage *ipfFlowManage::smInstance = nullptr;
 

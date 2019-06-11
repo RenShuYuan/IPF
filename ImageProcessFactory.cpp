@@ -126,13 +126,14 @@ void ImageProcessFactory::initTreeView()
 	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_INVALIDVALUECHECK));
 	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_DEMGROSSERRORCHECK)); 
 	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_DSMDEMDIFFECHECK));
-	/*
+	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_SPIKEPOINTCHECK));
+
 	QStandardItem* itemCunstomSTBC = new QStandardItem(QStringLiteral("科研测试功能"));
 	model->appendRow(itemCunstomSTBC);
 	itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_SLOPCALCULATION));
 	//itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_FRACEXTENTPROCESS));
 	//itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_EXTRACT_RASTER_RANGE));
-	*/
+
 	ui.treeView->expandAll();
 }
 

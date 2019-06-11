@@ -1,7 +1,5 @@
 #include "ipfModelerExtractRasterRangeDialog.h"
 
-#include <QFileDialog>
-
 ipfModelerExtractRasterRangeDialog::ipfModelerExtractRasterRangeDialog(QWidget *parent)
 	: QDialog(parent)
 {

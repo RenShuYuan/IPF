@@ -35,12 +35,12 @@
 #include "ipf/Process/ipfModelerProcessChildDSMDEMDifferenceCheck.h"
 #include "ipf/Process/ipfModelerProcessChildDSMDEMDifferenceProcess.h"
 #include "ipf/Process/ipfModelerProcessChildRangeMoidfyValue.h"
+#include "ipf/Process/ipfModelerProcessChildSpikePointCheck.h"
 #include "ipf/Process/ipfFlowManage.h"
 #include "../../ui/ipfSelectModelerDialog.h"
 #include "head.h"
 
 #include <QGraphicsSceneMouseEvent>
-#include <QFileDialog>
 
 ipfGraphicsScene::ipfGraphicsScene(ipfFlowManage *flow, QObject *parent)
 	: QGraphicsScene(parent)
@@ -461,6 +461,8 @@ ipfModelerProcessBase* ipfGraphicsScene::createProcessBase(const QString & itemN
 		base = new ipfModelerProcessChildDSMDEMDifferenceProcess(this, MODELER_DSMDEMDIFFEPROCESS);
 	else if (itemName == MODELER_RANGEMOIDFYVALUE || itemName == MODELER_SEAMOIDFYVALUE)
 		base = new ipfModelerProcessChildRangeMoidfyValue(this, itemName);
+	else if (itemName == MODELER_SPIKEPOINTCHECK)
+		base = new ipfModelerProcessChildSpikePointCheck(this, itemName);
 
 	return base;
 }

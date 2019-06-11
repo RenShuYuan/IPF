@@ -1,7 +1,6 @@
 #include "ipfModelerFracClipDialog.h"
 #include "qgsprojectionselectionwidget.h"
 
-#include <QFileDialog>
 #include <QGroupBox>
 
 ipfModelerFracClipDialog::ipfModelerFracClipDialog(QWidget *parent)

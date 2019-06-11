@@ -2,6 +2,11 @@
 #define IPFMODELERPROCESSCHILDSLOPCALCULATION_H
 
 #include "ipfModelerProcessBase.h"
+#include "QgsVectorLayer.h"
+#include "QgsSpatialIndex.h"
+#include "../../clipper/clipper.hpp"
+
+using namespace ClipperLib;
 
 class ipfModelerClipVectorDialog;
 
@@ -20,7 +25,6 @@ public:
 	void setDialogParameter(QMap<QString, QString> map);
 
 	void run();
-
 private:
 	ipfModelerClipVectorDialog * dialog;
 };

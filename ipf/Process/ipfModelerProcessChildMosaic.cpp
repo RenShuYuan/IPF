@@ -49,24 +49,43 @@ void ipfModelerProcessChildMosaic::run()
 		int mBands = ogr.getBandSize();
 
 		if (bands == -1)
-		{
 			bands = mBands;
-		}
 		else
 		{
 			if (bands != mBands)
 			{
-				addErrList(str + QStringLiteral(": 影像波段数量不一致，已跳过。"));
+				addErrList(str + QStringLiteral(": 栅格波段数量不一致，已跳过。"));
 				continue;
 			}
 		}
 
-		inList << str;
+		bool isbl = true;
+		QString target = ipfFlowManage::instance()->getTempVrtFile(str);
+		QString err = gdal.formatConvert(str, target, gdal.enumFormatToString("vrt"), "NONE", "NO", "none");
+		ipfOGR oggg(target, true);
+		for (int i = 1; i <= mBands; ++i)
+		{
+			if (CE_None != oggg.getRasterBand(i)->SetColorInterpretation(GCI_Undefined))
+			{
+				isbl = false;
+				break;
+			}
+		}
+		if (isbl)
+			inList << str;
+
+		//QString target = ipfFlowManage::instance()->getTempVrtFile(str);
+		//QString err = gdal.clearColorInterp(str, target, mBands);
+		//if (err.isEmpty())
+		//	inList << target;
+		//else
+		//	addErrList(str + ": " + err);
+
+		
 	}
 
-	QString target = ipfFlowManage::instance()->getTempVrtFile(QStringLiteral("mosaic"));
+	QString target = ipfFlowManage::instance()->getTempVrtFile("mosaic");
 	QString err = gdal.mosaic_Buildvrt(inList, target);
-	//QString err = gdal.mosaic_Warp(filesIn(), target);
 	if (err.isEmpty())
 		appendOutFile(target);
 	else

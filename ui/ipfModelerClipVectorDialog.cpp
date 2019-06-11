@@ -1,6 +1,4 @@
 #include "ipfModelerClipVectorDialog.h"
-
-#include <QFileDialog>
 #include <QDir>
 
 ipfModelerClipVectorDialog::ipfModelerClipVectorDialog(QWidget *parent)

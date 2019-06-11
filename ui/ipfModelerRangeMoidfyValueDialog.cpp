@@ -1,5 +1,4 @@
 #include "ipfModelerRangeMoidfyValueDialog.h"
-#include <QFileDialog>
 
 ipfModelerRangeMoidfyValueDialog::ipfModelerRangeMoidfyValueDialog(QWidget *parent)
 	: QDialog(parent)

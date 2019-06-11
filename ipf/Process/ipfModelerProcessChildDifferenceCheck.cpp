@@ -323,7 +323,6 @@ void ipfModelerProcessChildDifferenceCheck::run()
 						{
 							QgsPointXY point;
 							CPLErr cErr = org.ComputeMinMax(IPF_NONE, point);
-							org.close();
 
 							if (cErr == CE_None)
 							{
@@ -347,7 +346,6 @@ void ipfModelerProcessChildDifferenceCheck::run()
 						else
 						{
 							CPLErr cErr = org.ComputeMinMax(IPF_ZERO);
-							org.close();
 
 							if (cErr == CE_None)
 							{

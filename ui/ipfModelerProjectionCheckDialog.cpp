@@ -2,8 +2,6 @@
 #include "qgsprojectionselectionwidget.h"
 #include "qgscoordinatereferencesystem.h"
 
-#include <QFileDialog>
-
 ipfModelerProjectionCheckDialog::ipfModelerProjectionCheckDialog(QWidget *parent)
 	: QDialog(parent)
 {

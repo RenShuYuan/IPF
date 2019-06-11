@@ -141,7 +141,7 @@ void ipfModelerProcessChildRangeMoidfyValue::run()
 				addErrList(var + QStringLiteral(": 匹配像元位置失败或超出范围，无法继续。"));
 				continue;
 			}
-			srcList << iColLu << iRowLu << iColRd - iColLu << iRowRd - iRowLu;
+			srcList << iColLu << iRowLu << iColRd - iColLu + 1 << iRowRd - iRowLu + 1;
 			QString new_target = ipfFlowManage::instance()->getTempVrtFile(target);
 			err = gdal.proToClip_Translate_src(target, new_target, srcList);
 			if (!err.isEmpty())

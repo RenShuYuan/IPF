@@ -3,6 +3,8 @@
 #include "../ipfOgr.h"
 #include "../ui/ipfModelerSetNodataDialog.h"
 
+#include <QProgressDialog>
+
 ipfModelerProcessChildSetNodata::ipfModelerProcessChildSetNodata(QObject * parent, const QString modelerName)
 	:ipfModelerProcessOut(parent, modelerName)
 {
@@ -66,8 +68,18 @@ void ipfModelerProcessChildSetNodata::run()
 	clearOutFiles();
 	clearErrList();
 
+	//进度条
+	int prCount = 0;
+	QProgressDialog dialog(QStringLiteral("制作元数据..."), QStringLiteral("取消"), 0, filesIn().size(), nullptr);
+	dialog.setWindowTitle(QStringLiteral("制作元数据"));
+	dialog.setWindowModality(Qt::WindowModal);
+	dialog.show();
+
 	foreach(QString var, filesIn())
 	{
+		dialog.setValue(++prCount);
+		QApplication::processEvents();
+
 		ipfOGR ogr(var, true);
 		if (!ogr.isOpen())
 		{

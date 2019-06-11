@@ -1,5 +1,4 @@
 #include "ipfModelerFracExtentCheckDialog.h"
-#include <QFileDialog>
 
 ipfModelerFracExtentCheckDialog::ipfModelerFracExtentCheckDialog(QWidget *parent)
 	: QDialog(parent)

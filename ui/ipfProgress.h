@@ -13,11 +13,15 @@ public:
 
 	void setTitle(const QString& label);
 	void setValue(int value);
-	void pulsValueTatal();
+	void pulsValue();
+	void userPulsValueTatal();
 	void setRangeChild(int minimum, int maximum);
 	void setRangeTotal(int minimum, int maximum);
 
 	bool wasCanceled() { return isKeep; };
+
+private:
+	void pulsValueTatal();
 
 private slots:
 	void on_pushButton_clicked();
@@ -26,5 +30,6 @@ private:
 	Ui::ipfProgress ui;
 	bool isKeep;
 	bool isPuls;
+	int childCount;
 	int tatalCount;
 };
