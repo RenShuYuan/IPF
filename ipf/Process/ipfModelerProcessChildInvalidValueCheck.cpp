@@ -170,7 +170,7 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 
 					// 创建矢量图层 ----->
 					QString vectorFile = targetTo.mid(0, targetTo.size()-3) + "shp";
-					if (!ipfOGR::createrShape(vectorFile, QgsWkbTypes::Polygon, QgsFields(), wkt))
+					if (!ipfOGR::createrVectorlayer(vectorFile, QgsWkbTypes::Polygon, QgsFields(), wkt))
 					{
 						addErrList(rasterFileName + QStringLiteral(": 创建错误矢量文件失败，已跳过。"));
 						continue;

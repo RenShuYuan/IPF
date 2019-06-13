@@ -26,7 +26,8 @@ ipfModelerProcessChildVegeataionExtraction::~ipfModelerProcessChildVegeataionExt
 
 bool ipfModelerProcessChildVegeataionExtraction::checkParameter()
 {
-	if (!QDir(fileName).exists())
+	QDir dir(fileName);
+	if (!dir.exists())
 	{
 		addErrList(QStringLiteral("无效的输出文件夹。"));
 		return false;
@@ -121,16 +122,17 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 		double nodata4 = ogr.getNodataValue(4);
 		QString prj = ogr.getProjection();
 
-		// 创建输出文件
-		QString rasterFile = ipfFlowManage::instance()->getTempFormatFile(var, ".img");
+		// 创建输出栅格
+		QString rasterFile = fileName + "\\" + baseName + "_v.img";
 		QString vectorFile = fileName + "\\" + baseName + ".shp";
-		GDALDataset* poDataset_target = ogr.createNewRaster(rasterFile, "-9999", 1, GDT_Float32);
+		GDALDataset* poDataset_target = ogr.createNewRaster(rasterFile, IPF_NODATA_NONE, 1, GDT_Float32);
 		if (!poDataset_target)
 		{
-			addErrList(rasterFile + QStringLiteral(": 创建临时失败，无法继续。"));
+			addErrList(rasterFile + QStringLiteral(": 创建输出栅格数据失败，无法继续。"));
 			continue;
 		}
 		GDALRasterBand* datasetBand = poDataset_target->GetRasterBand(1);
+		datasetBand->SetNoDataValue(-9999);
 
 		// 分块参数
 		int nBlockSize = 1024;
@@ -154,6 +156,7 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 
 		//循环分块并进行处理
 		int proCount = 0;
+		bool isbl = true;
 		for (int i = 0; i < nYSize; i += nBlockSize)
 		{
 			for (int j = 0; j < nXSize; j += nBlockSize)
@@ -173,8 +176,9 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 				// 读取原始图像块
 				if (!ogr.readRasterIO(pSrcData, j, i, nXBK, nYBK, GDT_Float64)) //ogr.getDataType_y()
 				{
-					addErrList(baseName + QStringLiteral(": 读取影像分块数据失败，已跳过。"));
+					addErrList(var + QStringLiteral(": 读取影像分块数据失败，已跳过。"));
 					proDialog.setValue(++proCount);
+					QApplication::processEvents();
 					continue;
 				}
 
@@ -202,8 +206,7 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 					{
 						if (stlip_index != 0)
 						{
-							//double ylVI = ylviIndex(B, G);
-							double ylVI = ylviIndex(B, R);
+							double ylVI = ylviIndex(B, G);
 							if (abs(ylVI) > stlip_index)
 								pDstData[mi / nBands] = NDVI;
 							else
@@ -220,16 +223,9 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 				datasetBand->RasterIO(GF_Write, j, i, nXBK, nYBK, pDstData, nXBK, nYBK, GDT_Float64, 0, 0, 0);
 
 				proDialog.setValue(++proCount);
+				QApplication::processEvents();
 				if (proDialog.wasCanceled())
-				{
-					//释放申请的内存
-					RELEASE(pSrcData);
-					RELEASE(pDstData);
-
-					// 删除临时栅格数据
-					QFile::remove(rasterFile);
 					return;
-				}
 			}
 		}
 		
@@ -244,29 +240,80 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 		}
 		// 提取满足NDVI因子要求的栅格数据 -----<
 
-		// 分隔栅格，提升栅格转矢量的效率
+		// 分割栅格，提升栅格转矢量的效率 ----->
 		QStringList clipRasers;
-		ipfOGR ogr_clip(rasterFile);
-		if (!ogr_clip.isOpen())
+		for (int i = 0; i < nYSize; i += nBlockSize)
 		{
-			addErrList(baseName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -2。"));
-			QFile::remove(rasterFile);
-			continue;
+			for (int j = 0; j < nXSize; j += nBlockSize)
+			{
+				// 保存分块实际大小
+				int nXBK = nBlockSize;
+				int nYBK = nBlockSize;
+
+				//如果最下面和最右边的块不够，剩下多少读取多少
+				if (i + nBlockSize > nYSize)
+					nYBK = nYSize - i;
+				if (j + nBlockSize > nXSize)
+					nXBK = nXSize - j;
+
+				QList<int> srcList;
+				srcList << j << i << nXBK << nYBK;
+
+				ipfGdalProgressTools gdal;
+				QString target = ipfFlowManage::instance()->getTempVrtFile(var);
+				QString err = gdal.proToClip_Translate_src(rasterFile, target, srcList);
+				if (!err.isEmpty())
+				{
+					addErrList(rasterFile + QStringLiteral(": 栅格分块失败，已跳过。"));
+					continue;
+				}
+				else
+					clipRasers << target;
+			}
 		}
-		if (!ogr_clip.splitRaster(1024, clipRasers))
+		// 分隔栅格，提升栅格转矢量的效率 -----<
+
+		// 创建矢量文件 ------>
+		// 加载shp驱动
+		const char *pszDriverName = "ESRI Shapefile";
+		GDALDriver *poDriver;
+		poDriver = GetGDALDriverManager()->GetDriverByName(pszDriverName);
+		if (poDriver == NULL)
 		{
-			addErrList(baseName + QStringLiteral(": 转换矢量失败，已跳过。"));
-			QFile::remove(rasterFile);
+			addErrList(vectorFile + QStringLiteral(": 加载驱动失败。"));
 			continue;
 		}
 
-		// 创建矢量图层 ----->
-		if (!ipfOGR::createrShape(vectorFile, QgsWkbTypes::Polygon, QgsFields(), prj))
+		// 创建矢量文件
+		GDALDataset *poDS;
+		poDS = poDriver->Create(vectorFile.toStdString().c_str(), 0, 0, 0, GDT_Unknown, NULL);
+		if (poDS == NULL)
 		{
-			addErrList(vectorFile + QStringLiteral(": 创建矢量文件失败，已跳过。"));
-			QFile::remove(rasterFile);
+			addErrList(vectorFile + QStringLiteral(": 创建矢量文件失败。"));
 			continue;
 		}
+
+		// 创建矢量图层
+		OGRLayer *poLayer;
+		poLayer = poDS->CreateLayer(baseName.toStdString().c_str(), NULL, wkbPolygon, NULL);
+		if (poLayer == NULL)
+		{
+			addErrList(vectorFile + QStringLiteral(": 创建图层失败。"));
+			continue;
+		}
+
+		// 定义投影
+		//poDS->SetProjection(prj.toStdString().c_str());
+
+		// 新增字段
+		if (OGRERR_NONE != poLayer->CreateField(new OGRFieldDefn(fieldName.toStdString().c_str(), OFTInteger)))
+		{
+			addErrList(vectorFile + QStringLiteral(": 创建字段失败。"));
+			continue;
+		}
+		int dst_field = poLayer->GetLayerDefn()->GetFieldIndex(fieldName.toStdString().c_str());
+		GDALClose(poDS);
+		// 创建矢量文件 ------<
 
 		// 栅格转矢量 ----->
 		ipfGdalProgressTools gdal_v;
@@ -276,19 +323,46 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 		for (int i = 0; i < clipRasers.size(); ++i)
 		{
 			QString clipRaster = clipRasers.at(i);
-			QString err = gdal_v.rasterToVector(clipRaster, vectorFile, 0);
+			QString err = gdal_v.rasterToVector(clipRaster, vectorFile, dst_field);
 			if (!err.isEmpty())
 			{
 				addErrList(QStringLiteral("植被提取: ") + err);
-				QFile::remove(rasterFile);
 				continue;
 			}	
 		}
 		gdal_v.hideProgressDialog();
 		// 栅格转矢量 -----<
 
-		// 删除临时栅格数据
-		QFile::remove(rasterFile);
+		// 融合要素 ----->
+		//ipfGdalProgressTools gdal_m;
+		//QString err = gdal_m.mergeVector("d:/111.shp", vectorFile, fieldName);
+		//if (!err.isEmpty())
+		//{
+		//	addErrList(QStringLiteral("融合矢量范围: ") + err);
+		//	continue;
+		//}
+
+
+
+		//for (int j = i + 1; j < idList.size(); ++j)
+		//{
+		//	QgsFeature csf = layer->getFeature(idList.at(j));
+		//	if (f.geometry().touches(csf.geometry()))
+		//	{
+		//		int fIN = f.attribute("IN").toInt();
+		//		int csfIN = csf.attribute("IN").toInt();
+		//		QgsGeometry geo = f.geometry().combine(csf.geometry());
+		//		double area = geo.area();
+		//		QgsFeature outFeature;
+		//		outFeature.setGeometry(geo);
+		//		QgsAttributes inattrs = f.attributes();
+		//		outFeature.setAttributes(inattrs);
+		//		layer->addFeature(outFeature);
+		//		break;
+		//	}
+		//}
+
+		// 融合要素 -----<
 
 		// 清除空洞、过滤面积不足的要素 ----->
 		QgsVectorLayer *layer = new QgsVectorLayer(vectorFile, "vector");
@@ -314,12 +388,8 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 				idList << f.id();
 		}
 
-		QgsFeatureIds ids;
-		QgsFeatureList features;
+		layer->startEditing();
 		int size = idList.size();
-		
-		// 这句使用OpenMP来加速
-#pragma omp parallel for
 		for (int i = 0; i < size; ++i)
 		{
 			QgsFeature f = layer->getFeature(idList.at(i));
@@ -327,38 +397,45 @@ void ipfModelerProcessChildVegeataionExtraction::run()
 			// 删除碎面
 			if (f.geometry().area() < minimumArea)
 			{
-#pragma omp critical
-				{
-					ids << f.id();
-				}
+				layer->deleteFeature(f.id());
+				prDialog.setValue(++prCount);
+				continue;
 			}
-			else
-			{
-				// 删除空洞
-				QgsFeature outFeature = f;
-				QgsGeometry geometry = outFeature.geometry();
-				outFeature.setGeometry(geometry.removeInteriorRings(minimumRingsArea));
-#pragma omp critical
-				{
-					ids << f.id();
-					features << outFeature;
-				}
-			}
+			
+			// 删除空洞
+			QgsGeometry geo = f.geometry().removeInteriorRings(minimumRingsArea);
+			QgsFeature outFeature;
+			outFeature.setGeometry(geo);
+			QgsAttributes inattrs = f.attributes();
+			outFeature.setAttributes(inattrs);
+			layer->addFeature(outFeature);
+			layer->deleteFeature(f.id());
 
-#pragma omp critical
+			prDialog.setValue(++prCount);
+			QApplication::processEvents();
+			if (prDialog.wasCanceled())
 			{
-				if (++prCount < size)
-				{
-					prDialog.setValue(prCount);
-				}
+				layer->commitChanges();
+				break;
 			}
 		}
-
-		layer->startEditing();
-		layer->deleteFeatures(ids);
-		layer->addFeatures(features);
 		layer->commitChanges();
 		RELEASE(layer);
 		// 清除空洞、过滤面积不足的要素 -----<
+
+		/*
+		// 光滑
+		//QgsFeature outFeature;
+		//QgsGeometry inGeo = f.geometry();
+		//QgsAttributes inattrs = f.attributes();
+		//QgsGeometry outGeo = inGeo.smooth(2, 0.3, -1, 90);
+		////QgsGeometry outGeo = inGeo.removeInteriorRings(minimumRingsArea);
+		//if (outGeo.isGeosValid())
+		//{
+		//	outFeature.setGeometry(outGeo);
+		//	outFeature.setAttributes(inattrs);
+		//	layer->addFeature(outFeature);
+		//	layer->deleteFeature(f.id());
+		}*/
 	}
 }

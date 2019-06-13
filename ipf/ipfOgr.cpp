@@ -410,9 +410,8 @@ void * ipfOGR::newTypeSpace(const GDALDataType type, long size)
 	return buffData;
 }
 
-bool ipfOGR::createrShape(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QString & wkt)
+bool ipfOGR::createrVectorlayer(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QString & wkt)
 {
-	// 参照坐标系
 	QgsCoordinateReferenceSystem mCrs;
 	mCrs.createFromWkt(wkt);
 
@@ -424,6 +423,22 @@ bool ipfOGR::createrShape(const QString & layerName, QgsWkbTypes::Type geometryT
 
 	QgsVectorFileWriter::WriterError error;
 	QgsVectorFileWriter newShape(layerName, "system", fields, geometryType, mCrs, driverName);
+	error = newShape.hasError();
+	if (error == QgsVectorFileWriter::NoError)
+		return true;
+	return false;
+}
+
+bool ipfOGR::createrVectorlayer(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields & fields, const QgsCoordinateReferenceSystem & crs)
+{
+	QString driverName;
+	if (layerName.right(5) == ".gpkg")
+		driverName = "GPKG";
+	else if (layerName.right(4) == ".shp")
+		driverName = "ESRI Shapefile";
+
+	QgsVectorFileWriter::WriterError error;
+	QgsVectorFileWriter newShape(layerName, "system", fields, geometryType, crs, driverName);
 	error = newShape.hasError();
 	if (error == QgsVectorFileWriter::NoError)
 		return true;
@@ -444,7 +459,7 @@ bool ipfOGR::splitShp(const QString & shpName, QStringList & shps)
 		{
 			// 创建新shp
 			QString new_shp = ipfFlowManage::instance()->getTempFormatFile(shpName, ".shp");
-			if (!createrShape(new_shp, layer->wkbType(), layer->fields(), layer->crs().toWkt()))
+			if (!createrVectorlayer(new_shp, layer->wkbType(), layer->fields(), layer->crs().toWkt()))
 			{
 				RELEASE(layer);
 				return false;

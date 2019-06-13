@@ -6,7 +6,7 @@ ipfProgress::ipfProgress(QWidget *parent)
 	ui.setupUi(this);
 	isKeep = false;
 	isPuls = false;
-	childCount = 0;
+	childCount = 1;
 	tatalCount = 0;
 }
 
@@ -20,6 +20,7 @@ void ipfProgress::setTitle(const QString & label)
 		this->setWindowTitle(QStringLiteral("处理进度"));
 	else
 		this->setWindowTitle(label);
+	QApplication::processEvents();
 }
 
 void ipfProgress::setValue(int value)

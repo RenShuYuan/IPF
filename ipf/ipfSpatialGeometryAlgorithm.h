@@ -19,13 +19,17 @@ public:
 	// 设置精度
 	void setPrec(const int prec);
 
+	// 获取pVertex到pOther1、pVertex到pOther2的夹角角度
 	static double triangleVertexAngle(const QgsPoint & pVertex, const QgsPoint & pOther1, const QgsPoint & pOther2);
 
-	// 融合
+	static bool getFeatures(const QgsVectorLayer* layer_src, QVector< QgsFeature > & featureVec);
+
+	// 融合 使用时需要注意先用setPrec设置精度
 	QString dissovle(QgsVectorLayer* layer_src, QgsVectorLayer* layer_target, const QStringList& field);
 
-	// 以下函数均需配合ClipperLib使用, 主要是与QGis之间的格式互换
-	void geometryToPath(const QgsGeometry &g, ClipperLib::Paths & paths);
+private:
+	// 以下函数主要是配合ClipperLib使用
+	void multiPolygonToPath(const QgsGeometry &g, ClipperLib::Paths & paths);
 	void pathToPolygon(const ClipperLib::Paths & paths, QgsGeometry & polygeon);
 	void pathToOgrPolygon(const ClipperLib::Paths & paths, OGRPolygon & polygon);
 	void pathToFeature(const ClipperLib::Paths & paths, QgsFeature & feature);

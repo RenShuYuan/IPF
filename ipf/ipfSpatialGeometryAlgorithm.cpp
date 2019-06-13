@@ -48,191 +48,233 @@ double ipfSpatialGeometryAlgorithm::triangleVertexAngle(const QgsPoint & pVertex
 	return angle;
 }
 
-QString ipfSpatialGeometryAlgorithm::dissovle(QgsVectorLayer * layer_src, QgsVectorLayer * layer_target, const QStringList & field)
+bool ipfSpatialGeometryAlgorithm::getFeatures(const QgsVectorLayer * layer_src, QVector<QgsFeature>& featureVec)
+{
+	if (layer_src == nullptr || !layer_src->isValid())
+		return false;
+
+	QgsFeature f;
+	int indexVec = -1;
+	try
+	{
+		featureVec.resize(layer_src->featureCount());
+		QgsFeatureIterator & featureIt = layer_src->getFeatures();
+		while (featureIt.nextFeature(f))
+			if (f.isValid())
+				featureVec[++indexVec] = f;
+		return true;
+	}
+	catch (...)
+	{
+		return false;
+	}
+}
+
+QString ipfSpatialGeometryAlgorithm::dissovle(QgsVectorLayer * layer_src, QgsVectorLayer * layer_target, const QStringList & fieldList)
 {
 	QTime time; // time
 	QString err;
-	QgsSpatialIndex index;
-	QgsFeatureList featureList;
-	ClipperLib::Paths pathUnion;
-	ClipperLib::Clipper clpr;
-	ClipperLib::Paths solution;
-	ClipperLib::Paths rings;
-	QMultiMap<ClipperLib::cInt, ClipperLib::Path> polygons;
+	QMap< QVector< QString >, QList< QgsFeature* > > groups;
 
 	//初始化进度条计数器
 	ipfProgress proDialog;
 	proDialog.setTitle(QStringLiteral("融合处理"));
-	proDialog.setRangeTotal(0, 4);
+	proDialog.setRangeTotal(0, 0);
 	proDialog.show();
 
-	// 选择图层中所有要素
-	layer_src->selectAll();
-	const QgsFeatureIds & ids_src = layer_src->selectedFeatureIds();
-	
-	// 要素分组
-	QMap< QVector< QString >, QList< QgsFeatureId > > groups;
-	for (auto i : ids_src)
+	// 将字段名称转换为索引号
+	QgsFields fields = layer_src->fields();
+	QVector< int > fieldIndex;
+	for (auto i : fieldList)
 	{
-		QVector< QString > vec(field.size());
-		QgsFeature & f = layer_src->getFeature(i);
+		int index = fields.indexFromName(i);
+		if (index != -1)
+			fieldIndex.push_back(index);
+	}
+
+	// 获得图层中所有要素
+	QVector< QgsFeature > featureVec;
+	if (!getFeatures(layer_src, featureVec))
+		return QStringLiteral("获取矢量图层中的要素失败。");
+
+	// 要素分组
+	proDialog.setRangeChild(0, featureVec.size());
+#pragma omp parallel for
+	for (int i = 0; i < featureVec.size(); ++i)
+	{
+		proDialog.pulsValue();
+
+		QgsFeature & f = featureVec[i];
 		if (!f.isValid()) continue;
 
-		for (int i = 0; i < field.size(); ++i)
-		{
-			vec[i] = f.attribute(field.at(i)).toString();
-		}
+		QVector< QString > vec(fieldIndex.size());
+		for (int i = 0; i < fieldIndex.size(); ++i)
+			vec[i] = f.attribute(fieldIndex[i]).toString();
 
-		if (groups.contains(vec))
-		{
-			groups[vec].append(i);
-		}
-		else
-		{
-			groups[vec] = QList< QgsFeatureId >() << i;
-		}
-	}
-
-	time.start(); //time
-	// 获得图层中所有要素点集合
-	int threadSize = omp_get_max_threads();
-	std::vector< ClipperLib::Paths > pathTemp(threadSize);
-	QList<QgsFeatureId> idList = ids_src.toList();
-	proDialog.setRangeChild(0, idList.size());
-
-#pragma omp parallel for
-	for (int i = 0; i < idList.size(); ++i)
-	{
-		proDialog.pulsValue();
-		QgsFeature & f = layer_src->getFeature(idList.at(i));
-		if (f.isValid())
-		{
-			geometryToPath(f.geometry(), pathTemp[omp_get_thread_num()]);
-		}
-	}
-	for (auto i : pathTemp)
-		pathUnion.insert(pathUnion.end(), i.begin(), i.end());
-	std::vector< ClipperLib::Paths >().swap(pathTemp); // 释放pathTemp
-	qDebug() << QStringLiteral("获得所有要素点集合: %1s").arg(time.elapsed() / 1000.0); //time
-	err += QStringLiteral("获得所有要素点集合: %1s \n").arg(time.elapsed() / 1000.0);
-
-	time.start(); //time
-	// 使用ClipperLib并联处理
-	proDialog.setRangeChild(0, 0);
-	clpr.AddPaths(pathUnion, ClipperLib::ptSubject, true);
-	bool isbl = clpr.Execute(ClipperLib::ctUnion, solution, ClipperLib::pftNonZero);
-	ClipperLib::Paths().swap(pathUnion); // 释放pathUnion
-	if (!isbl || solution.empty())
-		return QStringLiteral("dissovle: Union处理失败。");
-	proDialog.userPulsValueTatal();
-	qDebug() << QStringLiteral("ClipperLib::ctUnion处理: %1s").arg(time.elapsed() / 1000.0); //time
-	err += QStringLiteral("ClipperLib::ctUnion处理: %1s \n").arg(time.elapsed() / 1000.0);
-
-	time.start(); //time
-	// 分离处理后的面与环
-	proDialog.setRangeChild(0, solution.size());
-	for(auto path : solution)
-	{
-		proDialog.pulsValue();
-		double area = ClipperLib::Area(path) / mPrecX0;
-		if (area >= 0)
-			polygons.insert((ClipperLib::cInt)area, path);
-		else
-			rings << path;
-	}
-	ClipperLib::Paths().swap(solution); // 释放solution
-
-	// 创建环的空间索引
-	createSpatialIndex(rings, index);
-	qDebug() << QStringLiteral("将面与环分开: %1s").arg(time.elapsed() / 1000.0); //time
-	err += QStringLiteral("将面与环分开: %1s \n").arg(time.elapsed() / 1000.0);
-
-	time.start(); //time
-	// 遍历每个面，添加属于它的环
-	int counter = 0;
-	proDialog.setRangeChild(0, polygons.size());
-	QList< ClipperLib::Path > & values = polygons.values();
-
-#pragma omp parallel for
-	for (int i = 0; i < values.size(); ++i)
-	{
 #pragma omp critical
-		++counter;
-
-		proDialog.pulsValue();
-
-		ClipperLib::Paths result;
-		const ClipperLib::Path & polygon = values.at(i);
-		result << polygon;
-
-		// 使用空间索引查找与面相交的环
-		ClipperLib::Clipper clpr;
-		clpr.AddPath(polygon, ClipperLib::ptSubject, true);
-		ClipperLib::IntRect rect = clpr.GetBounds();
-		QgsRectangle qrect = intToDouble(rect);
-		QList< QgsFeatureId > idList = index.intersects(qrect);
-
-		foreach(QgsFeatureId id, idList)
 		{
-			ClipperLib::Path ring = rings.at(id);
-			if (counter == polygons.size())
-			{
-#pragma omp critical
-				result << ring;
-			}
+			if (groups.contains(vec))
+				groups[vec].append(&f);
 			else
-			{
-				// 取环的第一个节点，判断该环是否在面内
-				if (ClipperLib::PointInPolygon(ring[0], polygon) != 0)
-				{
-					QgsFeature MyFeature;
-					MyFeature.setId(id);
-					pathToFeature(ClipperLib::Paths() << ring, MyFeature);
+				groups[vec] = QList< QgsFeature* >() << &f;
+		}
+	}
+
+	int currIndex = 0;
+	proDialog.setRangeTotal(0, 4);
+	for (auto i = groups.begin(); i != groups.end(); ++i)
+	{
+		QgsSpatialIndex index;
+		QgsFeatureList featureList;
+		ClipperLib::Paths pathUnion;
+		ClipperLib::Clipper clpr;
+		ClipperLib::Paths solution;
+		ClipperLib::Paths rings;
+		QMultiMap<ClipperLib::cInt, ClipperLib::Path> polygons;
+
+		proDialog.setTitle(QStringLiteral("融合处理 %1/%2").arg(++currIndex).arg(groups.size()));
+
+		auto vec = i.key();
+		auto list = i.value();
+
+		// 构造feature属性
+		QVector< QVariant > attrsVec(layer_target->fields().size());
+		for (int i = 0; i < fieldIndex.size(); ++i)
+			attrsVec[fieldIndex[i]] = vec[i];
+		QgsAttributes attrs(attrsVec);
+
+		// 获得图层中所有要素点集合
+		int threadSize = omp_get_max_threads();
+		std::vector< ClipperLib::Paths > pathTemp(threadSize);
+		proDialog.setRangeChild(0, list.size());
+
+#pragma omp parallel for
+		for (int i = 0; i < list.size(); ++i)
+		{
+			proDialog.pulsValue();
+
+			QgsFeature* f = list.at(i);
+			if (f->isValid())
+				multiPolygonToPath(f->geometry(), pathTemp[omp_get_thread_num()]);
+		}
+		for (auto i : pathTemp)
+			pathUnion.insert(pathUnion.end(), i.begin(), i.end());
+		std::vector< ClipperLib::Paths >().swap(pathTemp); // 释放pathTemp
+
+		// 使用ClipperLib并联处理
+		proDialog.setRangeChild(0, 0);
+		clpr.AddPaths(pathUnion, ClipperLib::ptSubject, true);
+		bool isbl = clpr.Execute(ClipperLib::ctUnion, solution, ClipperLib::pftNonZero);
+		ClipperLib::Paths().swap(pathUnion); // 释放pathUnion
+		if (!isbl || solution.empty())
+			return QStringLiteral("dissovle: Union处理失败。");
+		proDialog.userPulsValueTatal();
+
+		// 分离处理后的面与环
+		proDialog.setRangeChild(0, solution.size());
+		for (auto path : solution)
+		{
+			proDialog.pulsValue();
+			double area = ClipperLib::Area(path) / mPrecX0;
+			if (area >= 0)
+				polygons.insert((ClipperLib::cInt)area, path);
+			else
+				rings << path;
+		}
+		ClipperLib::Paths().swap(solution); // 释放solution
+
+		// 创建环的空间索引
+		createSpatialIndex(rings, index);
+
+		time.start(); //time
+		// 遍历每个面，添加属于它的环
+		int counter = 0;
+		proDialog.setRangeChild(0, polygons.size());
+		auto & values = polygons.values();
+
+#pragma omp parallel for
+		for (int i = 0; i < values.size(); ++i)
+		{
 #pragma omp critical
+			++counter;
+
+			proDialog.pulsValue();
+
+			ClipperLib::Paths result;
+			auto & polygon = values.at(i);
+			result << polygon;
+
+			// 使用空间索引查找与面相交的环
+			ClipperLib::Clipper clpr;
+			clpr.AddPath(polygon, ClipperLib::ptSubject, true);
+			auto & idList = index.intersects(intToDouble(clpr.GetBounds()));
+
+			foreach(QgsFeatureId id, idList)
+			{
+				auto ring = rings.at(id);
+				if (counter == polygons.size())
+				{
+#pragma omp critical
+					result << ring;
+				}
+				else
+				{
+					// 取环的第一个节点，判断该环是否在面内
+					if (ClipperLib::PointInPolygon(ring[0], polygon) != 0)
 					{
-						result << ring;
-						index.deleteFeature(MyFeature);
+						QgsFeature MyFeature;
+						MyFeature.setId(id);
+						pathToFeature(ClipperLib::Paths() << ring, MyFeature);
+#pragma omp critical
+						{
+							result << ring;
+							index.deleteFeature(MyFeature);
+						}
 					}
 				}
 			}
-		}
 
-		QgsFeature MyFeature;
-		pathToFeature(result, MyFeature);
+			// 构造feature
+			QgsFeature MyFeature;
+			MyFeature.setAttributes(attrs);
+			pathToFeature(result, MyFeature);
 #pragma omp critical
-		featureList.append(MyFeature);
+			featureList.append(MyFeature);
 
-		// 每处理一定数量的要素就写入图层中
-		if ((counter % 50) == 0)
-		{
-#pragma omp critical
+			// 每处理一定数量的要素就写入图层中
+			if ((counter % 50) == 0)
 			{
-				layer_target->dataProvider()->addFeatures(featureList);
-				featureList.clear();
+#pragma omp critical
+				{
+					layer_target->dataProvider()->addFeatures(featureList);
+					featureList.clear();
+				}
 			}
 		}
+		layer_target->dataProvider()->addFeatures(featureList);
+		qDebug() << QStringLiteral("处理面与环: %1s").arg(time.elapsed() / 1000.0); //time
+		err += QStringLiteral("处理面与环: %1s \n").arg(time.elapsed() / 1000.0);
 	}
-	layer_target->dataProvider()->addFeatures(featureList);
-	qDebug() << QStringLiteral("处理面与环: %1s").arg(time.elapsed() / 1000.0); //time
-	err += QStringLiteral("处理面与环: %1s \n").arg(time.elapsed() / 1000.0);
 
 	return err;
 }
 
-void ipfSpatialGeometryAlgorithm::geometryToPath(const QgsGeometry & g, ClipperLib::Paths & paths)
+void ipfSpatialGeometryAlgorithm::multiPolygonToPath(const QgsGeometry & g, ClipperLib::Paths & paths)
 {
 	QgsMultiPolygonXY multiPolygon = g.asMultiPolygon();
-
-	foreach(QgsPolygonXY polygon, multiPolygon)
+	for (QgsPolygonXY polygon : multiPolygon)
 	{
-		foreach(QgsPolylineXY polyline, polygon)
+		size_t size = paths.size();
+		paths.resize(size + polygon.size());
+		for (int j = 0; j < polygon.size(); ++j)
 		{
+			QgsPolylineXY polyline = polygon.at(j);
 			ClipperLib::Path p(polyline.size());
 			for (int i = 0; i < polyline.size(); ++i)
 			{
 				p[i] = doubleToInt(polyline.at(i));
 			}
-			paths.push_back(p);
+			paths[size + j] = p;
 		}
 	}
 }
@@ -242,18 +284,19 @@ void ipfSpatialGeometryAlgorithm::pathToPolygon(const ClipperLib::Paths & paths,
 	QString wkt_polygon = "(";
 	QStringList wkt_rings;
 
-	for (size_t i = 0; i < paths.size(); ++i)
+//#pragma omp parallel for
+	for (auto i = 0; i < paths.size(); ++i)
 	{
-		ClipperLib::Path part = paths[i];
+		auto & part = paths[i];
 		if (i == 0)
 		{
 			for (size_t i = 0; i < part.size(); ++i)
 			{
-				QgsPointXY point = intToDouble(part.at(i));
-				wkt_polygon.append(QString("%1 %2,").arg(point.x(), 0, 'f', mPrec).arg(point.y(), 0, 'f', mPrec));
+				QgsPointXY && point = intToDouble(part.at(i));
+				wkt_polygon.append(std::move(QString("%1 %2,").arg(point.x(), 0, 'f', mPrec).arg(point.y(), 0, 'f', mPrec)));
 			}
-			QgsPointXY point = intToDouble(part.at(0));
-			wkt_polygon.append(QString("%1 %2,").arg(point.x(), 0, 'f', mPrec).arg(point.y(), 0, 'f', mPrec));
+			QgsPointXY && point = intToDouble(part.at(0));
+			wkt_polygon.append(std::move(QString("%1 %2,").arg(point.x(), 0, 'f', mPrec).arg(point.y(), 0, 'f', mPrec)));
 
 			wkt_polygon.remove(wkt_polygon.size() - 1, 1);
 			wkt_polygon.append(")");
@@ -263,23 +306,24 @@ void ipfSpatialGeometryAlgorithm::pathToPolygon(const ClipperLib::Paths & paths,
 			QString wkt_ring = "(";
 			for (size_t i = 0; i < part.size(); ++i)
 			{
-				QgsPointXY point = intToDouble(part.at(i));
-				wkt_ring.append(QString("%1 %2,").arg(point.x(), 0, 'f', mPrec).arg(point.y(), 0, 'f', mPrec));
+				QgsPointXY && point = intToDouble(part.at(i));
+				wkt_ring.append(std::move(QString("%1 %2,").arg(point.x(), 0, 'f', mPrec).arg(point.y(), 0, 'f', mPrec)));
 			}
-			QgsPointXY point = intToDouble(part.at(0));
-			wkt_ring.append(QString("%1 %2,").arg(point.x(), 0, 'f', mPrec).arg(point.y(), 0, 'f', mPrec));
+			QgsPointXY && point = intToDouble(part.at(0));
+			wkt_ring.append(std::move(QString("%1 %2,").arg(point.x(), 0, 'f', mPrec).arg(point.y(), 0, 'f', mPrec)));
 
 			wkt_ring.remove(wkt_ring.size() - 1, 1);
 			wkt_ring.append(")");
-			wkt_rings << wkt_ring;
+//#pragma omp critical
+			wkt_rings << std::move(wkt_ring);
 		}
 	}
 
-	QString wkt = "MULTIPOLYGON((" + wkt_polygon;
-	foreach(QString wkt_ring, wkt_rings)
-		wkt.append("," + wkt_ring);
+	QString wkt = "MULTIPOLYGON((" + std::move(wkt_polygon);
+	for (QString wkt_ring : wkt_rings)
+		wkt.append("," + std::move(wkt_ring));
 	wkt.append("))");
-	polygeon = QgsGeometry::fromWkt(wkt);
+	polygeon = std::move(QgsGeometry::fromWkt(wkt));
 }
 
 void ipfSpatialGeometryAlgorithm::pathToOgrPolygon(const ClipperLib::Paths & paths, OGRPolygon & polygon)
@@ -287,10 +331,10 @@ void ipfSpatialGeometryAlgorithm::pathToOgrPolygon(const ClipperLib::Paths & pat
 	for (size_t i = 0; i < paths.size(); ++i)
 	{
 		OGRLinearRing ring;
-		ClipperLib::Path part = paths[i];
+		auto part = paths[i];
 		for (size_t i = 0; i < part.size(); ++i)
 		{
-			QgsPointXY point = intToDouble(part.at(i));
+			auto point = intToDouble(part.at(i));
 			ring.addPoint(point.x(), point.y());
 		}
 		polygon.addRing(&ring);

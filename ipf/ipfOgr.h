@@ -71,8 +71,9 @@ public:
 	// 创建对应类型的数组
 	static void* newTypeSpace(const GDALDataType type, long size);
 
-	// 创建shp文件 文件名、文件类型、字段列表、投影编号
-	static bool createrShape(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QString & wkt);
+	// 创建矢量图层文件 文件名、文件类型、字段列表、投影编号
+	static bool createrVectorlayer(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QString & wkt);
+	static bool createrVectorlayer(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QgsCoordinateReferenceSystem & crs);
 
 	// 分割矢量面，保存到临时文件中
 	static bool splitShp(const QString & shpName, QStringList & shps);

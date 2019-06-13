@@ -159,7 +159,11 @@ ipfProjectionTransformation::errType ipfProjectionTransformation::createTargetCr
 
     QgsCoordinateReferenceSystem mTargetCrs;
 
-	long id = getPCSauthid_Wgs84Gcs(point);
+	long id = 0;
+	if (this->sourceCrs().authid() == "EPSG:4326")
+		id = getPCSauthid_Wgs84Gcs(point);
+	else if (this->sourceCrs().authid() == "EPSG:4490")
+		id = getPCSauthid_CGCS2000(point, 3);
 	mTargetCrs.createFromId(id);
 
 	if (!mTargetCrs.isValid())
@@ -198,27 +202,27 @@ QgsCoordinateReferenceSystem ipfProjectionTransformation::getGCS(const QgsCoordi
     return crs;
 }
 
-long ipfProjectionTransformation::getPCSauthid_CGCS2000(const int cm, const int bw)
+long ipfProjectionTransformation::getPCSauthid_CGCS2000(const QgsPointXY point, const int bw)
 {
     long id = 0;
     if (bw==3)
     {
-        if (cm >= 75 && cm <= 135)
+        if (point.x() >= 75 && point.x() <= 135)
         {
             id = 4534;
             int cmJz = 75;
-            int cmIn = getCentralmeridian3(cm);
+            int cmIn = getCentralmeridian3(point.x());
             while (cmJz != cmIn)
             {
                 cmJz += 3;
                 ++id;
             }
         }
-        else if (cm >= 25 && cm <= 45)
+        else if (point.x() >= 25 && point.x() <= 45)
         {
             id = 4513;
             int cmJz = 25;
-            int cmIn = getBandwidth3(cm);
+            int cmIn = getBandwidth3(point.x());
             while (cmJz != cmIn)
             {
                 ++cmJz;

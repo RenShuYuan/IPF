@@ -66,7 +66,7 @@ public:
 
 private:
 	// 输入中央经线、带宽，返回对应分带的EPSG编号
-    long getPCSauthid_CGCS2000(const int cm, const int bw);
+    long getPCSauthid_CGCS2000(const QgsPointXY point, const int bw);
 	long getPCSauthid_Wgs84Gcs(const QgsPointXY point);
 
 private:

@@ -1386,8 +1386,10 @@ OutRec* ClipperBase::CreateOutRec()
   result->Pts = 0;
   result->BottomPt = 0;
   result->PolyNd = 0;
+
   m_PolyOuts.push_back(result);
   result->Idx = (int)m_PolyOuts.size() - 1;
+
   return result;
 }
 //------------------------------------------------------------------------------
@@ -3199,7 +3201,9 @@ int PointCount(OutPt *Pts)
 void Clipper::BuildResult(Paths &polys)
 {
   polys.reserve(m_PolyOuts.size());
-  for (PolyOutList::size_type i = 0; i < m_PolyOuts.size(); ++i)
+  //for (PolyOutList::size_type i = 0; i < m_PolyOuts.size(); ++i) // --
+#pragma omp parallel for // ++
+  for (int i = 0; i < m_PolyOuts.size(); ++i) // ++
   {
     if (!m_PolyOuts[i]->Pts) continue;
     Path pg;
@@ -3212,6 +3216,7 @@ void Clipper::BuildResult(Paths &polys)
       pg.push_back(p->Pt);
       p = p->Prev;
     }
+#pragma omp critical //++
     polys.push_back(pg);
   }
 }
@@ -3690,75 +3695,78 @@ void Clipper::JoinCommonEdges()
 
     //get the polygon fragment with the correct hole state (FirstLeft)
     //before calling JoinPoints() ...
-    OutRec *holeStateRec;
-    if (outRec1 == outRec2) holeStateRec = outRec1;
-    else if (OutRec1RightOfOutRec2(outRec1, outRec2)) holeStateRec = outRec2;
-    else if (OutRec1RightOfOutRec2(outRec2, outRec1)) holeStateRec = outRec1;
-    else holeStateRec = GetLowermostRec(outRec1, outRec2);
 
-    if (!JoinPoints(join, outRec1, outRec2)) continue;
+	OutRec *holeStateRec;
+	if (outRec1 == outRec2) holeStateRec = outRec1;
+	else if (OutRec1RightOfOutRec2(outRec1, outRec2)) holeStateRec = outRec2;
+	else if (OutRec1RightOfOutRec2(outRec2, outRec1)) holeStateRec = outRec1;
+	else holeStateRec = GetLowermostRec(outRec1, outRec2);
 
-    if (outRec1 == outRec2)
-    {
-      //instead of joining two polygons, we've just created a new one by
-      //splitting one polygon into two.
-      outRec1->Pts = join->OutPt1;
-      outRec1->BottomPt = 0;
-      outRec2 = CreateOutRec();
-      outRec2->Pts = join->OutPt2;
+	if (!JoinPoints(join, outRec1, outRec2)) continue;
 
-      //update all OutRec2.Pts Idx's ...
-      UpdateOutPtIdxs(*outRec2);
+	if (outRec1 == outRec2)
+	{
+		//instead of joining two polygons, we've just created a new one by
+		//splitting one polygon into two.
+		outRec1->Pts = join->OutPt1;
+		outRec1->BottomPt = 0;
+		outRec2 = CreateOutRec();
+		outRec2->Pts = join->OutPt2;
 
-      if (Poly2ContainsPoly1(outRec2->Pts, outRec1->Pts))
-      {
-        //outRec1 contains outRec2 ...
-        outRec2->IsHole = !outRec1->IsHole;
-        outRec2->FirstLeft = outRec1;
+		//update all OutRec2.Pts Idx's ...
+		UpdateOutPtIdxs(*outRec2);
 
-        if (m_UsingPolyTree) FixupFirstLefts2(outRec2, outRec1);
+		if (Poly2ContainsPoly1(outRec2->Pts, outRec1->Pts))
+		{
+			//outRec1 contains outRec2 ...
+			outRec2->IsHole = !outRec1->IsHole;
+			outRec2->FirstLeft = outRec1;
 
-        if ((outRec2->IsHole ^ m_ReverseOutput) == (Area(*outRec2) > 0))
-          ReversePolyPtLinks(outRec2->Pts);
-            
-      } else if (Poly2ContainsPoly1(outRec1->Pts, outRec2->Pts))
-      {
-        //outRec2 contains outRec1 ...
-        outRec2->IsHole = outRec1->IsHole;
-        outRec1->IsHole = !outRec2->IsHole;
-        outRec2->FirstLeft = outRec1->FirstLeft;
-        outRec1->FirstLeft = outRec2;
+			if (m_UsingPolyTree) FixupFirstLefts2(outRec2, outRec1);
 
-        if (m_UsingPolyTree) FixupFirstLefts2(outRec1, outRec2);
+			if ((outRec2->IsHole ^ m_ReverseOutput) == (Area(*outRec2) > 0))
+				ReversePolyPtLinks(outRec2->Pts);
 
-        if ((outRec1->IsHole ^ m_ReverseOutput) == (Area(*outRec1) > 0))
-          ReversePolyPtLinks(outRec1->Pts);
-      } 
-      else
-      {
-        //the 2 polygons are completely separate ...
-        outRec2->IsHole = outRec1->IsHole;
-        outRec2->FirstLeft = outRec1->FirstLeft;
+		}
+		else if (Poly2ContainsPoly1(outRec1->Pts, outRec2->Pts))
+		{
+			//outRec2 contains outRec1 ...
+			outRec2->IsHole = outRec1->IsHole;
+			outRec1->IsHole = !outRec2->IsHole;
+			outRec2->FirstLeft = outRec1->FirstLeft;
+			outRec1->FirstLeft = outRec2;
 
-        //fixup FirstLeft pointers that may need reassigning to OutRec2
-        if (m_UsingPolyTree) FixupFirstLefts1(outRec1, outRec2);
-      }
-     
-    } else
-    {
-      //joined 2 polygons together ...
+			if (m_UsingPolyTree) FixupFirstLefts2(outRec1, outRec2);
 
-      outRec2->Pts = 0;
-      outRec2->BottomPt = 0;
-      outRec2->Idx = outRec1->Idx;
+			if ((outRec1->IsHole ^ m_ReverseOutput) == (Area(*outRec1) > 0))
+				ReversePolyPtLinks(outRec1->Pts);
+		}
+		else
+		{
+			//the 2 polygons are completely separate ...
+			outRec2->IsHole = outRec1->IsHole;
+			outRec2->FirstLeft = outRec1->FirstLeft;
 
-      outRec1->IsHole = holeStateRec->IsHole;
-      if (holeStateRec == outRec2) 
-        outRec1->FirstLeft = outRec2->FirstLeft;
-      outRec2->FirstLeft = outRec1;
+			//fixup FirstLeft pointers that may need reassigning to OutRec2
+			if (m_UsingPolyTree) FixupFirstLefts1(outRec1, outRec2);
+		}
 
-      if (m_UsingPolyTree) FixupFirstLefts3(outRec2, outRec1);
-    }
+	}
+	else
+	{
+		//joined 2 polygons together ...
+
+		outRec2->Pts = 0;
+		outRec2->BottomPt = 0;
+		outRec2->Idx = outRec1->Idx;
+
+		outRec1->IsHole = holeStateRec->IsHole;
+		if (holeStateRec == outRec2)
+			outRec1->FirstLeft = outRec2->FirstLeft;
+		outRec2->FirstLeft = outRec1;
+
+		if (m_UsingPolyTree) FixupFirstLefts3(outRec2, outRec1);
+	}
   }
 }
 

@@ -5,6 +5,9 @@
 #define RELEASE(x)  if(x!=NULL) {delete x; x = NULL;}
 #define RELEASE_ARRAY(x)  if(x!=NULL) {delete [] x; x = NULL;}
 
+// C++
+#include <memory>
+
 // Qt
 #include <QSettings>
 #include <QDebug>

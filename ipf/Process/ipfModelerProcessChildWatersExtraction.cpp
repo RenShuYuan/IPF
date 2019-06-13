@@ -234,7 +234,7 @@ void ipfModelerProcessChildWatersExtraction::run()
 		}
 
 		// 创建矢量图层 ----->
-		if (!ipfOGR::createrShape(vectorFile, QgsWkbTypes::Polygon, QgsFields(), prj))
+		if (!ipfOGR::createrVectorlayer(vectorFile, QgsWkbTypes::Polygon, QgsFields(), prj))
 		{
 			addErrList(vectorFile + QStringLiteral(": 创建矢量文件失败，已跳过。"));
 			QFile::remove(rasterFile);

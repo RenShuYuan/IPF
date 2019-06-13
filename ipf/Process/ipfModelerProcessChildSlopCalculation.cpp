@@ -49,7 +49,7 @@ void ipfModelerProcessChildSlopCalculation::run()
 
 	// 创建输出矢量图层
 	QString vectorFileOut = "D:/testData/dissovle/fwOut.gpkg";
-	if (!ipfOGR::createrShape(vectorFileOut, QgsWkbTypes::Polygon, QgsFields(), ""))
+	if (!ipfOGR::createrVectorlayer(vectorFileOut, QgsWkbTypes::Polygon, layer_src->fields(), layer_src->crs()))
 	{
 		addErrList(QStringLiteral("创建目标矢量数据图层失败。"));
 		return;
@@ -61,8 +61,8 @@ void ipfModelerProcessChildSlopCalculation::run()
 		return;
 	}
 
-	ipfSpatialGeometryAlgorithm ipfsga(3);
-	QString err = ipfsga.dissovle(layer_src, layer_target, QStringList());
+	ipfSpatialGeometryAlgorithm ipfsga(12);
+	QString err = ipfsga.dissovle(layer_src, layer_target, QStringList()<< "GB" << "TYPE");
 	addErrList(err);
 
 	RELEASE(layer_src);
