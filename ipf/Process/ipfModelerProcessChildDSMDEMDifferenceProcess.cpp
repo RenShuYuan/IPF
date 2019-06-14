@@ -1,7 +1,7 @@
 #include "ipfModelerProcessChildDSMDEMDifferenceProcess.h"
-#include "ipfFlowManage.h"
 #include "../gdal/ipfgdalprogresstools.h"
 #include "../ui/ipfModelerDSMDEMDifferenceProcessDialog.h"
+#include "../ipfapplication.h"
 
 #include <QProgressDialog>
 
@@ -130,7 +130,7 @@ void ipfModelerProcessChildDSMDEMDifferenceProcess::run()
 		else
 			var = dem;
 
-		QString target = ipfFlowManage::instance()->getTempFormatFile(var, ".vrt");
+		QString target = ipfApplication::instance()->getTempFormatFile(var, ".vrt");
 		QString err = gdal.dsmdemDiffeProcess(dsm, dem, target, typeName, threshold, isFillNodata);
 		if (err.isEmpty())
 			appendOutFile(target);

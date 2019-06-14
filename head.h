@@ -107,3 +107,16 @@ static const QString MODELER_FRACEXTENTPROCESS(QStringLiteral("测试专用"));
 static const QString MODELER_EXTRACT_RASTER_RANGE(QStringLiteral("提取栅格有效范围-测试"));
 
 #endif // HEAD_H
+
+/*
+	QTime time; // time
+	time.start(); //time
+	QStringLiteral("处理面与环: %1s").arg(time.elapsed() / 1000.0); //time
+*/
+
+/*
+C++ 制转换类型函数
+	const_cast		常量指针、引用被转化成非常量
+	static_cast		强制转换
+	dynamic_cast	面向对象的多态性和程序运行时的状态
+*/

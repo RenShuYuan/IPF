@@ -61,7 +61,7 @@ void ipfModelerProcessChildSlopCalculation::run()
 		return;
 	}
 
-	ipfSpatialGeometryAlgorithm ipfsga(12);
+	ipfSpatialGeometryAlgorithm ipfsga(6);
 	QString err = ipfsga.dissovle(layer_src, layer_target, QStringList()<< "GB" << "TYPE");
 	addErrList(err);
 

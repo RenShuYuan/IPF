@@ -1,5 +1,4 @@
 #include "ImageProcessFactory.h"
-#include "ipf/ipfapplication.h"
 #include "ipf/Graphics/ipfGraphicsView.h"
 #include "ipf/Graphics/ipfGraphicsScene.h"
 #include "ipf/Process/ipfFlowManage.h"
@@ -34,6 +33,7 @@ ImageProcessFactory::ImageProcessFactory(QWidget *parent)
 	grid->addLayout(hbox, 0, 10);
 
 	flow = new ipfFlowManage(this);
+
 
 	initGraphicsView();
 	initButton();

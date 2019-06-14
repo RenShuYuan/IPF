@@ -23,10 +23,10 @@ public:
 	static ipfFlowManage *instance() { return smInstance; }
 
 	// 生成vrt格式的临时文件，需要路径+文件名称+扩展名
-	QString getTempVrtFile(const QString& file);
+	QString getTempVrtFile(const QString& filePath);
 	
-	// 生成指定格式的临时文件，file：完整文件路径, format：扩展名
-	QString getTempFormatFile(const QString& file, const QString& format);
+	// 生成指定格式的临时文件，file：完整文件路径, format：扩展名(.vrt)
+	QString getTempFormatFile(const QString& filePath, const QString& format);
 
 	// 默认在主线后追加
 	void appendItem(ipfModelerGraphicItem* item);
@@ -52,10 +52,8 @@ private:
 
 private:
 	QList< QList<ipfModelerGraphicItem*>* > branchManagement;
-
 	static ipfFlowManage *smInstance;
 	QTemporaryDir tempDir;
-
 	bool isCheck;
 };
 

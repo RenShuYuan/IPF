@@ -3,6 +3,8 @@
 #include <QDir>
 #include "ipfGdalProgressTools.h"
 #include "ipfSpatialGeometryAlgorithm.h"
+#include "../ipfapplication.h"
+#include "../ipf/Process/ipfModelerProcessBase.h"
 #include "../Process/ipfFlowManage.h"
 #include "../ipfOgr.h"
 #include "ipfProgress.h"
@@ -2239,7 +2241,7 @@ QString ipfGdalProgressTools::pixelModifyValue(const QString &source, const QStr
 	int nYSize = xySize.at(0);
 
 	// 创建参数栅格
-	QString templateRaster_tmp = ipfFlowManage::instance()->getTempFormatFile("raster", ".tif");
+	QString templateRaster_tmp = ipfApplication::instance()->getTempFormatFile("raster", ".tif");
 	GDALDataset *poDataset_arg = ogr.createParametersRaster(templateRaster_tmp);
 	if (!poDataset_arg)
 		return source + QStringLiteral(": 传递参数失败，已跳过。");

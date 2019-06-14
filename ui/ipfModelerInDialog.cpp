@@ -16,6 +16,13 @@ ipfModelerInDialog::ipfModelerInDialog(QWidget *parent)
 	ui.tableWidget->setColumnCount(1);
 	ui.tableWidget->setHorizontalHeaderLabels(QStringList() <<  QStringLiteral("已添加的栅格数据"));
 	ui.tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+	mRasterFileFilter = (
+		"* (*.*);;"
+		"TIFF (*.tif);;"
+		"Erdas Imagine Images (*.img);;"
+		"PCIDSK Database File (*.pix);;"
+		"Esri Grid (hdr.adf)");
 }
 
 ipfModelerInDialog::~ipfModelerInDialog()
@@ -45,7 +52,6 @@ void ipfModelerInDialog::on_pushButton_3_clicked()
 
 void ipfModelerInDialog::on_pushButton_clicked()
 {
-	QString mRasterFileFilter = QStringLiteral("* (*.*);;TIFF (*.tif);;Erdas Imagine Images (*.img);;PCIDSK Database File (*.pix)");
 	QString path = mSettings.value("/rasterPath", "/home").toString();
 	QStringList files = QFileDialog::getOpenFileNames(this, QStringLiteral("选择栅格文件"), path, mRasterFileFilter);
 

@@ -50,7 +50,6 @@ public:
 	 *，将只返回文件名称本身
 	*/
 	QString removeDelimiter(const QString file);
-	QString addDelimiter(const QString file, const QString mark);
 
 	// 执行算法
 	virtual void run();
@@ -64,7 +63,7 @@ private:
 	/*模块UUID				*/ QString mId;
 	/*待处理的文件			*/ QStringList mFilesIn;
 	/*已处理后的文件			*/ QStringList mFilesOut;
-	/*已处理后的文件			*/ QStringList errList;
+	/*错误列表				*/ QStringList errList;
 };
 
 #endif // IPFMODELERPROCESSBASE_H

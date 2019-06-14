@@ -40,7 +40,7 @@ void ipfModelerProcessChildMosaic::run()
 	QStringList inList;
 	foreach ( QString str, filesIn() )
 	{
-		ipfOGR ogr(str);
+		ipfOGR ogr(str, true);
 		if (!ogr.isOpen())
 		{
 			addErrList(str + QStringLiteral(": 读取影像失败，已跳过。"));
@@ -60,12 +60,9 @@ void ipfModelerProcessChildMosaic::run()
 		}
 
 		bool isbl = true;
-		QString target = ipfFlowManage::instance()->getTempVrtFile(str);
-		QString err = gdal.formatConvert(str, target, gdal.enumFormatToString("vrt"), "NONE", "NO", "none");
-		ipfOGR oggg(target, true);
 		for (int i = 1; i <= mBands; ++i)
 		{
-			if (CE_None != oggg.getRasterBand(i)->SetColorInterpretation(GCI_Undefined))
+			if (CE_None != ogr.getRasterBand(i)->SetColorInterpretation(GDALColorInterp::GCI_SaturationBand))
 			{
 				isbl = false;
 				break;
@@ -73,15 +70,6 @@ void ipfModelerProcessChildMosaic::run()
 		}
 		if (isbl)
 			inList << str;
-
-		//QString target = ipfFlowManage::instance()->getTempVrtFile(str);
-		//QString err = gdal.clearColorInterp(str, target, mBands);
-		//if (err.isEmpty())
-		//	inList << target;
-		//else
-		//	addErrList(str + ": " + err);
-
-		
 	}
 
 	QString target = ipfFlowManage::instance()->getTempVrtFile("mosaic");

@@ -23,6 +23,8 @@ private slots:
 private:
 	Ui::ipfModelerIn ui;
 	QSettings mSettings;
+
+	QString mRasterFileFilter;
 	QStringList files;
 };
 

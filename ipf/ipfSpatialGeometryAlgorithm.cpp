@@ -72,7 +72,6 @@ bool ipfSpatialGeometryAlgorithm::getFeatures(const QgsVectorLayer * layer_src, 
 
 QString ipfSpatialGeometryAlgorithm::dissovle(QgsVectorLayer * layer_src, QgsVectorLayer * layer_target, const QStringList & fieldList)
 {
-	QTime time; // time
 	QString err;
 	QMap< QVector< QString >, QList< QgsFeature* > > groups;
 
@@ -152,7 +151,6 @@ QString ipfSpatialGeometryAlgorithm::dissovle(QgsVectorLayer * layer_src, QgsVec
 		for (int i = 0; i < list.size(); ++i)
 		{
 			proDialog.pulsValue();
-
 			QgsFeature* f = list.at(i);
 			if (f->isValid())
 				multiPolygonToPath(f->geometry(), pathTemp[omp_get_thread_num()]);
@@ -186,7 +184,6 @@ QString ipfSpatialGeometryAlgorithm::dissovle(QgsVectorLayer * layer_src, QgsVec
 		// 创建环的空间索引
 		createSpatialIndex(rings, index);
 
-		time.start(); //time
 		// 遍历每个面，添加属于它的环
 		int counter = 0;
 		proDialog.setRangeChild(0, polygons.size());
@@ -252,8 +249,6 @@ QString ipfSpatialGeometryAlgorithm::dissovle(QgsVectorLayer * layer_src, QgsVec
 			}
 		}
 		layer_target->dataProvider()->addFeatures(featureList);
-		qDebug() << QStringLiteral("处理面与环: %1s").arg(time.elapsed() / 1000.0); //time
-		err += QStringLiteral("处理面与环: %1s \n").arg(time.elapsed() / 1000.0);
 	}
 
 	return err;
@@ -271,9 +266,7 @@ void ipfSpatialGeometryAlgorithm::multiPolygonToPath(const QgsGeometry & g, Clip
 			QgsPolylineXY polyline = polygon.at(j);
 			ClipperLib::Path p(polyline.size());
 			for (int i = 0; i < polyline.size(); ++i)
-			{
 				p[i] = doubleToInt(polyline.at(i));
-			}
 			paths[size + j] = p;
 		}
 	}
@@ -284,15 +277,14 @@ void ipfSpatialGeometryAlgorithm::pathToPolygon(const ClipperLib::Paths & paths,
 	QString wkt_polygon = "(";
 	QStringList wkt_rings;
 
-//#pragma omp parallel for
 	for (auto i = 0; i < paths.size(); ++i)
 	{
 		auto & part = paths[i];
 		if (i == 0)
 		{
-			for (size_t i = 0; i < part.size(); ++i)
+			for (auto & p : part)
 			{
-				QgsPointXY && point = intToDouble(part.at(i));
+				QgsPointXY && point = intToDouble(p);
 				wkt_polygon.append(std::move(QString("%1 %2,").arg(point.x(), 0, 'f', mPrec).arg(point.y(), 0, 'f', mPrec)));
 			}
 			QgsPointXY && point = intToDouble(part.at(0));
@@ -304,9 +296,9 @@ void ipfSpatialGeometryAlgorithm::pathToPolygon(const ClipperLib::Paths & paths,
 		else
 		{
 			QString wkt_ring = "(";
-			for (size_t i = 0; i < part.size(); ++i)
+			for (auto & p : part)
 			{
-				QgsPointXY && point = intToDouble(part.at(i));
+				QgsPointXY && point = intToDouble(p);
 				wkt_ring.append(std::move(QString("%1 %2,").arg(point.x(), 0, 'f', mPrec).arg(point.y(), 0, 'f', mPrec)));
 			}
 			QgsPointXY && point = intToDouble(part.at(0));
@@ -314,7 +306,6 @@ void ipfSpatialGeometryAlgorithm::pathToPolygon(const ClipperLib::Paths & paths,
 
 			wkt_ring.remove(wkt_ring.size() - 1, 1);
 			wkt_ring.append(")");
-//#pragma omp critical
 			wkt_rings << std::move(wkt_ring);
 		}
 	}
@@ -351,26 +342,26 @@ void ipfSpatialGeometryAlgorithm::pathToFeature(const ClipperLib::Paths & paths,
 ClipperLib::IntPoint ipfSpatialGeometryAlgorithm::doubleToInt(const QgsPointXY & p)
 {
 	ClipperLib::IntPoint ip;
-	ip.X = (ClipperLib::cInt)(p.x()*mPrecX0);
-	ip.Y = (ClipperLib::cInt)(p.y()*mPrecX0);
+	ip.X = static_cast<ClipperLib::cInt>(p.x()*mPrecX0);
+	ip.Y = static_cast<ClipperLib::cInt>(p.y()*mPrecX0);
 	return ip;
 }
 
 QgsPointXY ipfSpatialGeometryAlgorithm::intToDouble(const ClipperLib::IntPoint & p)
 {
 	QgsPointXY qp;
-	qp.setX(((double)p.X) / mPrecX0);
-	qp.setY(((double)p.Y) / mPrecX0);
+	qp.setX((static_cast<double>(p.X) / mPrecX0));
+	qp.setY((static_cast<double>(p.Y) / mPrecX0));
 	return qp;
 }
 
 QgsRectangle ipfSpatialGeometryAlgorithm::intToDouble(const ClipperLib::IntRect & rect)
 {
 	QgsRectangle qRect(
-		((double)rect.left) / mPrecX0,
-		((double)rect.bottom) / mPrecX0,
-		((double)rect.right) / mPrecX0,
-		((double)rect.top) / mPrecX0);
+		(static_cast<double>(rect.left)) / mPrecX0,
+		(static_cast<double>(rect.bottom)) / mPrecX0,
+		(static_cast<double>(rect.right)) / mPrecX0,
+		(static_cast<double>(rect.top)) / mPrecX0);
 	return qRect;
 }
 

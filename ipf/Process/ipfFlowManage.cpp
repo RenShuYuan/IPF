@@ -4,6 +4,7 @@
 #include "ipfModelerProcessBase.h"
 #include "ipfModelerProcessIn.h"
 #include "ipfModelerProcessOut.h"
+#include "ipfOgr.h"
 #include "head.h"
 
 #include <QGraphicsScene>
@@ -205,26 +206,37 @@ void ipfFlowManage::check()
 	}
 }
 
-QString ipfFlowManage::getTempVrtFile(const QString & file)
+QString ipfFlowManage::getTempVrtFile(const QString & filePath)
 {
-	QFileInfo info(file);
-	QString fileName = info.baseName();
-	QStringList list = fileName.split(NAME_DELIMITER);
-	if (list.isEmpty())
-		return QString();
+	QString reName;
+
+	// Esri Grid (hdr.adf)
+	if (QFileInfo(filePath).fileName() == "hdr.adf")
+	{
+		ipfOGR org(filePath);
+		if (!org.isOpen() || org.getBandSize() < 1) return QString();
+		reName = org.getRasterBand(1)->GetDescription();
+	}
 	else
-		fileName = list.at(0);
+	{
+		QString fileName = QFileInfo(filePath).baseName();
+		QStringList list = fileName.split(NAME_DELIMITER);
+		if (list.isEmpty())
+			return QString();
+		else
+			reName = list.at(0);
+	}
 
 	QString id = QUuid::createUuid().toString();
 	id.remove('{').remove('}').remove('-');
-	fileName = fileName + NAME_DELIMITER + id + QStringLiteral(".vrt");
+	reName = reName + NAME_DELIMITER + id + QStringLiteral(".vrt");
 
-	return tempDir.filePath(fileName);
+	return tempDir.filePath(reName);
 }
 
-QString ipfFlowManage::getTempFormatFile(const QString & file, const QString & format)
+QString ipfFlowManage::getTempFormatFile(const QString & filePath, const QString & format)
 {
-	QFileInfo info(file);
+	QFileInfo info(filePath);
 	QString fileName = info.baseName();
 	QStringList list = fileName.split(NAME_DELIMITER);
 	if (list.isEmpty())

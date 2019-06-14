@@ -23,11 +23,11 @@ int main(int argc, char *argv[])
 	screen.show();
 
 	screen.showMessage(QStringLiteral("启动程序"), Qt::AlignHCenter | Qt::AlignBottom, color);
-	QThread::msleep(500);
+	QThread::msleep(250);
 
 	// [ 1 ]
 	screen.showMessage(QStringLiteral("配置环境"), Qt::AlignHCenter | Qt::AlignBottom, color);
-	QThread::msleep(500);
+	QThread::msleep(250);
 	
 	//! 使用 QSettings
 	QCoreApplication::setOrganizationName("YuanLong");
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 
 	// [ 2 ]
 	screen.showMessage(QStringLiteral("检查srs.db数据库"), Qt::AlignHCenter | Qt::AlignBottom, color);
-	QThread::msleep(500);
+	QThread::msleep(250);
 
 	if (!QFile::exists(QApplication::applicationDirPath() + "/Resources/srs.db"))
 		QMessageBox::warning(0, QStringLiteral("警告"), QStringLiteral("srs.db没有找到，投影变换功能将无法使用。"));
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
 	// [ 3 ]
 	screen.showMessage(QStringLiteral("检查资源文件"), Qt::AlignHCenter | Qt::AlignBottom, color);
-	QThread::msleep(500);
+	QThread::msleep(250);
 
 	QDir dirButton(QApplication::applicationDirPath() + "/Resources/button");
 	if (!dirButton.exists())
