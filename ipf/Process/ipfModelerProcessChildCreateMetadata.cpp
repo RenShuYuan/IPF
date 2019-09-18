@@ -2,7 +2,6 @@
 #include "ipfFlowManage.h"
 #include "../gdal/ipfgdalprogresstools.h"
 #include "../gdal/ipfExcel.h"
-#include "ipfapplication.h"
 #include "ipfOgr.h"
 #include "ipfProjectionTransformation.h"
 #include "../ui/ipfModelerCreateMetadataDialog.h"
@@ -559,7 +558,7 @@ void ipfModelerProcessChildCreateMetadata::run()
 	//}
 
 			// 这句使用OpenMP来加速
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i=0; i< files.size(); ++i)
 	{
 		QString var = files.at(i);
@@ -573,13 +572,13 @@ void ipfModelerProcessChildCreateMetadata::run()
 		else if (metaDataType == QStringLiteral("DOM元数据"))
 			createDomMetaData(var);
 
-#pragma omp critical
-		{
-			if (++prCount < files.size())
-			{
+//#pragma omp critical
+		//{
+			//if (++prCount < files.size())
+			//{
 				dialog.setValue(prCount);
 				QApplication::processEvents();
-			}
-		}
+			//}
+		//}
 	}
 }

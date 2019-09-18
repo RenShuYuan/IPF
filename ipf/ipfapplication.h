@@ -29,6 +29,13 @@ public:
 	// 生成指定格式的临时文件，file：完整文件路径, format：扩展名(.vrt)
 	QString getTempFormatFile(const QString& filePath, const QString& format);
 
+	/* 分隔符管理
+	 * name: 输入一个完整路径的文件
+	 *，处理后将移除路径及扩展名
+	 *，将只返回文件名称本身
+	*/
+	QString removeDelimiter(const QString file);
+
 	/** 搜索文件
 	* @param path		搜索该路径及子文件夹
 	* @param filters	过滤器列表
@@ -43,7 +50,7 @@ public:
 
 private:
 	static ipfApplication *smInstance;
-	QTemporaryDir tempDir1;
+	QTemporaryDir tempDir;
 };
 
 #endif

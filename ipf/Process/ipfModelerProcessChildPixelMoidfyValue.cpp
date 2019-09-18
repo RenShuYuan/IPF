@@ -69,7 +69,7 @@ void ipfModelerProcessChildPixelMoidfyValue::run()
 
 	foreach(QString var, filesIn())
 	{
-		QString target = ipfFlowManage::instance()->getTempVrtFile(var);
+		QString target = ipfApplication::instance()->getTempVrtFile(var);
 		QString err = gdal.pixelModifyValue(var, target, oldValue, newValue, bands_noDiffe);
 		if (err.isEmpty())
 			appendOutFile(target);

@@ -4,6 +4,7 @@
 #include "head.h"
 #include "qgsfields.h"
 #include "qgswkbtypes.h"
+#include "qgsvectorlayer.h"
 
 class ipfOGR
 {
@@ -72,10 +73,13 @@ public:
 	static void* newTypeSpace(const GDALDataType type, long size);
 
 	// 创建矢量图层文件 文件名、文件类型、字段列表、投影编号
-	static bool createrVectorlayer(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QString & wkt);
-	static bool createrVectorlayer(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QgsCoordinateReferenceSystem & crs);
+	static QgsVectorLayer* createrVectorlayer(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QgsCoordinateReferenceSystem & crs);
+	static QgsVectorLayer* createrVectorlayer(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QString & wkt);
 
-	// 分割矢量面，保存到临时文件中
+	static bool createrVectorFile(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QString & wkt);
+	static bool createrVectorFile(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QgsCoordinateReferenceSystem & crs);
+
+	// 分割矢量面，将每个feature保存到单独的临时shp文件中
 	static bool splitShp(const QString & shpName, QStringList & shps);
 
 	// 分割栅格，保存到临时文件中

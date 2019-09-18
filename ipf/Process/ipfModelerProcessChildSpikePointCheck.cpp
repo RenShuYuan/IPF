@@ -108,7 +108,7 @@ void ipfModelerProcessChildSpikePointCheck::run()
 				{
 					// 分割栅格，提升栅格转矢量的效率
 					QStringList clipRasers;
-					if (!ogr.splitRaster(1024, clipRasers))
+					if (!ogr.splitRaster(BLOCKSIZE_VECTOR, clipRasers))
 					{
 						addErrList(rasterFileName + QStringLiteral(": 输出错误矢量失败，已跳过。"));
 						continue;
@@ -116,7 +116,7 @@ void ipfModelerProcessChildSpikePointCheck::run()
 
 					// 创建矢量图层 ----->
 					QString vectorFile = target.mid(0, target.size() - 3) + "shp";
-					if (!ipfOGR::createrVectorlayer(vectorFile, QgsWkbTypes::Polygon, QgsFields(), wkt))
+					if (!ipfOGR::createrVectorFile(vectorFile, QgsWkbTypes::Polygon, QgsFields(), wkt))
 					{
 						addErrList(rasterFileName + QStringLiteral(": 创建错误矢量文件失败，已跳过。"));
 						continue;

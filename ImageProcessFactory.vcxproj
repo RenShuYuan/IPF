@@ -145,7 +145,6 @@
     <ClCompile Include="ipf\Process\ipfFlowManage.cpp" />
     <ClCompile Include="ipf\Process\ipfModelerProcessChildDSMDEMDifferenceCheck.cpp" />
     <ClCompile Include="ipf\Process\ipfModelerProcessChildDSMDEMDifferenceProcess.cpp" />
-    <ClCompile Include="ipf\Process\ipfModelerProcessChildExtractRasterRange.cpp" />
     <ClCompile Include="ipf\Process\ipfModelerProcessBase.cpp" />
     <ClCompile Include="ipf\Process\ipfModelerProcessChild.cpp" />
     <ClCompile Include="ipf\Process\ipfModelerProcessChildbuildOverviews.cpp" />
@@ -184,7 +183,6 @@
     <ClCompile Include="ui\ipfModelerDemGrossErrorCheckDialog.cpp" />
     <ClCompile Include="ui\ipfModelerDiffeCheckDialog.cpp" />
     <ClCompile Include="ui\ipfModelerDSMDEMDifferenceProcessDialog.cpp" />
-    <ClCompile Include="ui\ipfModelerExtractRasterRangeDialog.cpp" />
     <ClCompile Include="ui\ipfModelerFracClipDialog.cpp" />
     <ClCompile Include="ui\ipfModelerFracExtentCheckDialog.cpp" />
     <ClCompile Include="ui\ipfModelerInDialog.cpp" />
@@ -222,7 +220,6 @@
     <QtUic Include="ui\ipfModelerDemGrossErrorCheckDialog.ui" />
     <QtUic Include="ui\ipfModelerDiffeCheckDialog.ui" />
     <QtUic Include="ui\ipfModelerDSMDEMDifferenceProcessDialog.ui" />
-    <QtUic Include="ui\ipfModelerExtractRasterRangeDialog.ui" />
     <QtUic Include="ui\ipfModelerFracClipDialog.ui" />
     <QtUic Include="ui\ipfModelerFracExtentCheckDialog.ui" />
     <QtUic Include="ui\ipfModelerIn.ui" />
@@ -256,7 +253,6 @@
     <ClInclude Include="ipf\ipfSpatialGeometryAlgorithm.h" />
     <ClInclude Include="ipf\Process\ipfModelerProcessChildDSMDEMDifferenceCheck.h" />
     <ClInclude Include="ipf\Process\ipfModelerProcessChildDSMDEMDifferenceProcess.h" />
-    <ClInclude Include="ipf\Process\ipfModelerProcessChildExtractRasterRange.h" />
     <ClInclude Include="ipf\Process\ipfModelerProcessChildbuildOverviews.h" />
     <ClInclude Include="ipf\Process\ipfModelerProcessChildConsistency.h" />
     <ClInclude Include="ipf\Process\ipfModelerProcessChildDemGrossErrorCheck.h" />
@@ -302,12 +298,6 @@
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
     </QtMoc>
     <QtMoc Include="ui\ipfModelerWatersExtractionDialog.h">
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
-      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
-      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;CORE_EXPORT=__declspec(dllimport);GUI_EXPORT=__declspec(dllimport);PYTHON_EXPORT=__declspec(dllimport);SVG_EXPORT=__declspec(dllimport);ANALYSIS_EXPORT=__declspec(dllimport);CUSTOMWIDGETS_EXPORT=__declspec(dllimport);SERVER_EXPORT=__declspec(dllimport);APP_EXPORT=__declspec(dllexport);M_PI=3.1415926535897932384626433832795</Define>
-    </QtMoc>
-    <QtMoc Include="ui\ipfModelerExtractRasterRangeDialog.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>
       <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\OSGeo4W64\include;C:\OSGeo4W64\include\spatialindex;C:\OSGeo4W64\include\spatialite;C:\OSGeo4W64\apps\qgis-rel-dev\include;C:\OSGeo4W64\apps\qgis-rel-dev\src;C:\OSGeo4W64\apps\qgis-rel-dev\src\plugins;C:\OSGeo4W64\apps\qgis-rel-dev\src\core;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\auth;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\dxf;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\effects;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\geometry;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\layertree;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\pal;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\raster;C:\OSGeo4W64\apps\qgis-rel-dev\src\core\symbology;C:\OSGeo4W64\apps\qgis-rel-dev\src\gui;C:\OSGeo4W64\apps\qgis-rel-dev\src\app;C:\OSGeo4W64\apps\qgis-rel-dev\src\app\pluginmanager;.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtSvg;$(QTDIR)\include\QtWidgets;.\ui;.\ipf;$(QTDIR)\include\ActiveQt</IncludePath>

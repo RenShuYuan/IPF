@@ -3,9 +3,7 @@
 #include <QDir>
 #include "ipfGdalProgressTools.h"
 #include "ipfSpatialGeometryAlgorithm.h"
-#include "../ipfapplication.h"
 #include "../ipf/Process/ipfModelerProcessBase.h"
-#include "../Process/ipfFlowManage.h"
 #include "../ipfOgr.h"
 #include "ipfProgress.h"
 #include "gdal_rat.h"
@@ -40,8 +38,6 @@ double IPF_RANGE_NODATA = 0.0;
 
 double IPF_SPIKE_THRESHOLD = 0.0;
 double IPF_SPIKE_NODATA = 0.0;
-
-QStringList csssseeeww;
 
 //ipfGdalProgressTools *ipfGdalProgressTools::smInstance = nullptr;
 
@@ -272,10 +268,7 @@ int ALGTermProgress(double dfComplete, const char *pszMessage, void *pProgressAr
 		return TRUE;
 }
 
-/*
-*	3x3模板算子 ---------------->
-*/
-
+// [3x3模板算子]
 float stdevpAlg(float* pafWindow, float fDstNoDataValue, void* pData)
 {
 	double arvge = 0.0;
@@ -341,10 +334,7 @@ float stdevpAlg(float* pafWindow, float fDstNoDataValue, void* pData)
 
 	return stdevp;
 }
-
-/*
-*	3x3模板算子 ----------------<
-*/
+// [3x3模板算子]
 
 /*
 *	vrt算法 ---------------->
@@ -861,7 +851,7 @@ ipfGdalProgressTools::ipfGdalProgressTools()
 	GDALAddDerivedBandPixelFunc("pixelModifyValueFunction", pixelModifyValueFunction);
 	GDALAddDerivedBandPixelFunc("pixelModifyUnBackGroundFunction", pixelModifyUnBackGroundFunction); 
 	GDALAddDerivedBandPixelFunc("pixelDSMDEMDiffProcessFunction", pixelDSMDEMDiffProcessFunction);
-	GDALAddDerivedBandPixelFunc("pixelInvalidValue", pixelInvalidValueFunction);
+	GDALAddDerivedBandPixelFunc("pixelInvalidValueFunction", pixelInvalidValueFunction);
 	GDALAddDerivedBandPixelFunc("pixelFillValueFunction", pixelFillValueFunction);
 	//GDALAddDerivedBandPixelFunc("pixelSpikePointFunction", pixelSpikePointFunction);
 	GDALAddDerivedBandPixelFunc("pixelSlopFunction_S2", pixelSlopFunction_S2);
@@ -870,23 +860,6 @@ ipfGdalProgressTools::ipfGdalProgressTools()
 ipfGdalProgressTools::~ipfGdalProgressTools()
 {
     delete proDialog;
-}
-
-qulonglong ipfGdalProgressTools::getFreePhysicalMemory()
-{
-	MEMORYSTATUSEX statex;
-	statex.dwLength = sizeof(statex);
-	GlobalMemoryStatusEx(&statex);
-	qulonglong size = statex.ullAvailPhys;
-
-	return size;
-}
-
-int ipfGdalProgressTools::getNoOfProcessors()
-{
-	SYSTEM_INFO si;
-	GetSystemInfo(&si);
-	return si.dwNumberOfProcessors;
 }
 
 QString ipfGdalProgressTools::locationPixelInfo(const QString & source, const double x, const double y, int & iRow, int & iCol)
@@ -1064,20 +1037,6 @@ QString ipfGdalProgressTools::mosaic_Buildvrt(const QStringList & sourceList, co
 	ipfGdalProgressTools::errType err = ipfGDALbuildvrt(strArgv);
 	QString str = enumErrTypeToString(err);
 
-	return str;
-}
-
-QString ipfGdalProgressTools::clearColorInterp(const QString & source, const QString & target, const int bands)
-{
-	QString colorInterp = "undefined";
-	for (int i = 1; i < bands; ++i)
-		colorInterp += ",undefined";
-
-	QString strArgv = QString("-colorinterp %1 %2 %3")
-		.arg(colorInterp).arg(source).arg(target);
-
-	ipfGdalProgressTools::errType err = ipfGDALTranslate(strArgv);
-	QString str = enumErrTypeToString(err);
 	return str;
 }
 
@@ -1663,6 +1622,175 @@ ipfGdalProgressTools::errType ipfGdalProgressTools::ipfGDALlocationinfo(const QS
 	return eOK;
 }
 
+ipfGdalProgressTools::errType ipfGdalProgressTools::ipfGDALaddo(const QString & str)	/////////////////////////////////////////////////////////////////
+{
+	QStringList list = str.split(' ', QString::SkipEmptyParts);
+	int argc = list.size();
+	if (argc == 0)
+		return eParameterNull;
+
+	char **argv = (char **)malloc(sizeof(char*)*argc);
+	for (int var = 0; var < argc; ++var)
+	{
+		std::string str = list.at(var).toStdString();
+		const char* p = str.c_str();
+		size_t cSize = strlen(p);
+		char *c = (char*)malloc(sizeof(char*)*cSize);
+		strncpy(c, p, cSize);
+		c[cSize] = '\0';
+		argv[var] = c;
+	}
+
+	argc = GDALGeneralCmdLineProcessor(argc, &argv, 0);
+	if (argc < 1)
+		return eParameterErr;
+
+	const char *pszResampling = "nearest";
+	const char *pszFilename = nullptr;
+	int anLevels[1024] = {};
+	int nLevelCount = 0;
+	int nResultStatus = 0;
+	bool bReadOnly = false;
+	bool bClean = false;
+	GDALProgressFunc pfnProgress = ALGTermProgress;
+	int *panBandList = nullptr;
+	int nBandCount = 0;
+	char **papszOpenOptions = nullptr;
+	int nMinSize = 256;
+	ipfGdalProgressTools::errType errtpye = eOK;
+
+	/* -------------------------------------------------------------------- */
+	/*      Parse command line.                                              */
+	/* -------------------------------------------------------------------- */
+	for (int iArg = 1; iArg < argc; iArg++)
+	{
+		if (EQUAL(argv[iArg], "-r"))
+		{
+			pszResampling = argv[++iArg];
+		}
+		else if (EQUAL(argv[iArg], "-ro"))
+		{
+			bReadOnly = true;
+		}
+		else if (EQUAL(argv[iArg], "-clean"))
+		{
+			bClean = true;
+		}
+		else if (EQUAL(argv[iArg], "-q") ||
+			EQUAL(argv[iArg], "-quiet"))
+		{
+			pfnProgress = GDALDummyProgress;
+		}
+		else if (EQUAL(argv[iArg], "-b"))
+		{
+			const char* pszBand = argv[iArg + 1];
+			const int nBand = atoi(pszBand);
+			if (nBand < 1)
+			{
+				return eBandsNoSupport;
+			}
+			iArg++;
+
+			nBandCount++;
+			panBandList = static_cast<int *>(
+				CPLRealloc(panBandList, sizeof(int) * nBandCount));
+			panBandList[nBandCount - 1] = nBand;
+		}
+		else if (EQUAL(argv[iArg], "-oo"))
+		{
+			papszOpenOptions = CSLAddString(papszOpenOptions, argv[++iArg]);
+		}
+		else if (EQUAL(argv[iArg], "-minsize"))
+		{
+			nMinSize = atoi(argv[++iArg]);
+		}
+		else if (pszFilename == nullptr)
+		{
+			pszFilename = argv[iArg];
+		}
+		else
+		{
+			return eParameterErr;
+		}
+	}
+
+	if (pszFilename == nullptr)
+		return eParameterErr;
+
+	/* -------------------------------------------------------------------- */
+	/*      Open data file.                                                 */
+	/* -------------------------------------------------------------------- */
+	GDALDatasetH hDataset = nullptr;
+	if (!bReadOnly)
+	{
+		hDataset = GDALOpenEx(pszFilename, GDAL_OF_RASTER | GDAL_OF_UPDATE,
+			nullptr, papszOpenOptions, nullptr);
+	}
+
+	if (hDataset == nullptr)
+		hDataset = GDALOpenEx(pszFilename, GDAL_OF_RASTER | GDAL_OF_VERBOSE_ERROR,
+			nullptr, papszOpenOptions, nullptr);
+
+	CSLDestroy(papszOpenOptions);
+	papszOpenOptions = nullptr;
+
+	if (hDataset == nullptr)
+		return eSourceOpenErr;
+
+	/* -------------------------------------------------------------------- */
+	/*      Clean overviews.                                                */
+	/* -------------------------------------------------------------------- */
+	if (bClean)
+	{
+		if (GDALBuildOverviews(hDataset, pszResampling, 0, nullptr,
+			0, nullptr, pfnProgress, proDialog) != CE_None)
+		{
+			errtpye = eCleanOverviews;
+		}
+	}
+	else
+	{
+		/* -------------------------------------------------------------------- */
+		/*      Generate overviews.                                             */
+		/* -------------------------------------------------------------------- */
+
+		if (nLevelCount == 0)
+		{
+			const int nXSize = GDALGetRasterXSize(hDataset);
+			const int nYSize = GDALGetRasterYSize(hDataset);
+			int nOvrFactor = 1;
+			while (DIV_ROUND_UP(nXSize, nOvrFactor) > nMinSize ||
+				DIV_ROUND_UP(nYSize, nOvrFactor) > nMinSize)
+			{
+				nOvrFactor *= 2;
+				anLevels[nLevelCount++] = nOvrFactor;
+			}
+		}
+
+		// Only HFA supports selected layers
+		if (nBandCount > 0)
+			CPLSetConfigOption("USE_RRD", "YES");
+
+		if (nLevelCount > 0 &&
+			GDALBuildOverviews(hDataset, pszResampling, nLevelCount, anLevels,
+				nBandCount, panBandList, pfnProgress,
+				proDialog) != CE_None)
+		{
+			errtpye = eBuildOverviews;
+		}
+	}
+
+	/* -------------------------------------------------------------------- */
+	/*      Cleanup                                                         */
+	/* -------------------------------------------------------------------- */
+	GDALClose(hDataset);
+
+	CSLDestroy(argv);
+	CPLFree(panBandList);
+
+	return errtpye;
+}
+
 ipfGdalProgressTools::errType ipfGdalProgressTools::ipfGDALOgrToOgr(const QString & str)
 {
 	QStringList list = str.split('@', QString::SkipEmptyParts);
@@ -2023,6 +2151,25 @@ QString ipfGdalProgressTools::extractRasterRange(const QString & source, const Q
 QString ipfGdalProgressTools::filterInvalidValue(const QString & source, const QString & target
 	, const QString invalidString, const bool isNegative, const bool isNodata, const bool bands_noDiffe)
 {
+	AlgDataInvaildVC alg;
+	alg.bands_noDiffe = bands_noDiffe;
+	alg.isNegative = isNegative;
+	// 分割无效值
+	QStringList valueList;
+	alg.invalidValue.clear();
+	if (!invalidString.isEmpty())
+		valueList = invalidString.split('@', QString::SkipEmptyParts);
+	foreach(QString str, valueList)
+	{
+		alg.invalidValue.append(str.toDouble());
+	}
+
+	GDALSinglePointGenericProcessingAlg pfnAlg = ipfAlg_InvaildValueCheck;
+	ipfGdalProgressTools::errType err = GDALSinglePointGenericProcessing(source, target, static_cast<void*>(&alg), pfnAlg);
+	QString str = enumErrTypeToString(err);
+	return str;
+
+/*
 	ipfOGR ogr(source);
 	if (!ogr.isOpen())
 		return enumErrTypeToString(eSourceOpenErr);
@@ -2077,6 +2224,7 @@ QString ipfGdalProgressTools::filterInvalidValue(const QString & source, const Q
 
 	GDALClose((GDALDatasetH)poDataset_target);
 	return enumErrTypeToString(eOK);
+*/
 }
 
 QString ipfGdalProgressTools::slopCalculation_S2(const QString & source, const QString & target)
@@ -2391,10 +2539,320 @@ int ipfGdalProgressTools::QStringToChar(const QString& str, char ***argv)
     return doneSize;
 }
 
+double ipfGdalProgressTools::ipfAlg_NDWI(QVector<double>& pafWindow, void * pData, double * nodata)
+{
+	double* threshold = static_cast<double*>(pData);
+
+	double G = pafWindow[1];
+	double NIR = pafWindow[3];
+
+	double NDWI = (G - NIR) / (NIR + G);
+
+	if (NDWI < *threshold)
+		NDWI = *nodata;
+
+	return NDWI;
+}
+
+double ipfGdalProgressTools::ipfAlg_NDVI(QVector<double>& pafWindow, void * pData, double * nodata)
+{
+	AlgDataNDVI *alg = static_cast<AlgDataNDVI*>(pData);
+
+	double B = pafWindow[0];
+	double G = pafWindow[1];
+	double R = pafWindow[2];
+	double NIR = pafWindow[3];
+
+	double NDVI = (NIR - R) / (NIR + R);
+
+	if (abs(NDVI) > alg->index)
+	{
+		if (alg->stlip_index != 0)
+		{
+			double ylVI = (B - R) / (B + R);
+			if (abs(ylVI) < alg->stlip_index)
+				NDVI = *nodata;
+		}
+	}
+	else
+		NDVI = *nodata;
+
+	return NDVI;
+}
+
+double ipfGdalProgressTools::ipfAlg_InvaildValueCheck(QVector<double>& pafWindow, void * pData, double * nodata)
+{
+	int x0 = 0;
+	int size = pafWindow.size();
+	AlgDataInvaildVC *alg = static_cast<AlgDataInvaildVC*>(pData);
+
+	// 检查无效数据、异常值
+	for (int i = 0; i < size; ++i)
+	{
+		if (::isnan(pafWindow[i]))
+		{
+			x0 = 1;
+			break;
+		}
+	}
+
+	// 检查负值
+	if (alg->isNegative && !x0)
+	{
+		for (int i = 0; i < size; ++i)
+		{
+			if (pafWindow[i] < 0)
+			{
+				x0 = 1;
+				break;
+			}
+		}
+	}
+
+	// 检查无效枚举值
+	if (!x0 && !alg->invalidValue.isEmpty())
+	{
+		if (!alg->bands_noDiffe)
+		{
+			for (int i = 0; i < size; ++i)
+			{
+				if (alg->invalidValue.contains(pafWindow[i]))
+				{
+					x0 = 1;
+					break;
+				}
+			}
+		}
+		else
+		{
+			if (alg->invalidValue.contains(pafWindow[0]))
+			{
+				bool isbl = true;
+				for (int i = 0; i < size - 1; ++i)
+				{
+					if (pafWindow[i] != pafWindow[i + 1])
+					{
+						isbl = false;
+						break;
+					}
+				}
+				if (isbl)
+					x0 = 1;
+			}
+		}
+	}
+
+	return x0;
+}
+
+ipfGdalProgressTools::errType ipfGdalProgressTools::GDALSinglePointGenericProcessing(
+	const QString & srcRaster, 
+	const QString & dstRaster, 
+	void * pData, 
+	GDALSinglePointGenericProcessingAlg pfnAlg)
+{
+	// ![读取源数据及相关信息]
+	ipfOGR ogr_src(srcRaster);
+	if (!ogr_src.isOpen()) return eSourceOpenErr;
+
+	int nXSize = ogr_src.getYXSize().at(1);
+	int nYSize = ogr_src.getYXSize().at(0);
+	int nBands = ogr_src.getBandSize();
+	// [读取源数据及相关信息]
+
+	// ![创建输出栅格]
+	double outNodata = 0.0;
+	GDALDataset* poDataset_target = ogr_src.createNewRaster(dstRaster, IPF_NODATA_NONE, 1, GDT_Float32);
+	if (!poDataset_target) return eNotCreateDest;
+	GDALRasterBand* datasetBand = poDataset_target->GetRasterBand(1);
+	// [创建输出栅格]
+
+	//计算数组大小
+	long blockSize = BLOCKSIZE_RASTER * BLOCKSIZE_RASTER * nBands;
+
+	// ![初始化进度条]
+	int proX = 0;
+	int proY = 0;
+	if (nXSize % BLOCKSIZE_RASTER == 0)
+		proX = nXSize / BLOCKSIZE_RASTER;
+	else
+		proX = nXSize / BLOCKSIZE_RASTER + 1;
+	if (nYSize % BLOCKSIZE_RASTER == 0)
+		proY = nYSize / BLOCKSIZE_RASTER;
+	else
+		proY = nYSize / BLOCKSIZE_RASTER + 1;
+
+	proDialog->setRangeChild(0, proX*proY);
+	// [初始化进度条]
+
+	//循环分块并进行处理
+	for (int i = 0; i < nYSize; i += BLOCKSIZE_RASTER)
+	{
+//#pragma omp parallel for
+		for (int j = 0; j < nXSize; j += BLOCKSIZE_RASTER)
+		{
+			proDialog->pulsValue();
+
+			double *pSrcData = new double[blockSize];
+			double *pDstData = new double[BLOCKSIZE_RASTER * BLOCKSIZE_RASTER];
+
+			// 保存分块实际大小
+			int nXBK = BLOCKSIZE_RASTER;
+			int nYBK = BLOCKSIZE_RASTER;
+
+			//如果最下面和最右边的块不够，剩下多少读取多少
+			if (i + BLOCKSIZE_RASTER > nYSize)
+				nYBK = nYSize - i;
+			if (j + BLOCKSIZE_RASTER > nXSize)
+				nXBK = nXSize - j;
+
+			long size = nYBK * nXBK * nBands;
+
+			// 读取原始图像块
+			if (!ogr_src.readRasterIO(pSrcData, j, i, nXBK, nYBK, GDT_Float64))
+				continue;
+
+			// 处理算法
+			size -= nBands;
+#pragma omp parallel for
+			for (long mi = 0; mi < size; mi += nBands)
+			{
+				QVector< double > pixels(nBands);
+				for (int i = 0; i < nBands; ++i)
+				{
+					pixels[i] = pSrcData[mi + i];
+				}
+
+				double pixel = pfnAlg(pixels, pData, &outNodata);
+				pDstData[mi / nBands] = pixel;
+			}
+			//写到结果图像
+			datasetBand->RasterIO(GF_Write, j, i, nXBK, nYBK, pDstData, nXBK, nYBK, GDT_Float64, 0, 0, 0);
+
+			RELEASE_ARRAY(pSrcData);
+			RELEASE_ARRAY(pDstData);
+		}
+	}
+	GDALClose((GDALDatasetH)poDataset_target);
+
+	return eOK;
+}
+
+ipfGdalProgressTools::errType ipfGdalProgressTools::GDALBandsGenericProcessing(
+	const QString & srcRaster,
+	const QString & dstRaster,
+	void* pData,
+	GDALBandsGenericProcessingAlg pfnAlg)
+{
+	// ![读取源数据及相关信息]
+	ipfOGR ogr_src(srcRaster);
+	if (!ogr_src.isOpen()) return eSourceOpenErr;
+	if (ogr_src.getBandSize() != 4) return eBandsErr;
+
+	int nXSize = ogr_src.getYXSize().at(1);
+	int nYSize = ogr_src.getYXSize().at(0);
+	int nBands = ogr_src.getBandSize();
+
+	QVector< double > noData(nBands);
+	for (int i = 1; i <= nBands; ++i)
+		noData[i-1] = ogr_src.getNodataValue(i);
+	// [读取源数据及相关信息]
+
+	// ![创建输出栅格]
+	double outNodata = 0.0;
+	GDALDataset* poDataset_target = ogr_src.createNewRaster(dstRaster, QString::number(outNodata), 1, GDT_Float32);
+	if (!poDataset_target) return eNotCreateDest;
+	GDALRasterBand* datasetBand = poDataset_target->GetRasterBand(1);
+	// [创建输出栅格]
+
+	//计算数组大小
+	long blockSize = BLOCKSIZE_RASTER * BLOCKSIZE_RASTER * nBands;
+
+	// ![初始化进度条]
+	int proX = 0;
+	int proY = 0;
+	if (nXSize % BLOCKSIZE_RASTER == 0)
+		proX = nXSize / BLOCKSIZE_RASTER;
+	else
+		proX = nXSize / BLOCKSIZE_RASTER + 1;
+	if (nYSize % BLOCKSIZE_RASTER == 0)
+		proY = nYSize / BLOCKSIZE_RASTER;
+	else
+		proY = nYSize / BLOCKSIZE_RASTER + 1;
+
+	proDialog->setRangeChild(0, proX*proY);
+	// [初始化进度条]
+
+	//循环分块并进行处理
+	for (int i = 0; i < nYSize; i += BLOCKSIZE_RASTER)
+	{
+#pragma omp parallel for
+		for (int j = 0; j < nXSize; j += BLOCKSIZE_RASTER)
+		{
+			proDialog->pulsValue();
+
+			double *pSrcData = new double[blockSize];
+			double *pDstData = new double[BLOCKSIZE_RASTER * BLOCKSIZE_RASTER];
+
+			// 保存分块实际大小
+			int nXBK = BLOCKSIZE_RASTER;
+			int nYBK = BLOCKSIZE_RASTER;
+
+			//如果最下面和最右边的块不够，剩下多少读取多少
+			if (i + BLOCKSIZE_RASTER > nYSize)
+				nYBK = nYSize - i;
+			if (j + BLOCKSIZE_RASTER > nXSize)
+				nXBK = nXSize - j;
+
+			long size = nYBK * nXBK * nBands;
+
+			// 读取原始图像块
+			if (!ogr_src.readRasterIO(pSrcData, j, i, nXBK, nYBK, GDT_Float64))
+				continue;
+
+			// 处理算法
+			QVector< double > pixels(nBands);
+			for (long mi = 0; (mi + nBands) < size; mi += nBands)
+			{
+				bool bl = true;
+				for (int i = 0; i < nBands; ++i)
+				{
+					pixels[i] = pSrcData[mi + i];
+					if (pixels[i]==0 || pixels[i]==noData[i])
+					{
+						bl = false;
+						break;
+					}
+				}
+				if (bl)
+				{
+					double pixel = pfnAlg(pixels, pData, &outNodata);
+					pDstData[mi / nBands] = pixel;
+				}
+				else
+				{
+					pDstData[mi / nBands] = outNodata;
+				}
+			}
+			//写到结果图像
+			datasetBand->RasterIO(GF_Write, j, i, nXBK, nYBK, pDstData, nXBK, nYBK, GDT_Float64, 0, 0, 0);
+
+			RELEASE_ARRAY(pSrcData);
+			RELEASE_ARRAY(pDstData);
+		}
+	}
+
+	GDALClose((GDALDatasetH)poDataset_target);
+	return eOK;
+}
+
 ipfGdalProgressTools::errType ipfGdalProgressTools::GDALGeneric3x3Processing(
-	GDALRasterBandH hSrcBand, GDALRasterBandH hDstBand,
-	GDALGeneric3x3ProcessingAlg pfnAlg, void* pData,
-	GDALProgressFunc pfnProgress, void * pProgressData)
+	GDALRasterBandH hSrcBand,
+	GDALRasterBandH hDstBand,
+	GDALGeneric3x3ProcessingAlg pfnAlg,
+	void* pData,
+	GDALProgressFunc pfnProgress,
+	void * pProgressData)
 {
 	CPLErr eErr;
 	float *pafThreeLineWin;  /* 输入图像三行数据存储空间 */
@@ -2426,13 +2884,6 @@ ipfGdalProgressTools::errType ipfGdalProgressTools::GDALGeneric3x3Processing(
 	fDstNoDataValue = (float)GDALGetRasterNoDataValue(hDstBand, &bDstHasNoData);
 	if (!bDstHasNoData)
 		fDstNoDataValue = 0.0;
-
-	// 移动一个3x3的窗口pafWindow遍历每个象元
-	// (中心象元编号为#4)
-	// 
-	//      0 1 2
-	//      3 4 5
-	//      6 7 8
 
 	// 预先加载前两行数据
 	for (i = 0; i < 2 && i < nYSize; i++)
@@ -2537,22 +2988,37 @@ end:
 	CPLFree(pafOutputBuf);
 	CPLFree(pafThreeLineWin);
 
-	//QFile file("d:/outz.txt");
-	//if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
-	//	return eNotCreateDest;
-	//QTextStream out(&file);
-	//foreach(QString str, csssseeeww)
-	//	out << str << endl;
-	//file.close();
-
 	if (eErr == CE_None)
 		return eOK;
 	else
 		return eOther;
 }
 
+qulonglong ipfGdalProgressTools::getFreePhysicalMemory()
+{
+	MEMORYSTATUSEX statex;
+	statex.dwLength = sizeof(statex);
+	GlobalMemoryStatusEx(&statex);
+	qulonglong size = statex.ullAvailPhys;
+	return size;
+}
+
+int ipfGdalProgressTools::getNoOfProcessors()
+{
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+	return si.dwNumberOfProcessors;
+}
+
 QString ipfGdalProgressTools::buildOverviews(const QString & source)
 {
+	QString strArgv = QString("gdaladdo -ro %1").arg(source);
+
+	ipfGdalProgressTools::errType err = ipfGDALaddo(strArgv);
+	QString str = enumErrTypeToString(err);
+	return str;
+
+	/*
 	// 尝试打开数据源
 	GDALDataset *poDataset;
 	poDataset = (GDALDataset*)GDALOpenEx(source.toStdString().c_str(), GDAL_OF_RASTER, NULL, NULL, NULL);
@@ -2585,6 +3051,7 @@ QString ipfGdalProgressTools::buildOverviews(const QString & source)
 
 	GDALClose((GDALDatasetH)poDataset);
 	return enumErrTypeToString(eOK);
+	*/
 }
 
 QString ipfGdalProgressTools::rasterToVector(const QString &rasterFile, const QString &vectorFile, const int index)
@@ -2612,17 +3079,6 @@ QString ipfGdalProgressTools::rasterToVector(const QString &rasterFile, const QS
 		return QStringLiteral("转换矢量数据失败。");
 
 	return enumErrTypeToString(eOK);
-}
-
-QString ipfGdalProgressTools::mergeVector(const QString& outPut, const QString& ogrLayer, const QString& fieldName)
-{
-	QFileInfo info(ogrLayer);
-	QString strArgv = QString("org@%1@%2@-dialect@sqlite@-sql@\"select ST_union(Geometry), %3 from %4 GROUP BY %5\"")
-		.arg(outPut).arg(ogrLayer).arg(fieldName).arg(info.baseName()).arg(fieldName);
-
-	ipfGdalProgressTools::errType err = ipfGDALOgrToOgr(strArgv);
-	QString str = enumErrTypeToString(err);
-	return str;
 }
 
 QString ipfGdalProgressTools::stdevp3x3Alg(const QString & source, const QString & target, const double &threshold)
@@ -2656,6 +3112,26 @@ QString ipfGdalProgressTools::stdevp3x3Alg(const QString & source, const QString
 		GDALClose((GDALDatasetH)poDataset_target);
 		poDataset_target = nullptr;
 	}
+	QString str = enumErrTypeToString(err);
+	return str;
+}
+
+QString ipfGdalProgressTools::calculateNDWI(const QString & source, const QString & target, double & threshold)
+{
+	GDALBandsGenericProcessingAlg pfnAlg = ipfAlg_NDWI;
+	ipfGdalProgressTools::errType err = GDALBandsGenericProcessing(source, target, static_cast<void*>(&threshold), pfnAlg);
+	QString str = enumErrTypeToString(err);
+	return str;
+}
+
+QString ipfGdalProgressTools::calculateNDVI(const QString & source, const QString & target, double & index, double & stlip_index)
+{
+	AlgDataNDVI alg;
+	alg.index = index;
+	alg.stlip_index = stlip_index;
+
+	GDALBandsGenericProcessingAlg pfnAlg = ipfAlg_NDVI;
+	ipfGdalProgressTools::errType err = GDALBandsGenericProcessing(source, target, static_cast<void*>(&alg), pfnAlg);
 	QString str = enumErrTypeToString(err);
 	return str;
 }

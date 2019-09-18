@@ -115,7 +115,7 @@ void ipfModelerProcessChildWaterFlatten::run()
 				continue;
 
 			// 使用矢量文件裁切栅格
-			QString target = ipfFlowManage::instance()->getTempVrtFile(var);
+			QString target = ipfApplication::instance()->getTempVrtFile(var);
 			QString err = gdal.AOIClip(var, target, shp);
 			if (!err.isEmpty())
 			{
@@ -133,7 +133,7 @@ void ipfModelerProcessChildWaterFlatten::run()
 				continue;
 			}
 			srcList << iColLu << iRowLu << iColRd - iColLu + 1 << iRowRd - iRowLu + 1;
-			QString new_target = ipfFlowManage::instance()->getTempVrtFile(var);
+			QString new_target = ipfApplication::instance()->getTempVrtFile(var);
 			err = gdal.proToClip_Translate_src(target, new_target, srcList);
 			if (!err.isEmpty())
 			{

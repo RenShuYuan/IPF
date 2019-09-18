@@ -410,7 +410,23 @@ void * ipfOGR::newTypeSpace(const GDALDataType type, long size)
 	return buffData;
 }
 
-bool ipfOGR::createrVectorlayer(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QString & wkt)
+QgsVectorLayer * ipfOGR::createrVectorlayer(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields & fields, const QgsCoordinateReferenceSystem & crs)
+{
+	if (!createrVectorFile(layerName, geometryType, fields, crs)) return nullptr;
+	QgsVectorLayer *layer_target = new QgsVectorLayer(layerName, "vector");
+	if (layer_target && layer_target->isValid()) return layer_target;
+	else return nullptr;
+}
+
+QgsVectorLayer * ipfOGR::createrVectorlayer(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields & fields, const QString & wkt)
+{
+	if (!createrVectorFile(layerName, geometryType, fields, wkt)) return nullptr;
+	QgsVectorLayer *layer_target = new QgsVectorLayer(layerName, "vector");
+	if (layer_target && layer_target->isValid()) return layer_target;
+	else return nullptr;
+}
+
+bool ipfOGR::createrVectorFile(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields &fields, const QString & wkt)
 {
 	QgsCoordinateReferenceSystem mCrs;
 	mCrs.createFromWkt(wkt);
@@ -429,7 +445,7 @@ bool ipfOGR::createrVectorlayer(const QString & layerName, QgsWkbTypes::Type geo
 	return false;
 }
 
-bool ipfOGR::createrVectorlayer(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields & fields, const QgsCoordinateReferenceSystem & crs)
+bool ipfOGR::createrVectorFile(const QString & layerName, QgsWkbTypes::Type geometryType, const QgsFields & fields, const QgsCoordinateReferenceSystem & crs)
 {
 	QString driverName;
 	if (layerName.right(5) == ".gpkg")
@@ -458,8 +474,8 @@ bool ipfOGR::splitShp(const QString & shpName, QStringList & shps)
 		if (f.isValid())
 		{
 			// 创建新shp
-			QString new_shp = ipfFlowManage::instance()->getTempFormatFile(shpName, ".shp");
-			if (!createrVectorlayer(new_shp, layer->wkbType(), layer->fields(), layer->crs().toWkt()))
+			QString new_shp = ipfApplication::instance()->getTempFormatFile(shpName, ".shp");
+			if (!createrVectorlayer(new_shp, layer->wkbType(), layer->fields(), layer->crs()))
 			{
 				RELEASE(layer);
 				return false;
@@ -507,7 +523,7 @@ bool ipfOGR::splitRaster(const int & nBlockSize, QStringList & clipRasers)
 			srcList << j << i << nXBK << nYBK;
 
 			ipfGdalProgressTools gdal;
-			QString targetChild = ipfFlowManage::instance()->getTempVrtFile(name);
+			QString targetChild = ipfApplication::instance()->getTempVrtFile(name);
 			QString err = gdal.proToClip_Translate_src(name, targetChild, srcList);
 			if (!err.isEmpty())
 				return false;

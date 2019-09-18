@@ -86,7 +86,7 @@ QString ipfApplication::getTempVrtFile(const QString & filePath)
 	id.remove('{').remove('}').remove('-');
 	reName = reName + NAME_DELIMITER + id + QStringLiteral(".vrt");
 
-	return tempDir1.filePath(reName);
+	return tempDir.filePath(reName);
 }
 
 QString ipfApplication::getTempFormatFile(const QString & filePath, const QString & format)
@@ -103,7 +103,31 @@ QString ipfApplication::getTempFormatFile(const QString & filePath, const QStrin
 	id.remove('{').remove('}').remove('-');
 	fileName = fileName + NAME_DELIMITER + id + format;
 
-	return tempDir1.filePath(fileName);
+	return tempDir.filePath(fileName);
+}
+
+QString ipfApplication::removeDelimiter(const QString file)
+{
+	QString reName;
+
+	// Esri Grid (hdr.adf)
+	if (QFileInfo(file).fileName() == "hdr.adf")
+	{
+		ipfOGR org(file);
+		if (!org.isOpen() || org.getBandSize() < 1) return QString();
+		reName = org.getRasterBand(1)->GetDescription();
+	}
+	else
+	{
+		QString fileName = QFileInfo(file).fileName();
+		fileName = fileName.left(fileName.lastIndexOf('.'));
+		QStringList list = fileName.split(NAME_DELIMITER);
+		if (list.isEmpty())
+			return QString();
+		else
+			reName = list.at(0);
+	}
+	return reName;
 }
 
 QStringList ipfApplication::searchFiles( const QString &path, QStringList &filters )

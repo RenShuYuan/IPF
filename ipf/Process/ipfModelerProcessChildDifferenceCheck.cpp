@@ -81,9 +81,9 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 	// 打开栅格
 	QgsRasterLayer* oneLayer = new QgsRasterLayer(oneRaster, oneFileName, "gdal");
 	QgsRasterLayer* twoLayer = new QgsRasterLayer(twoRaster, twoFileName, "gdal");
-	if (!oneLayer->isValid())
+	if (!oneLayer || !oneLayer->isValid())
 		return oneFileName + QStringLiteral(": 栅格数据读取失败。");
-	if (!twoLayer->isValid())
+	if (!twoLayer || !twoLayer->isValid())
 		return twoFileName + QStringLiteral(": 栅格数据读取失败。");
 	
 	// 获取波段数
@@ -111,13 +111,13 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 			ipfGdalProgressTools gdal;
 			QString one_srs = oneCrs.authid();
 			QString two_srs = twoCrs.authid();
-			QString target = ipfFlowManage::instance()->getTempVrtFile(twoRaster);
+			QString target = ipfApplication::instance()->getTempVrtFile(twoRaster);
 			QString err = gdal.transform(twoRaster, target, two_srs, one_srs, "bilinear", nodata);
 			if (err.isEmpty())
 			{
 				RELEASE(twoLayer);
 				twoLayer = new QgsRasterLayer(target, twoFileName, QString("gdal"));
-				if (!twoLayer->isValid())
+				if (!twoLayer || !twoLayer->isValid())
 				{
 					RELEASE(oneLayer);
 					RELEASE(twoLayer);
@@ -178,7 +178,8 @@ QString ipfModelerProcessChildDifferenceCheck::compareRastersDiff(
 
 		// 构建QgsRasterCalculator
 		QgsCoordinateTransformContext context;
-		QString outFile = saveName + "/" + oneEntry.ref + "@" + twoEntry.ref + ".tif";
+		//QString outFile = saveName + "/" + oneEntry.ref + "@" + twoEntry.ref + ".tif"; 
+		QString outFile = ipfApplication::instance()->getTempFormatFile(oneEntry.ref + "@" + twoEntry.ref, ".tif");
 		QgsRasterCalculator rc(oneEntry.ref + " - " + twoEntry.ref, outFile
 			, ipfGdalProgressTools::enumFormatToString("tif")
 			, bbox, oneLayer->crs(), mNColumns, mNRows, entries);
@@ -266,9 +267,8 @@ void ipfModelerProcessChildDifferenceCheck::run()
 	QStringList outList;
 	for (int i = 0; i < files.size(); ++i)
 	{
-		QString var = files.at(i);
-
 		// 从路径中获得图号
+		QString var = files.at(i);
 		QFileInfo info(var);
 		QString fileName = info.baseName();
 
@@ -309,13 +309,14 @@ void ipfModelerProcessChildDifferenceCheck::run()
 					}
 
 					// 检查是否接边
-					for (int i=0; i<returnRasters.size(); ++i)
+					for (auto returnRaster : returnRasters)
 					{
-						QFileInfo info(returnRasters.at(i));
-						ipfOGR org(returnRasters.at(i));
+						QString rasterName = ipfApplication::instance()->removeDelimiter(returnRaster);
+						QString outErrFile = saveName + "/" + rasterName + ".tif";
+						ipfOGR org(returnRaster);
 						if (!org.isOpen())
 						{
-							outList << info.baseName() + QStringLiteral(": 无法读取错误文件，请重新尝试。");
+							outList << rasterName + QStringLiteral(": 无法读取检查文件，请重新尝试。");
 							continue;
 						}
 
@@ -328,39 +329,32 @@ void ipfModelerProcessChildDifferenceCheck::run()
 							{
 								if (abs(point.x()) > valueMax || abs(point.y()) > valueMax)
 								{
-									outList << info.baseName() + QStringLiteral(": 接边错误。");
+									QFile::copy(returnRaster, outErrFile);
+									outList << rasterName + QStringLiteral(": 接边错误。");
 								}
 								else
-								{
-									QFile::remove(returnRasters.at(i));
-									outList << info.baseName() + QStringLiteral(": 接边正确。");
-								}
+									outList << rasterName + QStringLiteral(": 接边正确。");
 							}
 							else
-							{
-								QFile::remove(returnRasters.at(i));
-								outList << info.baseName() + QStringLiteral(": 计算接边差值异常，该情况主要出现在重叠区域均为nodata情况下，请核查。");
-								continue;
-							}
+								outList << rasterName + QStringLiteral(": 计算接边差值异常，该情况主要出现在重叠区域均为nodata情况下，请核查。");
 						}
 						else
 						{
 							CPLErr cErr = org.ComputeMinMax(IPF_ZERO);
 
 							if (cErr == CE_None)
-							{
-								QFile::remove(returnRasters.at(i));
-								outList << info.baseName() + QStringLiteral(": 接边正确。");
-							}
+								outList << rasterName + QStringLiteral(": 接边正确。");
 							else if (cErr == CE_Warning)
-								outList << info.baseName() + QStringLiteral(": 接边错误。");
-							else
 							{
-								QFile::remove(returnRasters.at(i));
-								outList << info.baseName() + QStringLiteral(": 计算接边差值异常，该情况主要出现在接边区域均为nodata情况下，请核查。");
+								QFile::copy(returnRaster, outErrFile);
+								outList << rasterName + QStringLiteral(": 接边错误。");
 							}
+							else
+								outList << rasterName + QStringLiteral(": 计算接边差值异常，该情况主要出现在接边区域均为nodata情况下，请核查。");
 						}
 					}
+					for (auto name : returnRasters)
+						QFile::remove(name);
 				}
 			}
 		}

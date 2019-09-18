@@ -153,9 +153,9 @@ QString ipfModelerProcessChildDSMDEMDifferenceCheck::compareRastersDiff(const QS
 	// 打开栅格
 	QgsRasterLayer* oneLayer = new QgsRasterLayer(oneRaster, oneFileName, "gdal");
 	QgsRasterLayer* twoLayer = new QgsRasterLayer(twoRaster, twoFileName, QString("gdal"));
-	if (!oneLayer->isValid())
+	if (!oneLayer || !oneLayer->isValid())
 		return oneFileName + QStringLiteral(": 栅格数据读取失败。");
-	if (!twoLayer->isValid())
+	if (!twoLayer || !twoLayer->isValid())
 		return twoFileName + QStringLiteral(": 栅格数据读取失败。");
 
 	// 获取波段数

@@ -3,6 +3,7 @@
 #include "../../ui/ipfProgress.h"
 #include "../gdal/ipfgdalprogresstools.h"
 #include "../ui/ipfModelerWatersExtractionDialog.h"
+#include "ipfSpatialGeometryAlgorithm.h"
 #include "../ipfOgr.h"
 
 #include "qgsvectorlayer.h"
@@ -67,13 +68,6 @@ void ipfModelerProcessChildWatersExtraction::setDialogParameter(QMap<QString, QS
 	minimumRingsArea = map["minimumRingsArea"].toInt();
 }
 
-double ipfModelerProcessChildWatersExtraction::watersIndex(const double G, const double NIR)
-{
-	// NDWI
-	double index = (G - NIR) / (NIR + G);
-	return index;
-}
-
 void ipfModelerProcessChildWatersExtraction::run()
 {
 	clearOutFiles();
@@ -81,245 +75,99 @@ void ipfModelerProcessChildWatersExtraction::run()
 
 	ipfProgress proDialog;
 	proDialog.setRangeTotal(0, filesIn().size());
+	proDialog.show();
 
-	foreach(QString var, filesIn())
+	for(auto srcRaster : filesIn())
 	{
-		QString baseName = removeDelimiter(var);
+		proDialog.userPulsValueTatal();
 
-		// 提取满足因子要求的栅格数据 ----->
-		ipfOGR ogr(var);
-		if (!ogr.isOpen())
-		{
-			addErrList(var + QStringLiteral(": 读取栅格数据失败，无法继续。"));
-			continue;
-		}
-
-		int nBands = ogr.getBandSize();
-		if (nBands != 4)
-		{
-			addErrList(var + QStringLiteral(": 需要4波段的影像数据（R、G、B、NIR），无法继续。"));
-			continue;
-		}
-
-		int nXSize = ogr.getYXSize().at(1);
-		int nYSize = ogr.getYXSize().at(0);
-		double nodata1 = ogr.getNodataValue(1);
-		double nodata2 = ogr.getNodataValue(2);
-		double nodata3 = ogr.getNodataValue(3);
-		double nodata4 = ogr.getNodataValue(4);
-		QString prj = ogr.getProjection();
-
-		// 创建输出栅格
-		QString rasterFile = fileName + "\\" + baseName + "_v.img";
-		QString vectorFile = fileName + "\\" + baseName + ".shp";
-		GDALDataset* poDataset_target = ogr.createNewRaster(rasterFile, "-9999", 1, GDT_Float32);
-		if (!poDataset_target)
-		{
-			addErrList(rasterFile + QStringLiteral(": 创建输出栅格数据失败，无法继续。"));
-			continue;
-		}
-		GDALRasterBand* datasetBand = poDataset_target->GetRasterBand(1);
-
-		// 分块参数
-		int nBlockSize = 1024;
-		long blockSize = nBlockSize * nBlockSize * nBands;
-		double *pSrcData = new double[blockSize];
-		double *pDstData = new double[nBlockSize * nBlockSize];
-
-		// 计算进度条值
-		int proX = 0;
-		int proY = 0;
-		if (nXSize % nBlockSize == 0)
-			proX = nXSize / nBlockSize;
-		else
-			proX = nXSize / nBlockSize + 1;
-		if (nYSize % nBlockSize == 0)
-			proY = nYSize / nBlockSize;
-		else
-			proY = nYSize / nBlockSize + 1;
-		proDialog.setRangeChild(0, proX * proY);
-		proDialog.show();
-
-		//循环分块并进行处理
-		int proCount = 0;
-		bool isbl = true;
-		for (int i = 0; i < nYSize; i += nBlockSize)
-		{
-			for (int j = 0; j < nXSize; j += nBlockSize)
-			{
-				// 保存分块实际大小
-				int nXBK = nBlockSize;
-				int nYBK = nBlockSize;
-
-				//如果最下面和最右边的块不够，剩下多少读取多少
-				if (i + nBlockSize > nYSize)
-					nYBK = nYSize - i;
-				if (j + nBlockSize > nXSize)
-					nXBK = nXSize - j;
-
-				long size = nYBK * nXBK * nBands;
-
-				// 读取原始图像块
-				if (!ogr.readRasterIO(pSrcData, j, i, nXBK, nYBK, GDT_Float64)) //ogr.getDataType_y()
-				{
-					addErrList(var + QStringLiteral(": 读取影像分块数据失败，已跳过。"));
-					proDialog.setValue(++proCount);
-					continue;
-				}
-
-				// 处理算法
-				for (long mi = 0; (mi + nBands) < size; mi += nBands)
-				{
-					double B = pSrcData[mi];
-					double G = pSrcData[mi + 1];
-					double R = pSrcData[mi + 2];
-					double NIR = pSrcData[mi + 3];
-
-					// 排除无效值
-					if (B == 0 || B == nodata1 ||
-						G == 0 || G == nodata2 ||
-						R == 0 || R == nodata3 ||
-						NIR == 0 || NIR == nodata4)
-					{
-						pDstData[mi / nBands] = -9999;
-						continue;
-					}
-
-					// 计算水体指数
-					double NDWI = watersIndex( G, NIR);
-					if (NDWI > index)
-					{
-						pDstData[mi / nBands] = NDWI;
-					}
-					else
-					{
-						pDstData[mi / nBands] = -9999;
-					}
-				}
-
-				//写到结果图像
-				datasetBand->RasterIO(GF_Write, j, i, nXBK, nYBK, pDstData, nXBK, nYBK, GDT_Float64, 0, 0, 0);
-
-				proDialog.setValue(++proCount);
-				if (proDialog.wasCanceled())
-					return;
-			}
-		}
-
-		//释放申请的内存
-		RELEASE(pSrcData);
-		RELEASE(pDstData);
-
-		if (poDataset_target)
-		{
-			GDALClose((GDALDatasetH)poDataset_target);
-			poDataset_target = nullptr;
-		}
-		// 提取满足因子要求的栅格数据 -----<
-
-		// 分割栅格，提升栅格转矢量的效率 ----->
+		QString err;
+		ipfOGR ogr_clip;
 		QStringList clipRasers;
-		ipfOGR ogr_clip(rasterFile);
-		if (!ogr_clip.isOpen())
+		ipfSpatialGeometryAlgorithm sga(6);
+
+		QgsVectorLayer *layer_src = nullptr;
+		QgsVectorLayer *layer_target = nullptr;
+		QgsVectorLayer *layer_target_target = nullptr;
+
+		QString tmpRaster = ipfApplication::instance()->getTempFormatFile(srcRaster, ".tif");
+		QString tmpShape = ipfApplication::instance()->getTempFormatFile(srcRaster, ".shp");
+		QString tmpShape_dissolve = ipfApplication::instance()->getTempFormatFile(srcRaster, ".shp");
+		QString dstShp = fileName + "\\" + ipfApplication::instance()->removeDelimiter(srcRaster) + ".shp";
+
+		// 计算NDWI栅格数据
+		ipfGdalProgressTools gdal;
+		gdal.showProgressDialog();
+		err = gdal.calculateNDWI(srcRaster, tmpRaster, index);
+		if (!err.isEmpty()) goto end;
+
+		// 分割栅格
+		if (!ogr_clip.open(tmpRaster))
 		{
-			addErrList(baseName + QStringLiteral(": 输出检查结果失败，请自行核查该数据 -2。"));
-			QFile::remove(rasterFile);
-			continue;
+			err = QStringLiteral(": 输出检查结果失败，请自行核查该数据 -2。");
+			goto end;
 		}
-		if (!ogr_clip.splitRaster(1024, clipRasers))
+		if (!ogr_clip.splitRaster(BLOCKSIZE_VECTOR, clipRasers))
 		{
-			addErrList(baseName + QStringLiteral(": 转换矢量失败，已跳过。"));
-			QFile::remove(rasterFile);
-			continue;
+			err = QStringLiteral(": 转换矢量失败，已跳过。");
+			goto end;
 		}
 
-		// 创建矢量图层 ----->
-		if (!ipfOGR::createrVectorlayer(vectorFile, QgsWkbTypes::Polygon, QgsFields(), prj))
+		// 创建矢量文件
+		if (!ipfOGR::createrVectorFile(tmpShape, QgsWkbTypes::Polygon, QgsFields(), ogr_clip.getProjection()))
 		{
-			addErrList(vectorFile + QStringLiteral(": 创建矢量文件失败，已跳过。"));
-			QFile::remove(rasterFile);
-			continue;
+			err = QStringLiteral(": 创建矢量文件失败，已跳过。");
+			goto end;
 		}
 
-		// 栅格转矢量 ----->
-		ipfGdalProgressTools gdal_v;
-		gdal_v.setProgressTitle(QStringLiteral("提取矢量范围"));
-		gdal_v.setProgressSize(clipRasers.size());
-		gdal_v.showProgressDialog();
+		// 栅格转矢量
+		gdal.setProgressTitle(QStringLiteral("提取矢量范围"));
+		gdal.setProgressSize(clipRasers.size());
+		gdal.showProgressDialog();
 		for (int i = 0; i < clipRasers.size(); ++i)
 		{
 			QString clipRaster = clipRasers.at(i);
-			QString err = gdal_v.rasterToVector(clipRaster, vectorFile, 0);
-			if (!err.isEmpty())
-			{
-				addErrList(QStringLiteral("水域提取: ") + err);
-				QFile::remove(rasterFile);
-				continue;
-			}
+			err = gdal.rasterToVector(clipRaster, tmpShape, 0);
+			if (!err.isEmpty()) goto end;
 		}
-		gdal_v.hideProgressDialog();
-		// 栅格转矢量 -----<
-
-		// 删除临时栅格数据
-		QFile::remove(rasterFile);
-
-		// 清除空洞、过滤面积不足的要素 ----->
-		QgsVectorLayer *layer = new QgsVectorLayer(vectorFile, "vector");
-		if (!layer || !layer->isValid())
+		gdal.hideProgressDialog();
+		
+		// 融合矢量
+		layer_src = new QgsVectorLayer(tmpShape, "vector");
+		if (!layer_src || !layer_src->isValid())
 		{
-			addErrList(vectorFile + QStringLiteral(": 读取矢量数据失败(清除空洞)。"));
-			continue;
+			err = QStringLiteral("读取临时文件失败。");
+			goto end;
 		}
-
-		QProgressDialog prDialog(QStringLiteral("要素加工..."), QStringLiteral("取消"), 0, layer->featureCount(), nullptr);
-		prDialog.setWindowTitle(QStringLiteral("处理进度"));
-		prDialog.setWindowModality(Qt::WindowModal);
-		prDialog.show();
-		int prCount = 0;
-
-		QgsFeature f;
-		QList<QgsFeatureId> idList;
-		QgsFeatureIterator fList = layer->getFeatures();
-
-		while (fList.nextFeature(f))
+		layer_target = ipfOGR::createrVectorlayer(tmpShape_dissolve, QgsWkbTypes::Polygon, QgsFields(), ogr_clip.getProjection());
+		if (layer_target == nullptr)
 		{
-			if (f.hasGeometry())
-				idList << f.id();
+			err = QStringLiteral("创建临时文件失败。");
+			goto end;
 		}
 
-		layer->startEditing();
-		int size = idList.size();
-		for (int i = 0; i < size; ++i)
+		err = sga.dissovle(layer_src, layer_target, QStringList());
+
+		// 处理矢量碎面
+		layer_target_target = ipfOGR::createrVectorlayer(dstShp, QgsWkbTypes::Polygon, QgsFields(), ogr_clip.getProjection());
+		if (layer_target_target == nullptr)
 		{
-			QgsFeature f = layer->getFeature(idList.at(i));
-
-			// 删除碎面
-			if (f.geometry().area() < minimumArea)
-			{
-				layer->deleteFeature(f.id());
-				prDialog.setValue(++prCount);
-				continue;
-			}
-
-			// 删除空洞
-			QgsGeometry geo = f.geometry().removeInteriorRings(minimumRingsArea);
-			QgsFeature outFeature;
-			outFeature.setGeometry(geo);
-			QgsAttributes inattrs = f.attributes();
-			outFeature.setAttributes(inattrs);
-			layer->addFeature(outFeature);
-			layer->deleteFeature(f.id());
-
-			prDialog.setValue(++prCount);
-			if (prDialog.wasCanceled())
-			{
-				layer->commitChanges();
-				break;
-			}
+			err = QStringLiteral("创建矢量文件失败。");
+			goto end;
 		}
-		layer->commitChanges();
-		RELEASE(layer);
-		// 清除空洞、过滤面积不足的要素 -----<
+		if (!sga.clearPolygonANDring(layer_target, layer_target_target, minimumArea, minimumRingsArea))
+		{
+			err = QStringLiteral("整理矢量文件失败。");
+			goto end;
+		}
+
+	end:
+		if (!err.isEmpty()) addErrList(srcRaster + ": " + err);
+		QFile::remove(tmpRaster);
+
+		RELEASE(layer_src);
+		RELEASE(layer_target);
+		RELEASE(layer_target_target);
 	}
 }
 

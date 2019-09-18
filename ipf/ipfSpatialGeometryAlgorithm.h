@@ -22,7 +22,11 @@ public:
 	// 获取pVertex到pOther1、pVertex到pOther2的夹角角度
 	static double triangleVertexAngle(const QgsPoint & pVertex, const QgsPoint & pOther1, const QgsPoint & pOther2);
 
-	static bool getFeatures(const QgsVectorLayer* layer_src, QVector< QgsFeature > & featureVec);
+	// 获得QgsVectorLayer中所有feature集合
+	static bool getFeatures(const QgsVectorLayer* layer_src, QVector< QgsFeature* > & featureVec);
+
+	// 清除面积小于area的小面及环
+	static bool clearPolygonANDring(const QgsVectorLayer* layer_src, QgsVectorLayer* layer_target, const double minimumArea, const double minimumRingsArea);
 
 	// 融合 使用时需要注意先用setPrec设置精度
 	QString dissovle(QgsVectorLayer* layer_src, QgsVectorLayer* layer_target, const QStringList& field);

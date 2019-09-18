@@ -65,7 +65,7 @@ void ipfModelerProcessChildPixelDecimals::run()
 
 	foreach(QString var, filesIn())
 	{
-		QString target = ipfFlowManage::instance()->getTempFormatFile(var, ".vrt");
+		QString target = ipfApplication::instance()->getTempFormatFile(var, ".vrt");
 		QString err = gdal.pixelDecimal(var, target, decimals);
 		if (err.isEmpty())
 			appendOutFile(target);

@@ -68,7 +68,7 @@ void ipfModelerProcessChildResample::run()
 
 	foreach(QString var, filesIn())
 	{
-		QString target = ipfFlowManage::instance()->getTempVrtFile(var);
+		QString target = ipfApplication::instance()->getTempVrtFile(var);
 
 		QString err = gdal.resample(var, target, res, resampling_method);
 		if (err.isEmpty())

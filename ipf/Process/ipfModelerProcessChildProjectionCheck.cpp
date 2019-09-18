@@ -92,7 +92,7 @@ void ipfModelerProcessChildProjectionCheck::run()
 		QFileInfo info(var);
 		QString layerName = info.baseName();
 		QgsRasterLayer* layer = new QgsRasterLayer(var, layerName, "gdal");
-		if (!layer->isValid())
+		if (!layer || !layer->isValid())
 		{
 			addErrList(var + QStringLiteral(": 栅格数据读取失败。"));
 			continue;

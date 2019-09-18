@@ -124,7 +124,7 @@ void ipfModelerProcessChildRangeMoidfyValue::run()
 				continue;
 
 			// 裁切AOI VRT栅格
-			QString target = ipfFlowManage::instance()->getTempVrtFile(var);
+			QString target = ipfApplication::instance()->getTempVrtFile(var);
 			QString err = gdal.AOIClip(var, target, vectorName);
 			if (!err.isEmpty())
 			{
@@ -142,7 +142,7 @@ void ipfModelerProcessChildRangeMoidfyValue::run()
 				continue;
 			}
 			srcList << iColLu << iRowLu << iColRd - iColLu + 1 << iRowRd - iRowLu + 1;
-			QString new_target = ipfFlowManage::instance()->getTempVrtFile(target);
+			QString new_target = ipfApplication::instance()->getTempVrtFile(target);
 			err = gdal.proToClip_Translate_src(target, new_target, srcList);
 			if (!err.isEmpty())
 			{
@@ -151,7 +151,7 @@ void ipfModelerProcessChildRangeMoidfyValue::run()
 			}
 
 			// 注册填充算法
-			QString target_target = ipfFlowManage::instance()->getTempVrtFile(var);
+			QString target_target = ipfApplication::instance()->getTempVrtFile(var);
 			err = gdal.pixelFillValue(new_target, target_target, nodata, value);
 			if (!err.isEmpty())
 			{
@@ -160,7 +160,7 @@ void ipfModelerProcessChildRangeMoidfyValue::run()
 			}
 
 			// 转为实体栅格
-			QString targetTo = ipfFlowManage::instance()->getTempFormatFile(var, "." + format);
+			QString targetTo = ipfApplication::instance()->getTempFormatFile(var, "." + format);
 			err = gdal.formatConvert(target_target, targetTo, gdal.enumFormatToString(format), "NONE", "NO", QString::number(nodata));
 			if (!err.isEmpty())
 			{
@@ -173,7 +173,7 @@ void ipfModelerProcessChildRangeMoidfyValue::run()
 		// 镶嵌回大块
 		if (mosaicList.size() > 1)
 		{
-			QString targetOut = ipfFlowManage::instance()->getTempVrtFile(var);
+			QString targetOut = ipfApplication::instance()->getTempVrtFile(var);
 			QString err = gdal.mosaic_Buildvrt(mosaicList, targetOut);
 			if (err.isEmpty())
 				appendOutFile(targetOut);

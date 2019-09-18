@@ -83,7 +83,7 @@ void ipfModelerProcessChildDemGrossErrorCheck::run()
 
 		// 获得DEM参考坐标系
 		QgsRasterLayer* rasterLayer = new QgsRasterLayer(var, "rasterLayer", "gdal");
-		if (!rasterLayer->isValid())
+		if (!rasterLayer || !rasterLayer->isValid())
 		{
 			addErrList(var + QStringLiteral(": 数字高程模型读取失败，无法继续。"));
 			continue;
@@ -128,7 +128,7 @@ void ipfModelerProcessChildDemGrossErrorCheck::run()
 		srcList << iColLu << iRowLu << iColRd - iColLu << iRowRd - iRowLu;
 
 		// 裁切参考DEM
-		QString target = ipfFlowManage::instance()->getTempVrtFile(var);
+		QString target = ipfApplication::instance()->getTempVrtFile(var);
 		err = gdal.proToClip_Translate_src(rasterName, target, srcList);
 		if (!err.isEmpty())
 		{

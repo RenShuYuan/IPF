@@ -2,8 +2,11 @@
 #define HEAD_H
 
 // 释放指针
-#define RELEASE(x)  if(x!=NULL) {delete x; x = NULL;}
-#define RELEASE_ARRAY(x)  if(x!=NULL) {delete [] x; x = NULL;}
+#define RELEASE(x)  if(x!=nullptr) {delete x; x = nullptr;}
+#define RELEASE_ARRAY(x)  if(x!=nullptr) {delete [] x; x = nullptr;}
+
+// IPF
+#include "ipf/ipfapplication.h"
 
 // C++
 #include <memory>
@@ -61,8 +64,10 @@ typedef enum
 #define GGI_DSM			10.0
 
 // IPF
-static const QString IPF_NODATA_NONE("none");
-static const QString NAME_DELIMITER(QStringLiteral("@,@"));
+/* 避免设置栅格数据NODATA的标识符 */	static const QString IPF_NODATA_NONE("none");
+/* 定义临时文件名称的分隔符 */			static const QString NAME_DELIMITER(QStringLiteral("@,@"));
+/* 定义栅格数据分块大小 */			static const int BLOCKSIZE_RASTER = 2024;
+/* 定义栅格数据分块大小 */			static const int BLOCKSIZE_VECTOR = 512;
 
 // 参数模板中各参数位置
 /*像元值位数保留*/
@@ -104,7 +109,6 @@ static const QString MODELER_SPIKEPOINTCHECK(QStringLiteral("高程模型跳点�
 
 static const QString MODELER_SLOPCALCULATION(QStringLiteral("标准偏差-测试"));
 static const QString MODELER_FRACEXTENTPROCESS(QStringLiteral("测试专用"));
-static const QString MODELER_EXTRACT_RASTER_RANGE(QStringLiteral("提取栅格有效范围-测试"));
 
 #endif // HEAD_H
 

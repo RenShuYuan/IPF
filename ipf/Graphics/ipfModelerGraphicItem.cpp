@@ -1,7 +1,6 @@
 #include "ipfModelerGraphicItem.h"
 #include "ipfModelerArrowItem.h"
 #include "ImageProcessFactory.h"
-#include "../ipfapplication.h"
 #include "../Process/ipfFlowManage.h"
 #include "ipf/Process/ipfModelerProcessIn.h"
 #include "ipf/Process/ipfModelerProcessOut.h"

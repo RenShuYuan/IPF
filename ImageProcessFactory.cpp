@@ -34,7 +34,6 @@ ImageProcessFactory::ImageProcessFactory(QWidget *parent)
 
 	flow = new ipfFlowManage(this);
 
-
 	initGraphicsView();
 	initButton();
 	initTreeView();
@@ -48,8 +47,7 @@ ImageProcessFactory::ImageProcessFactory(QWidget *parent)
 	//添加环境变量
 	QString str = QApplication::applicationDirPath() + QStringLiteral("/resources/data");
 	CPLSetConfigOption("GDAL_DATA", str.toStdString().c_str());
-	CPLSetConfigOption("USE_RRD", "YES");
-	CPLSetConfigOption("GDAL_CACHEMAX", "70%");
+	CPLSetConfigOption("GDAL_CACHEMAX", "15%");
 
 	// 注册所有影像格式
 	GDALAllRegister();
@@ -128,11 +126,10 @@ void ImageProcessFactory::initTreeView()
 	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_DSMDEMDIFFECHECK));
 	itemCunstomQQCheck->appendRow(new QStandardItem(icon_Output, MODELER_SPIKEPOINTCHECK));
 
-	QStandardItem* itemCunstomSTBC = new QStandardItem(QStringLiteral("科研测试功能"));
-	model->appendRow(itemCunstomSTBC);
-	itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_SLOPCALCULATION));
+	//QStandardItem* itemCunstomSTBC = new QStandardItem(QStringLiteral("科研测试功能"));
+	//model->appendRow(itemCunstomSTBC);
+	//itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_SLOPCALCULATION));
 	//itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_FRACEXTENTPROCESS));
-	//itemCunstomSTBC->appendRow(new QStandardItem(icon_sf, MODELER_EXTRACT_RASTER_RANGE));
 
 	ui.treeView->expandAll();
 }

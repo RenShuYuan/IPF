@@ -63,7 +63,7 @@ void ipfModelerProcessChildTypeConvert::run()
 
 	foreach(QString var, filesIn())
 	{
-		QString target = ipfFlowManage::instance()->getTempVrtFile(var);
+		QString target = ipfApplication::instance()->getTempVrtFile(var);
 		
 		QString err = gdal.typeConvert(var, target, dataType);
 		if (err.isEmpty())

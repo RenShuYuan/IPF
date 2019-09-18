@@ -36,8 +36,6 @@ extern bool IPF_FILLNODATA;
 extern double IPF_RANGE_VALUE;
 extern double IPF_RANGE_NODATA;
 
-extern QStringList csssseeeww;
-
 // 数字高程模型跳点检测与处理
 extern double IPF_SPIKE_THRESHOLD;
 extern double IPF_SPIKE_NODATA;
@@ -64,16 +62,26 @@ private:
 	struct PixelModifyValue sPixelModifyValue;
 };
 
-/**
-* @brief 3x3模板数据结构体
-* @根据不同的需求应重新设计
-*/
+/*! 3x3模板算子 */
 typedef struct
 {
-	/*! 3x3模板算子 */
 	double dTemplate[9];
 } AlgData3x3;
 
+/*! NDVI模板参数 */
+typedef struct
+{
+	double index;
+	double stlip_index;
+} AlgDataNDVI;
+
+/*! 过滤无效值模板参数 */
+typedef struct
+{
+	QVector< double > invalidValue;
+	bool isNegative;
+	bool bands_noDiffe;
+} AlgDataInvaildVC;
 
 class ipfGdalProgressTools
 {
@@ -95,21 +103,17 @@ public:
 		eUnChanged,				// 未改变
 		eNotCreateDest,			// 无法创建目标文件
 		eUserTerminated,		// 运行已被用户终止
+		eBandsErr,				// 波段数量不正确
+		eBandsNoSupport,		// 不被支持的波段数量
+		eCleanOverviews,		// 清除金字塔文件失败
+		eBuildOverviews,		// 创建金字塔文件失败
 		eOther,					// 其他未知错误
 	};
 
     ipfGdalProgressTools();
     ~ipfGdalProgressTools();
 
-	//static ipfGdalProgressTools *instance() { return smInstance; }
-
 	QStringList getErrList() { return errList; };
-
-	// 返回空闲物理内存大小, 字节
-	qulonglong getFreePhysicalMemory();
-
-	// 返回CPU核数
-	int getNoOfProcessors();
 
 	// 查询本地像元位置
 	QString locationPixelInfo(const QString& source, const double x,const double y, int &iRow, int &iCol);
@@ -141,9 +145,6 @@ public:
 	// 镶嵌
 	QString mosaic_Warp(const QStringList &sourceList, const QString& target);
 	QString mosaic_Buildvrt(const QStringList &sourceList, const QString& target);
-
-	// 清除颜色解释
-	QString clearColorInterp(const QString& source, const QString& target, const int bands);
 
 	// 合成波段
 	QString mergeBand(const QStringList &sourceList, const QString& target);
@@ -180,11 +181,14 @@ public:
 	// 栅格转矢量
 	QString rasterToVector(const QString &rasterFile, const QString &vectorFile, const int index);
 
-	// 融合矢量
-	QString mergeVector(const QString& outPut, const QString& ogrLayer, const QString& fieldName);
-
 	// 使用3x3滑动窗口计算栅格的标准差
 	QString stdevp3x3Alg(const QString &source, const QString &target, const double &threshold);
+
+	// 计算NDWI栅格
+	QString calculateNDWI(const QString &source, const QString &target, double & threshold);
+
+	// 计算NDVI栅格
+	QString calculateNDVI(const QString &source, const QString &target, double & index, double & stlip_index);
 
 	static QString enumErrTypeToString(const ipfGdalProgressTools::errType err);
 	static QString enumTypeToString(const int value);
@@ -240,6 +244,17 @@ private:
 	* @return
 	*/
 	errType ipfGDALlocationinfo(const QString &str, int &iRow, int &iCol);
+	
+	/**
+	* \brief 调用GDALaddo函数创建快视图（金字塔）
+	*
+	* 该函数与GDALaddo实用工具功能一致。
+	*
+	* @param QString 输入与GDALaddo实用工具一致的参数
+	*
+	* @return
+	*/
+	errType ipfGDALaddo(const QString &str);
 
 	/**
 	* \brief 调用GDALogr2ogr矢量处理函数
@@ -284,6 +299,35 @@ private:
 	*/
 	typedef float(*GDALGeneric3x3ProcessingAlg) (float* pafWindow, float fDstNoDataValue, void* pData);
 
+	typedef std::function<double(QVector< double >&, void *pData, double* nodata)> GDALBandsGenericProcessingAlg;
+
+	typedef std::function<double(QVector< double >&, void *pData, double* nodata)> GDALSinglePointGenericProcessingAlg;
+
+	// 多波段模板算子：NDWI
+	static double ipfAlg_NDWI(QVector< double >& pafWindow, void *pData, double* nodata);
+
+	// 多波段模板算子：NDVI
+	static double ipfAlg_NDVI(QVector< double >& pafWindow, void *pData, double* nodata);
+
+	// 多波段模板算子：InvaildValueCheck
+	static double ipfAlg_InvaildValueCheck(QVector< double >& pafWindow, void *pData, double* nodata);
+
+	/**
+	* @brief 单个像元处理函数
+	* @param pfnAlg			算法回调函数
+	* @param pData			算法回调函数参数
+	*/
+	errType GDALSinglePointGenericProcessing(const QString & srcRaster, const QString & dstRaster, void* pData,
+		GDALSinglePointGenericProcessingAlg pfnAlg);
+
+	/**
+	* @brief 多波段1*1模板计算处理函数
+	* @param pfnAlg			算法回调函数
+	* @param pData			算法回调函数参数
+	*/
+	errType GDALBandsGenericProcessing(const QString & srcRaster, const QString & dstRaster, void* pData,
+		GDALBandsGenericProcessingAlg pfnAlg);
+
 	/**
 	* @brief 3*3模板计算处理函数
 	* @param hSrcBand		输入图像波段
@@ -296,6 +340,12 @@ private:
 	errType GDALGeneric3x3Processing(GDALRasterBandH hSrcBand, GDALRasterBandH hDstBand,
 		GDALGeneric3x3ProcessingAlg pfnAlg, void* pData,
 		GDALProgressFunc pfnProgress, void * pProgressData);
+
+	// 返回空闲物理内存大小, 字节
+	qulonglong getFreePhysicalMemory();
+
+	// 返回CPU核数
+	int getNoOfProcessors();
 private:
 	ipfProgress * proDialog;
 	QStringList errList;

@@ -36,16 +36,12 @@ QString ipfModelerProcessChildProcessRasterRectPosition::adjustRange(const QStri
 	double ymax = 0.0;
 
 	// 1/2像元大小
-	double pixelSize = ogr.getPixelSize();
-	double sizeMid = pixelSize / 2;
+	double sizeMid = ogr.getPixelSize() / 2;
 
 	// 左上角坐标
 	QgsRectangle rect = ogr.getXY();
 	double ufX = rect.xMinimum();
 	double ufY = rect.yMaximum();
-
-	// 行列数
-	QList<int> crSize = ogr.getYXSize();
 
 	if (sizeMid == 1)
 	{
@@ -71,7 +67,7 @@ QString ipfModelerProcessChildProcessRasterRectPosition::adjustRange(const QStri
 	if (ogr.setGeoXy(xmin, ymax))
 		return QString();
 	else
-		return QStringLiteral("影像源无法已读写方式打开，未处理。");
+		return QStringLiteral("影像源无法修改坐标信息，未处理。");
 }
 
 void ipfModelerProcessChildProcessRasterRectPosition::run()

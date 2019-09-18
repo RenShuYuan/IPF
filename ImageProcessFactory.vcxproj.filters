@@ -228,12 +228,6 @@
     <ClCompile Include="ui\ipfModelerVegeataionExtractionDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ipf\Process\ipfModelerProcessChildExtractRasterRange.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ui\ipfModelerExtractRasterRangeDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ipf\Process\ipfModelerProcessChildWatersExtraction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -374,9 +368,6 @@
     <QtMoc Include="ui\ipfModelerVegeataionExtractionDialog.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="ui\ipfModelerExtractRasterRangeDialog.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="ui\ipfModelerWatersExtractionDialog.h">
       <Filter>Header Files</Filter>
     </QtMoc>
@@ -473,9 +464,6 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="ui\ipfModelerVegeataionExtractionDialog.ui">
-      <Filter>Form Files</Filter>
-    </QtUic>
-    <QtUic Include="ui\ipfModelerExtractRasterRangeDialog.ui">
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="ui\ipfModelerWatersExtractionDialog.ui">
@@ -610,9 +598,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ipf\Process\ipfModelerProcessChildConsistency.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ipf\Process\ipfModelerProcessChildExtractRasterRange.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ipf\Process\ipfModelerProcessChildWatersExtraction.h">

@@ -206,51 +206,6 @@ void ipfFlowManage::check()
 	}
 }
 
-QString ipfFlowManage::getTempVrtFile(const QString & filePath)
-{
-	QString reName;
-
-	// Esri Grid (hdr.adf)
-	if (QFileInfo(filePath).fileName() == "hdr.adf")
-	{
-		ipfOGR org(filePath);
-		if (!org.isOpen() || org.getBandSize() < 1) return QString();
-		reName = org.getRasterBand(1)->GetDescription();
-	}
-	else
-	{
-		QString fileName = QFileInfo(filePath).baseName();
-		QStringList list = fileName.split(NAME_DELIMITER);
-		if (list.isEmpty())
-			return QString();
-		else
-			reName = list.at(0);
-	}
-
-	QString id = QUuid::createUuid().toString();
-	id.remove('{').remove('}').remove('-');
-	reName = reName + NAME_DELIMITER + id + QStringLiteral(".vrt");
-
-	return tempDir.filePath(reName);
-}
-
-QString ipfFlowManage::getTempFormatFile(const QString & filePath, const QString & format)
-{
-	QFileInfo info(filePath);
-	QString fileName = info.baseName();
-	QStringList list = fileName.split(NAME_DELIMITER);
-	if (list.isEmpty())
-		return QString();
-	else
-		fileName = list.at(0);
-
-	QString id = QUuid::createUuid().toString();
-	id.remove('{').remove('}').remove('-');
-	fileName = fileName + NAME_DELIMITER + id + format;
-
-	return tempDir.filePath(fileName);
-}
-
 void ipfFlowManage::appendItem(ipfModelerGraphicItem * item)
 {
 	QList<ipfModelerGraphicItem*> *items = nullptr;

@@ -19,8 +19,6 @@ public:
 	void setDialogParameter(QMap<QString, QString> map);
 
 	void run();
-private:
-	double watersIndex(const double G, const double NIR);
 
 private:
 	ipfModelerWatersExtractionDialog * dialog;

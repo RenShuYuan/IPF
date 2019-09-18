@@ -4,7 +4,6 @@
 #include <QtWidgets/QMainWindow>
 #include <QObject>
 #include "ui_ImageProcessFactory.h"
-#include "ipf/ipfapplication.h"
 #include "head.h"
 
 class ipfGraphicsView;
@@ -38,6 +37,8 @@ private:
 private:
 	Ui::ImageProcessFactoryClass ui;
 	QSettings mSettings;
+
+	// 为了初始化临时文件夹
 	ipfApplication ipf_app;
 
 	//graphics

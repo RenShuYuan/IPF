@@ -1,7 +1,6 @@
 #include "ipfModelerProcessChildDSMDEMDifferenceProcess.h"
 #include "../gdal/ipfgdalprogresstools.h"
 #include "../ui/ipfModelerDSMDEMDifferenceProcessDialog.h"
-#include "../ipfapplication.h"
 
 #include <QProgressDialog>
 

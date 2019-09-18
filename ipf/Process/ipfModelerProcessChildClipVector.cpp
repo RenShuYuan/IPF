@@ -99,7 +99,7 @@ void ipfModelerProcessChildClipVector::run()
 	gdal.setProgressSize(filesIn().size());
 	gdal.showProgressDialog();
 
-	QString target = ipfFlowManage::instance()->getTempVrtFile(soucre);
+	QString target = ipfApplication::instance()->getTempVrtFile(soucre);
 
 	QString err = gdal.AOIClip(soucre, target, vectorName);
 	if (!err.isEmpty())
@@ -108,7 +108,7 @@ void ipfModelerProcessChildClipVector::run()
 		return;
 	}
 
-	QString new_target = ipfFlowManage::instance()->getTempVrtFile(soucre);
+	QString new_target = ipfApplication::instance()->getTempVrtFile(soucre);
 	err = gdal.proToClip_Translate_src(target, new_target, srcList);
 	if (err.isEmpty())
 		appendOutFile(new_target);

@@ -44,13 +44,6 @@ public:
 	void addErrList(const QString err) { errList.append(err); };
 	void clearErrList() { errList.clear(); };
 
-	/* 分隔符管理
-	 * name: 输入一个完整路径的文件
-	 *，处理后将移除路径及扩展名
-	 *，将只返回文件名称本身
-	*/
-	QString removeDelimiter(const QString file);
-
 	// 执行算法
 	virtual void run();
 

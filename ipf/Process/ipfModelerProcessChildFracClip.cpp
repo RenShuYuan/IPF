@@ -136,11 +136,11 @@ void ipfModelerProcessChildFracClip::run()
 			hemisphere = "";
 
 		if (dateType == "DOM")
-			target = ipfFlowManage::instance()->getTempVrtFile(hemisphere + var + "DOMU");
+			target = ipfApplication::instance()->getTempVrtFile(hemisphere + var + "DOMU");
 		else if (dateType == "DSM")
-			target = ipfFlowManage::instance()->getTempVrtFile(hemisphere + var + "DSMU");
+			target = ipfApplication::instance()->getTempVrtFile(hemisphere + var + "DSMU");
 		else
-			target = ipfFlowManage::instance()->getTempVrtFile(hemisphere + var + "DEMU");
+			target = ipfApplication::instance()->getTempVrtFile(hemisphere + var + "DEMU");
 
 		// 当数据范围不正确时，会自动进行重采样
 		err = gdal.proToClip_Warp(soucre, target, list);

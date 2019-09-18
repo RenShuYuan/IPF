@@ -128,8 +128,9 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 		QApplication::processEvents();
 
 		QString rasterFileName = QFileInfo(var).fileName();
-		QString target = ipfFlowManage::instance()->getTempVrtFile(var);
+		//QString target = ipfApplication::instance()->getTempVrtFile(var);
 
+		QString target = ipfApplication::instance()->getTempFormatFile(var, ".tif");
 		QString err = gdal.filterInvalidValue(var, target, invalidValue, isNegative, isNodata, bands_noDiffe);
 		if (err.isEmpty())
 		{
@@ -148,7 +149,7 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 			{
 				// 输出文件
 				QString format = "tif";
-				QString targetTo = saveName + "\\" + removeDelimiter(target) + '.' + format;
+				QString targetTo = saveName + "\\" + ipfApplication::instance()->removeDelimiter(target) + '.' + format;
 				QString err = gdal.formatConvert(target, targetTo, gdal.enumFormatToString(format), "NONE", "NO", "0");
 				if (!err.isEmpty())
 				{
@@ -162,7 +163,7 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 				{
 					// 分割栅格，提升栅格转矢量的效率
 					QStringList clipRasers;
-					if (!ogr.splitRaster(1024, clipRasers))
+					if (!ogr.splitRaster(BLOCKSIZE_VECTOR, clipRasers))
 					{
 						addErrList(rasterFileName + QStringLiteral(": 输出错误矢量失败，已跳过。"));
 						continue;
@@ -170,7 +171,7 @@ void ipfModelerProcessChildInvalidValueCheck::run()
 
 					// 创建矢量图层 ----->
 					QString vectorFile = targetTo.mid(0, targetTo.size()-3) + "shp";
-					if (!ipfOGR::createrVectorlayer(vectorFile, QgsWkbTypes::Polygon, QgsFields(), wkt))
+					if (!ipfOGR::createrVectorFile(vectorFile, QgsWkbTypes::Polygon, QgsFields(), wkt))
 					{
 						addErrList(rasterFileName + QStringLiteral(": 创建错误矢量文件失败，已跳过。"));
 						continue;

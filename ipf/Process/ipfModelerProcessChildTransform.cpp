@@ -70,7 +70,7 @@ void ipfModelerProcessChildTransform::run()
 
 	foreach(QString var, filesIn())
 	{
-		QString target = ipfFlowManage::instance()->getTempVrtFile(var);
+		QString target = ipfApplication::instance()->getTempVrtFile(var);
 
 		QString err = gdal.transform(var, target, s_srs, t_srs, resampling_method);
 		if (err.isEmpty())

@@ -48,26 +48,69 @@ double ipfSpatialGeometryAlgorithm::triangleVertexAngle(const QgsPoint & pVertex
 	return angle;
 }
 
-bool ipfSpatialGeometryAlgorithm::getFeatures(const QgsVectorLayer * layer_src, QVector<QgsFeature>& featureVec)
+bool ipfSpatialGeometryAlgorithm::getFeatures(const QgsVectorLayer * layer_src, QVector<QgsFeature*>& featureVec)
 {
 	if (layer_src == nullptr || !layer_src->isValid())
 		return false;
 
-	QgsFeature f;
 	int indexVec = -1;
 	try
 	{
+		QgsFeature f;
 		featureVec.resize(layer_src->featureCount());
 		QgsFeatureIterator & featureIt = layer_src->getFeatures();
 		while (featureIt.nextFeature(f))
 			if (f.isValid())
-				featureVec[++indexVec] = f;
+				featureVec[++indexVec] = new QgsFeature(f);
 		return true;
 	}
 	catch (...)
 	{
 		return false;
 	}
+}
+
+bool ipfSpatialGeometryAlgorithm::clearPolygonANDring(const QgsVectorLayer * layer_src, QgsVectorLayer * layer_target,const double minimumArea, const double minimumRingsArea)
+{
+	//初始化进度条计数器
+	ipfProgress proDialog;
+	proDialog.setTitle(QStringLiteral("矢量数据处理"));
+	proDialog.setRangeTotal(0, 1);
+	proDialog.show();
+
+	int counter = 0;
+	QgsFeatureList featureList;
+	QVector< QgsFeature* > featureVec;
+	if (!getFeatures(layer_src, featureVec)) return false;
+	proDialog.setRangeChild(0, featureVec.size());
+
+#pragma omp parallel for
+	for (int i = 0; i < featureVec.size(); ++i)
+	{
+		proDialog.pulsValue();
+		QgsFeature* f = featureVec[i];
+		if ((f->geometry()).area() >= minimumArea) // 删除碎面与空洞
+		{
+			QgsFeature outFeature;
+			outFeature.setGeometry((f->geometry()).removeInteriorRings(minimumRingsArea));
+			outFeature.setAttributes(f->attributes());
+#pragma omp critical
+			featureList.append(outFeature);
+		}
+
+		// 每处理一定数量的要素就写入图层中
+#pragma omp critical
+		{
+			if ((++counter % 50) == 0)
+			{
+				layer_target->dataProvider()->addFeatures(featureList);
+				featureList.clear();
+			}
+		}
+	}
+	layer_target->dataProvider()->addFeatures(featureList);
+	for (auto i : featureVec) RELEASE(i); // 释放feature指针
+	return true;
 }
 
 QString ipfSpatialGeometryAlgorithm::dissovle(QgsVectorLayer * layer_src, QgsVectorLayer * layer_target, const QStringList & fieldList)
@@ -92,7 +135,7 @@ QString ipfSpatialGeometryAlgorithm::dissovle(QgsVectorLayer * layer_src, QgsVec
 	}
 
 	// 获得图层中所有要素
-	QVector< QgsFeature > featureVec;
+	QVector< QgsFeature* > featureVec;
 	if (!getFeatures(layer_src, featureVec))
 		return QStringLiteral("获取矢量图层中的要素失败。");
 
@@ -103,19 +146,19 @@ QString ipfSpatialGeometryAlgorithm::dissovle(QgsVectorLayer * layer_src, QgsVec
 	{
 		proDialog.pulsValue();
 
-		QgsFeature & f = featureVec[i];
-		if (!f.isValid()) continue;
+		QgsFeature* f = featureVec[i];
+		if ((f == nullptr) || (!f->isValid())) continue;
 
 		QVector< QString > vec(fieldIndex.size());
 		for (int i = 0; i < fieldIndex.size(); ++i)
-			vec[i] = f.attribute(fieldIndex[i]).toString();
+			vec[i] = f->attribute(fieldIndex[i]).toString();
 
 #pragma omp critical
 		{
 			if (groups.contains(vec))
-				groups[vec].append(&f);
+				groups[vec].append(f);
 			else
-				groups[vec] = QList< QgsFeature* >() << &f;
+				groups[vec] = QList< QgsFeature* >() << f;
 		}
 	}
 
@@ -152,12 +195,16 @@ QString ipfSpatialGeometryAlgorithm::dissovle(QgsVectorLayer * layer_src, QgsVec
 		{
 			proDialog.pulsValue();
 			QgsFeature* f = list.at(i);
-			if (f->isValid())
-				multiPolygonToPath(f->geometry(), pathTemp[omp_get_thread_num()]);
+			if (f!=nullptr && f->isValid())
+			{
+				int num = omp_get_thread_num();
+				multiPolygonToPath(f->geometry(), pathTemp[num]);
+			}
 		}
 		for (auto i : pathTemp)
 			pathUnion.insert(pathUnion.end(), i.begin(), i.end());
 		std::vector< ClipperLib::Paths >().swap(pathTemp); // 释放pathTemp
+		for (auto i : featureVec) RELEASE(i); // 释放feature指针
 
 		// 使用ClipperLib并联处理
 		proDialog.setRangeChild(0, 0);
@@ -173,7 +220,7 @@ QString ipfSpatialGeometryAlgorithm::dissovle(QgsVectorLayer * layer_src, QgsVec
 		for (auto path : solution)
 		{
 			proDialog.pulsValue();
-			double area = ClipperLib::Area(path) / mPrecX0;
+			double area = ClipperLib::Area(path);
 			if (area >= 0)
 				polygons.insert((ClipperLib::cInt)area, path);
 			else

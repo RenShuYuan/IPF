@@ -64,7 +64,7 @@ void ipfModelerProcessChildQuickView::run()
 
 	foreach(QString var, filesIn())
 	{
-		QString target = ipfFlowManage::instance()->getTempVrtFile(var);
+		QString target = ipfApplication::instance()->getTempVrtFile(var);
 
 		QString err = gdal.quickView(var, target, bs);
 		if (err.isEmpty())

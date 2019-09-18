@@ -29,7 +29,6 @@
 #include "ipf/Process/ipfModelerProcessChildDemGrossErrorCheck.h"
 #include "ipf/Process/ipfModelerProcessChildRasterInfoPrint.h"
 #include "ipf/Process/ipfModelerProcessChildVegeataionExtraction.h"
-#include "ipf/Process/ipfModelerProcessChildExtractRasterRange.h"
 #include "ipf/Process/ipfModelerProcessChildWatersExtraction.h"
 #include "ipf/Process/ipfModelerProcessChildSetNodata.h"
 #include "ipf/Process/ipfModelerProcessChildDSMDEMDifferenceCheck.h"
@@ -449,8 +448,6 @@ ipfModelerProcessBase* ipfGraphicsScene::createProcessBase(const QString & itemN
 		base = new ipfModelerProcessChildRasterInfoPrint(this, MODELER_RASTERINFOPRINT);
 	else if (itemName == MODELER_VEGETATION_EXTRACTION)
 		base = new ipfModelerProcessChildVegeataionExtraction(this, MODELER_VEGETATION_EXTRACTION);
-	else if (itemName == MODELER_EXTRACT_RASTER_RANGE)
-		base = new ipfModelerProcessChildExtractRasterRange(this, MODELER_EXTRACT_RASTER_RANGE);
 	else if (itemName == MODELER_WATERS_EXTRACTION)
 		base = new ipfModelerProcessChildWatersExtraction(this, MODELER_WATERS_EXTRACTION);
 	else if (itemName == MODELER_SETNODATA)

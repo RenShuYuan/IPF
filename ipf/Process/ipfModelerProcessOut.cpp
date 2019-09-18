@@ -80,10 +80,9 @@ void ipfModelerProcessOut::run()
 	gdal.showProgressDialog();
 
 
-	for (int i = 0; i < filesIn().size(); ++i)
+	for (auto var : filesIn())
 	{
-		QString var = filesIn().at(i);
-		QString target = outPath + "\\" + removeDelimiter(var) + '.' + format;
+		QString target = outPath + "\\" + ipfApplication::instance()->removeDelimiter(var) + '.' + format;
 		QString err = gdal.formatConvert(var, target, gdal.enumFormatToString(format), compress, isTfw, noData);
 
 		if (err.isEmpty())
